@@ -1,18 +1,22 @@
 # Office Escape
 
-Prototype mobile 2D d'infiltration/puzzle développé avec Phaser 4 + Vite.
+Prototype mobile 2D d'infiltration/puzzle développé avec Phaser 4, TypeScript et Vite.
 
-## V0.1
+## V0.2 — Première infiltration
 
-Objectif de cette version : tester les sensations de déplacement sur téléphone avant d'ajouter les PNJ et l'infiltration.
+Cette version permet de tester la première boucle de gameplay du niveau 1 : sortir du bureau, observer un collègue, éviter son regard, se cacher dans les toilettes puis atteindre le haut de la zone.
 
-- format portrait ;
-- déplacement libre au joystick tactile ;
-- deux vitesses : marche et course ;
-- bouton **COURIR** à maintenir ;
-- caméra qui suit le joueur ;
-- collisions simples ;
-- carte de test verticale, du bas vers le haut ;
-- commandes clavier de secours pour tester sur ordinateur (ZQSD/WASD/flèches + Shift).
+- format portrait et progression du bas vers le haut ;
+- joystick tactile et bouton **COURIR** à maintenir avec un second doigt ;
+- horloge dynamique : 5 secondes réelles correspondent à 1 minute de jeu ;
+- collègue suivant une patrouille prévisible ;
+- cône de vision visible, coupé par les murs et les meubles ;
+- course augmentant la portée du cône et la vitesse de détection ;
+- jauge de suspicion, alerte après 2 secondes et interception après 4 secondes ;
+- poursuite temporaire puis retour automatique à la patrouille ;
+- contact direct avec le collègue provoquant une interception immédiate ;
+- toilettes utilisables comme cachette, sans arrêter le temps ;
+- tutoriel contextuel avec bulles cliquables ;
+- commandes clavier de secours : ZQSD/WASD/flèches, Shift pour courir et Espace pour interagir.
 
-Le jeu est automatiquement déployé sur GitHub Pages à chaque push sur `main`.
+Le jeu est automatiquement vérifié, compilé et déployé sur GitHub Pages à chaque push sur `main`.
