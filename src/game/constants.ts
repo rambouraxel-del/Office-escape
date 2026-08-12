@@ -15,9 +15,13 @@ export const PLAYER_RADIUS = 18;
 export const NPC_RADIUS = 17;
 export const NPC_PATROL_SPEED = 82;
 export const NPC_CHASE_SPEED = 116;
+export const BOSS_PATROL_SPEED = 72;
+export const BOSS_CHASE_SPEED = 128;
 
 export const BASE_VISION_RANGE = 310;
 export const VISION_HALF_ANGLE = Phaser.Math.DegToRad(31);
+export const BOSS_VISION_RANGE = 340;
+export const BOSS_VISION_HALF_ANGLE = Phaser.Math.DegToRad(36);
 export const RUN_VISION_MULTIPLIER = 1.3;
 export const DETECTION_ALERT_SECONDS = 2;
 export const DETECTION_INTERCEPT_SECONDS = 4;
@@ -36,6 +40,7 @@ export const COLORS = {
   desk: 0x9f8064,
   player: 0x3f6f8f,
   colleague: 0xc9674f,
+  boss: 0x75558a,
   coneCalm: 0xf3c969,
   coneAlert: 0xef6a5b,
   hud: 0x18232d,

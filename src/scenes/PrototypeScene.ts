@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import {
   BASE_VISION_RANGE,
+  BOSS_CHASE_SPEED,
+  BOSS_PATROL_SPEED,
+  BOSS_VISION_HALF_ANGLE,
+  BOSS_VISION_RANGE,
   COLORS,
   DETECTION_ALERT_SECONDS,
   DETECTION_DECAY_PER_SECOND,
@@ -28,7 +32,29 @@ import {
 import { buildVisionPolygon, isPointVisible } from '../game/geometry';
 
 type GameState = 'playing' | 'intercepted' | 'completed';
-type TutorialAnchor = 'player' | 'restroom';
+type TutorialAnchor = 'player' | 'restroom' | 'pillar';
+
+interface NpcAgent {
+  id: string;
+  label: string;
+  actor: Phaser.GameObjects.Arc;
+  body: Phaser.Physics.Arcade.Body;
+  nameText: Phaser.GameObjects.Text;
+  visionGraphics: Phaser.GameObjects.Graphics;
+  directionGraphics: Phaser.GameObjects.Graphics;
+  detectionBackground: Phaser.GameObjects.Rectangle;
+  detectionFill: Phaser.GameObjects.Rectangle;
+  detectionLabel: Phaser.GameObjects.Text;
+  direction: Phaser.Math.Vector2;
+  patrolPoints: Phaser.Math.Vector2[];
+  patrolTargetIndex: number;
+  patrolSpeed: number;
+  chaseSpeed: number;
+  visionRange: number;
+  visionHalfAngle: number;
+  alerted: boolean;
+  detectionSeconds: number;
+}
 
 interface TutorialBubble {
   id: string;
@@ -39,26 +65,17 @@ interface TutorialBubble {
 export class PrototypeScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
   private playerBody!: Phaser.Physics.Arcade.Body;
-  private npc!: Phaser.GameObjects.Arc;
-  private npcBody!: Phaser.Physics.Arcade.Body;
+  private npcs: NpcAgent[] = [];
 
   private blockers: Phaser.Geom.Rectangle[] = [];
   private staticObstacles: Phaser.GameObjects.Rectangle[] = [];
   private moveVector = new Phaser.Math.Vector2();
-  private npcDirection = new Phaser.Math.Vector2(0, 1);
-  private patrolPoints = [
-    new Phaser.Math.Vector2(250, 1320),
-    new Phaser.Math.Vector2(250, 1790)
-  ];
-  private patrolTargetIndex = 1;
 
   private joystickPointerId: number | null = null;
   private runPointerId: number | null = null;
   private runHeld = false;
   private isActuallyRunning = false;
   private isHidden = false;
-  private isNpcAlerted = false;
-  private detectionSeconds = 0;
   private elapsedRealMs = 0;
   private gameState: GameState = 'playing';
 
@@ -73,12 +90,6 @@ export class PrototypeScene extends Phaser.Scene {
   private toastText!: Phaser.GameObjects.Text;
   private toastTimer?: Phaser.Time.TimerEvent;
 
-  private visionGraphics!: Phaser.GameObjects.Graphics;
-  private npcDirectionGraphics!: Phaser.GameObjects.Graphics;
-  private detectionBackground!: Phaser.GameObjects.Rectangle;
-  private detectionFill!: Phaser.GameObjects.Rectangle;
-  private detectionLabel!: Phaser.GameObjects.Text;
-
   private keyboardKeys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private currentTutorial?: TutorialBubble;
   private dismissedTutorials = new Set<string>();
@@ -88,6 +99,7 @@ export class PrototypeScene extends Phaser.Scene {
   private readonly spawnPoint = new Phaser.Math.Vector2(250, 2050);
   private readonly restroomDoor = new Phaser.Math.Vector2(138, 1580);
   private readonly restroomExit = new Phaser.Math.Vector2(168, 1580);
+  private readonly pillarCenter = new Phaser.Math.Vector2(250, 860);
 
   constructor() {
     super('PrototypeScene');
@@ -103,18 +115,13 @@ export class PrototypeScene extends Phaser.Scene {
     this.createMap();
     this.createPlayer();
     this.createColleague();
+    this.createBoss();
     this.createCamera();
     this.createHud();
     this.createJoystick();
     this.createRunButton();
     this.createInteractionButton();
     this.createKeyboardFallback();
-
-    this.physics.add.overlap(this.player, this.npc, () => {
-      if (!this.isHidden && this.gameState === 'playing') {
-        this.interceptPlayer('contact');
-      }
-    });
 
     this.input.on('pointermove', this.onPointerMove, this);
     this.input.on('pointerup', this.onPointerUp, this);
@@ -131,14 +138,14 @@ export class PrototypeScene extends Phaser.Scene {
     this.elapsedRealMs += delta;
     this.updateClock();
     this.updatePlayer();
-    this.updateColleague();
+    this.updateNpcs();
     this.updateDetection(delta / 1000);
     this.updateInteraction();
     this.updateTutorials();
     this.updateTutorialPosition();
-    this.drawVisionAndNpcDirection();
+    this.drawNpcVision();
 
-    if (!this.isHidden && this.player.y <= 1150) {
+    if (!this.isHidden && this.player.y <= 430) {
       this.completeTest();
     }
   }
@@ -146,16 +153,13 @@ export class PrototypeScene extends Phaser.Scene {
   private resetRuntimeState() {
     this.blockers = [];
     this.staticObstacles = [];
+    this.npcs = [];
     this.moveVector.set(0, 0);
-    this.npcDirection.set(0, 1);
-    this.patrolTargetIndex = 1;
     this.joystickPointerId = null;
     this.runPointerId = null;
     this.runHeld = false;
     this.isActuallyRunning = false;
     this.isHidden = false;
-    this.isNpcAlerted = false;
-    this.detectionSeconds = 0;
     this.elapsedRealMs = 0;
     this.gameState = 'playing';
     this.dismissedTutorials.clear();
@@ -164,7 +168,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.hasRun = false;
 
     try {
-      this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v02') === 'done';
+      this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v03') === 'done';
     } catch {
       this.tutorialsCompleted = false;
     }
@@ -187,8 +191,8 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#52614e'
     }).setOrigin(0.5).setDepth(1);
 
-    this.add.rectangle(250, 1125, 310, 110, COLORS.green, 0.35).setDepth(0);
-    this.add.text(250, 1125, 'FIN DU TEST V0.2', {
+    this.add.rectangle(250, 360, 310, 120, COLORS.green, 0.35).setDepth(0);
+    this.add.text(250, 360, 'ZONE VALIDÉE · V0.3', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '19px',
       fontStyle: 'bold',
@@ -239,10 +243,29 @@ export class PrototypeScene extends Phaser.Scene {
     wall(420, 1500, 90, 110, COLORS.desk);
     wall(80, 1245, 110, 75, COLORS.desk);
 
+    // Deuxième défi : un pilier central autour duquel le boss effectue sa ronde.
+    wall(this.pillarCenter.x, this.pillarCenter.y, 150, 190, 0x75695d);
+    this.add.text(this.pillarCenter.x, this.pillarCenter.y, 'PILIER', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '16px',
+      fontStyle: 'bold',
+      color: '#eee6d8'
+    }).setOrigin(0.5).setDepth(11);
+
+    wall(77, 560, 110, 80, COLORS.desk);
+    wall(423, 560, 110, 80, COLORS.desk);
+
     this.add.text(250, 1840, 'COULOIR PRINCIPAL', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '13px',
       color: '#9b8b78'
+    }).setOrigin(0.5).setDepth(1);
+
+    this.add.text(250, 1160, 'ZONE DU BOSS', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#806f83'
     }).setOrigin(0.5).setDepth(1);
   }
 
@@ -259,38 +282,112 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createColleague() {
-    this.visionGraphics = this.add.graphics().setDepth(4);
-    this.npcDirectionGraphics = this.add.graphics().setDepth(26);
-    this.npc = this.add.circle(this.patrolPoints[0].x, this.patrolPoints[0].y, NPC_RADIUS, COLORS.colleague)
+    this.createNpc({
+      id: 'colleague',
+      label: 'COLLÈGUE',
+      color: COLORS.colleague,
+      labelColor: '#713a30',
+      patrolPoints: [
+        new Phaser.Math.Vector2(250, 1320),
+        new Phaser.Math.Vector2(250, 1790)
+      ],
+      patrolSpeed: NPC_PATROL_SPEED,
+      chaseSpeed: NPC_CHASE_SPEED,
+      visionRange: BASE_VISION_RANGE,
+      visionHalfAngle: VISION_HALF_ANGLE
+    });
+  }
+
+  private createBoss() {
+    this.createNpc({
+      id: 'boss',
+      label: 'BOSS',
+      color: COLORS.boss,
+      labelColor: '#563c62',
+      patrolPoints: [
+        new Phaser.Math.Vector2(105, 680),
+        new Phaser.Math.Vector2(395, 680),
+        new Phaser.Math.Vector2(395, 1040),
+        new Phaser.Math.Vector2(105, 1040)
+      ],
+      patrolSpeed: BOSS_PATROL_SPEED,
+      chaseSpeed: BOSS_CHASE_SPEED,
+      visionRange: BOSS_VISION_RANGE,
+      visionHalfAngle: BOSS_VISION_HALF_ANGLE
+    });
+  }
+
+  private createNpc(config: {
+    id: string;
+    label: string;
+    color: number;
+    labelColor: string;
+    patrolPoints: Phaser.Math.Vector2[];
+    patrolSpeed: number;
+    chaseSpeed: number;
+    visionRange: number;
+    visionHalfAngle: number;
+  }) {
+    const spawn = config.patrolPoints[0];
+    const actor = this.add.circle(spawn.x, spawn.y, NPC_RADIUS, config.color)
       .setStrokeStyle(3, 0xffffff, 0.85)
       .setDepth(25);
-    this.physics.add.existing(this.npc);
-    this.npcBody = this.npc.body as Phaser.Physics.Arcade.Body;
-    this.npcBody.setCircle(NPC_RADIUS);
-    this.npcBody.setImmovable(true);
-    this.npcBody.setCollideWorldBounds(true);
+    this.physics.add.existing(actor);
+    const body = actor.body as Phaser.Physics.Arcade.Body;
+    body.setCircle(NPC_RADIUS);
+    body.setCollideWorldBounds(true);
 
-    this.add.text(this.npc.x, this.npc.y - 25, 'COLLÈGUE', {
+    const nameText = this.add.text(actor.x, actor.y - 25, config.label, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
-      color: '#713a30'
-    }).setOrigin(0.5).setName('npc-name').setDepth(27);
+      color: config.labelColor
+    }).setOrigin(0.5).setDepth(27);
 
-    this.detectionBackground = this.add.rectangle(this.npc.x - 34, this.npc.y - 45, 68, 8, 0x2d3942, 0.85)
+    const detectionBackground = this.add.rectangle(actor.x - 34, actor.y - 45, 68, 8, 0x2d3942, 0.85)
       .setOrigin(0, 0.5)
       .setDepth(40)
       .setVisible(false);
-    this.detectionFill = this.add.rectangle(this.npc.x - 32, this.npc.y - 45, 64, 5, 0xf0c75e, 1)
+    const detectionFill = this.add.rectangle(actor.x - 32, actor.y - 45, 64, 5, 0xf0c75e, 1)
       .setOrigin(0, 0.5)
       .setDepth(41)
       .setVisible(false);
-    this.detectionLabel = this.add.text(this.npc.x, this.npc.y - 58, '', {
+    const detectionLabel = this.add.text(actor.x, actor.y - 58, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
       color: '#5c382d'
     }).setOrigin(0.5).setDepth(42).setVisible(false);
+
+    const agent: NpcAgent = {
+      id: config.id,
+      label: config.label,
+      actor,
+      body,
+      nameText,
+      visionGraphics: this.add.graphics().setDepth(4),
+      directionGraphics: this.add.graphics().setDepth(26),
+      detectionBackground,
+      detectionFill,
+      detectionLabel,
+      direction: new Phaser.Math.Vector2(0, 1),
+      patrolPoints: config.patrolPoints,
+      patrolTargetIndex: 1,
+      patrolSpeed: config.patrolSpeed,
+      chaseSpeed: config.chaseSpeed,
+      visionRange: config.visionRange,
+      visionHalfAngle: config.visionHalfAngle,
+      alerted: false,
+      detectionSeconds: 0
+    };
+
+    this.staticObstacles.forEach((obstacle) => this.physics.add.collider(actor, obstacle));
+    this.physics.add.overlap(this.player, actor, () => {
+      if (!this.isHidden && this.gameState === 'playing') {
+        this.interceptPlayer('contact', agent.label);
+      }
+    });
+    this.npcs.push(agent);
   }
 
   private createCamera() {
@@ -313,7 +410,7 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#ffffff'
     }).setScrollFactor(0).setDepth(301);
 
-    this.add.text(24, 52, 'V0.2 · Première infiltration', {
+    this.add.text(24, 52, 'V0.3 · Le boss rôde', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       color: '#c9d5dd'
@@ -475,112 +572,127 @@ export class PrototypeScene extends Phaser.Scene {
     }
   }
 
-  private updateColleague() {
-    let target: Phaser.Math.Vector2;
-    let speed: number;
+  private updateNpcs() {
+    for (const npc of this.npcs) {
+      let target: Phaser.Math.Vector2;
+      let speed: number;
 
-    if (this.isNpcAlerted && !this.isHidden) {
-      target = new Phaser.Math.Vector2(this.player.x, this.player.y);
-      speed = NPC_CHASE_SPEED;
-    } else {
-      target = this.patrolPoints[this.patrolTargetIndex];
-      speed = NPC_PATROL_SPEED;
+      if (npc.alerted && !this.isHidden) {
+        target = new Phaser.Math.Vector2(this.player.x, this.player.y);
+        speed = npc.chaseSpeed;
+      } else {
+        target = npc.patrolPoints[npc.patrolTargetIndex];
+        speed = npc.patrolSpeed;
 
-      if (Phaser.Math.Distance.Between(this.npc.x, this.npc.y, target.x, target.y) < 10) {
-        this.patrolTargetIndex = this.patrolTargetIndex === 0 ? 1 : 0;
-        target = this.patrolPoints[this.patrolTargetIndex];
+        if (Phaser.Math.Distance.Between(npc.actor.x, npc.actor.y, target.x, target.y) < 12) {
+          npc.patrolTargetIndex = (npc.patrolTargetIndex + 1) % npc.patrolPoints.length;
+          target = npc.patrolPoints[npc.patrolTargetIndex];
+        }
       }
+
+      npc.direction.set(target.x - npc.actor.x, target.y - npc.actor.y);
+      if (npc.direction.lengthSq() > 0.001) npc.direction.normalize();
+      npc.body.setVelocity(npc.direction.x * speed, npc.direction.y * speed);
+      npc.nameText.setPosition(npc.actor.x, npc.actor.y - 25);
     }
-
-    this.npcDirection.set(target.x - this.npc.x, target.y - this.npc.y);
-    if (this.npcDirection.lengthSq() > 0.001) this.npcDirection.normalize();
-    this.npcBody.setVelocity(this.npcDirection.x * speed, this.npcDirection.y * speed);
-
-    const name = this.children.getByName('npc-name') as Phaser.GameObjects.Text | null;
-    name?.setPosition(this.npc.x, this.npc.y - 25);
   }
 
   private updateDetection(deltaSeconds: number) {
-    const directionAngle = Math.atan2(this.npcDirection.y, this.npcDirection.x);
-    const range = BASE_VISION_RANGE * (this.isActuallyRunning ? RUN_VISION_MULTIPLIER : 1);
-    const visible = !this.isHidden && isPointVisible(
-      this.player,
-      this.npc,
-      directionAngle,
-      VISION_HALF_ANGLE,
-      range,
-      this.blockers
-    );
+    let anyoneVisible = false;
+    let anyoneAlerted = false;
 
-    if (visible) {
-      const multiplier = this.isActuallyRunning ? RUN_DETECTION_MULTIPLIER : 1;
-      this.detectionSeconds = Math.min(
-        DETECTION_INTERCEPT_SECONDS,
-        this.detectionSeconds + deltaSeconds * multiplier
+    for (const npc of this.npcs) {
+      const directionAngle = Math.atan2(npc.direction.y, npc.direction.x);
+      const range = npc.visionRange * (this.isActuallyRunning ? RUN_VISION_MULTIPLIER : 1);
+      const visible = !this.isHidden && isPointVisible(
+        this.player,
+        npc.actor,
+        directionAngle,
+        npc.visionHalfAngle,
+        range,
+        this.blockers
       );
-    } else {
-      this.detectionSeconds = Math.max(
-        0,
-        this.detectionSeconds - deltaSeconds * DETECTION_DECAY_PER_SECOND
-      );
+
+      if (visible) {
+        const multiplier = this.isActuallyRunning ? RUN_DETECTION_MULTIPLIER : 1;
+        npc.detectionSeconds = Math.min(
+          DETECTION_INTERCEPT_SECONDS,
+          npc.detectionSeconds + deltaSeconds * multiplier
+        );
+      } else {
+        npc.detectionSeconds = Math.max(
+          0,
+          npc.detectionSeconds - deltaSeconds * DETECTION_DECAY_PER_SECOND
+        );
+      }
+
+      if (npc.detectionSeconds >= DETECTION_ALERT_SECONDS) npc.alerted = true;
+      else if (npc.detectionSeconds < 0.35) npc.alerted = false;
+
+      if (npc.detectionSeconds >= DETECTION_INTERCEPT_SECONDS) {
+        this.interceptPlayer('vision', npc.label);
+        return;
+      }
+
+      anyoneVisible ||= visible;
+      anyoneAlerted ||= npc.alerted;
+      this.updateDetectionDisplay(npc);
     }
-
-    if (this.detectionSeconds >= DETECTION_ALERT_SECONDS) this.isNpcAlerted = true;
-    else if (this.detectionSeconds < 0.35) this.isNpcAlerted = false;
-
-    if (this.detectionSeconds >= DETECTION_INTERCEPT_SECONDS) {
-      this.interceptPlayer('vision');
-      return;
-    }
-
-    this.updateDetectionDisplay(visible);
-  }
-
-  private updateDetectionDisplay(visible: boolean) {
-    const active = this.detectionSeconds > 0.02;
-    const ratio = Phaser.Math.Clamp(this.detectionSeconds / DETECTION_INTERCEPT_SECONDS, 0, 1);
-    const alerted = this.detectionSeconds >= DETECTION_ALERT_SECONDS;
-    const color = alerted ? COLORS.coneAlert : COLORS.coneCalm;
-
-    this.detectionBackground.setPosition(this.npc.x - 34, this.npc.y - 45).setVisible(active);
-    this.detectionFill
-      .setPosition(this.npc.x - 32, this.npc.y - 45)
-      .setDisplaySize(Math.max(1, 64 * ratio), 5)
-      .setFillStyle(color, 1)
-      .setVisible(active);
-    this.detectionLabel
-      .setPosition(this.npc.x, this.npc.y - 58)
-      .setText(alerted ? 'ALERTE !' : 'SUSPICION')
-      .setColor(alerted ? '#b13f35' : '#7b5c22')
-      .setVisible(active);
 
     if (this.isHidden) {
       this.stateText.setText('CACHÉ').setColor('#9dd6ef');
-    } else if (alerted) {
+    } else if (anyoneAlerted) {
       this.stateText.setText('POURSUITE').setColor('#ff8a78');
-    } else if (visible) {
+    } else if (anyoneVisible) {
       this.stateText.setText('REPÉRAGE…').setColor('#ffd270');
     } else {
       this.stateText.setText('DISCRET').setColor('#9fd4ad');
     }
   }
 
-  private drawVisionAndNpcDirection() {
-    const angle = Math.atan2(this.npcDirection.y, this.npcDirection.x);
-    const range = BASE_VISION_RANGE * (this.isActuallyRunning ? RUN_VISION_MULTIPLIER : 1);
-    const points = buildVisionPolygon(this.npc, angle, VISION_HALF_ANGLE, range, this.blockers);
+  private updateDetectionDisplay(npc: NpcAgent) {
+    const active = npc.detectionSeconds > 0.02;
+    const ratio = Phaser.Math.Clamp(npc.detectionSeconds / DETECTION_INTERCEPT_SECONDS, 0, 1);
+    const color = npc.alerted ? COLORS.coneAlert : COLORS.coneCalm;
 
-    this.visionGraphics.clear();
-    this.visionGraphics.fillStyle(this.isNpcAlerted ? COLORS.coneAlert : COLORS.coneCalm, this.isNpcAlerted ? 0.34 : 0.25);
-    this.visionGraphics.fillPoints(points, true);
-    this.visionGraphics.lineStyle(2, this.isNpcAlerted ? COLORS.coneAlert : COLORS.coneCalm, 0.42);
-    this.visionGraphics.strokePoints(points, true);
+    npc.detectionBackground.setPosition(npc.actor.x - 34, npc.actor.y - 45).setVisible(active);
+    npc.detectionFill
+      .setPosition(npc.actor.x - 32, npc.actor.y - 45)
+      .setDisplaySize(Math.max(1, 64 * ratio), 5)
+      .setFillStyle(color, 1)
+      .setVisible(active);
+    npc.detectionLabel
+      .setPosition(npc.actor.x, npc.actor.y - 58)
+      .setText(npc.alerted ? 'ALERTE !' : 'SUSPICION')
+      .setColor(npc.alerted ? '#b13f35' : '#7b5c22')
+      .setVisible(active);
+  }
 
-    const noseX = this.npc.x + this.npcDirection.x * 24;
-    const noseY = this.npc.y + this.npcDirection.y * 24;
-    this.npcDirectionGraphics.clear();
-    this.npcDirectionGraphics.lineStyle(4, 0xffffff, 0.9);
-    this.npcDirectionGraphics.lineBetween(this.npc.x, this.npc.y, noseX, noseY);
+  private drawNpcVision() {
+    for (const npc of this.npcs) {
+      const angle = Math.atan2(npc.direction.y, npc.direction.x);
+      const range = npc.visionRange * (this.isActuallyRunning ? RUN_VISION_MULTIPLIER : 1);
+      const points = buildVisionPolygon(
+        npc.actor,
+        angle,
+        npc.visionHalfAngle,
+        range,
+        this.blockers
+      );
+      const color = npc.alerted ? COLORS.coneAlert : COLORS.coneCalm;
+
+      npc.visionGraphics.clear();
+      npc.visionGraphics.fillStyle(color, npc.alerted ? 0.34 : 0.25);
+      npc.visionGraphics.fillPoints(points, true);
+      npc.visionGraphics.lineStyle(2, color, 0.42);
+      npc.visionGraphics.strokePoints(points, true);
+
+      const noseX = npc.actor.x + npc.direction.x * 24;
+      const noseY = npc.actor.y + npc.direction.y * 24;
+      npc.directionGraphics.clear();
+      npc.directionGraphics.lineStyle(4, 0xffffff, 0.9);
+      npc.directionGraphics.lineBetween(npc.actor.x, npc.actor.y, noseX, noseY);
+    }
   }
 
   private updateInteraction() {
@@ -613,13 +725,13 @@ export class PrototypeScene extends Phaser.Scene {
   private leaveRestroom() {
     if (!this.isHidden) return;
 
-    const npcDistance = Phaser.Math.Distance.Between(
-      this.npc.x,
-      this.npc.y,
+    const exitBlocked = this.npcs.some((npc) => Phaser.Math.Distance.Between(
+      npc.actor.x,
+      npc.actor.y,
       this.restroomExit.x,
       this.restroomExit.y
-    );
-    if (npcDistance < 58) {
+    ) < 58);
+    if (exitBlocked) {
       this.showToast('Attends : le passage est bloqué !');
       return;
     }
@@ -662,6 +774,15 @@ export class PrototypeScene extends Phaser.Scene {
       !this.dismissedTutorials.has('hide')
     ) {
       this.showTutorial('hide', 'Approche-toi puis entre pour te cacher.', 'restroom');
+      return;
+    }
+
+    if (
+      this.dismissedTutorials.has('hide') &&
+      this.player.y < 1250 &&
+      !this.dismissedTutorials.has('pillar')
+    ) {
+      this.showTutorial('pillar', 'Contourne le pilier pour couper la vue du boss.', 'pillar');
     }
   }
 
@@ -699,8 +820,10 @@ export class PrototypeScene extends Phaser.Scene {
 
     if (this.currentTutorial.anchor === 'player') {
       this.currentTutorial.container.setPosition(this.player.x, this.player.y - 85);
-    } else {
+    } else if (this.currentTutorial.anchor === 'restroom') {
       this.currentTutorial.container.setPosition(205, 1470);
+    } else {
+      this.currentTutorial.container.setPosition(this.pillarCenter.x, this.pillarCenter.y - 150);
     }
   }
 
@@ -711,10 +834,10 @@ export class PrototypeScene extends Phaser.Scene {
     this.currentTutorial = undefined;
     this.dismissedTutorials.add(id);
 
-    if (id === 'hide') {
+    if (id === 'pillar') {
       this.tutorialsCompleted = true;
       try {
-        localStorage.setItem('office-escape-tutorial-v02', 'done');
+        localStorage.setItem('office-escape-tutorial-v03', 'done');
       } catch {
         // Le jeu reste fonctionnel si le stockage privé du navigateur est bloqué.
       }
@@ -734,13 +857,13 @@ export class PrototypeScene extends Phaser.Scene {
     });
   }
 
-  private interceptPlayer(reason: 'vision' | 'contact') {
+  private interceptPlayer(reason: 'vision' | 'contact', npcLabel: string) {
     if (this.gameState !== 'playing') return;
     this.gameState = 'intercepted';
     this.stopActors();
     const explanation = reason === 'contact'
-      ? `Tu as touché le collègue à ${this.formatCurrentTime()}.`
-      : `Sa jauge s'est remplie à ${this.formatCurrentTime()}.`;
+      ? `Tu as touché ${npcLabel} à ${this.formatCurrentTime()}.`
+      : `${npcLabel} t'a repéré à ${this.formatCurrentTime()}.`;
     this.showEndOverlay('INTERCEPTÉ !', explanation, 0xb8493f, 'RECOMMENCER');
   }
 
@@ -750,7 +873,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.stopActors();
     this.showEndOverlay(
       'ZONE VALIDÉE',
-      `Tu as passé le collègue à ${this.formatCurrentTime()}.`,
+      `Tu as passé le collègue et le boss à ${this.formatCurrentTime()}.`,
       0x4f8b61,
       'REJOUER'
     );
@@ -758,7 +881,7 @@ export class PrototypeScene extends Phaser.Scene {
 
   private stopActors() {
     this.playerBody.setVelocity(0, 0);
-    this.npcBody.setVelocity(0, 0);
+    this.npcs.forEach((npc) => npc.body.setVelocity(0, 0));
     this.resetJoystick();
     this.setRunHeld(false);
     this.interactionButton.setVisible(false);
