@@ -2,6 +2,18 @@
 
 Prototype mobile 2D d'infiltration/puzzle développé avec Phaser 4, TypeScript et Vite.
 
+## V0.7 — Direction graphique « Corporate Cartoon »
+
+La phase graphique installe une identité chaleureuse, lisible et légèrement satirique sans modifier les mécaniques du niveau.
+
+- illustration originale et responsive sur l'écran d'accueil ;
+- palette crème, bleu nuit, turquoise, corail et prune ;
+- personnages illustrés et différenciés pour le joueur, les collègues et le boss ;
+- mobilier enrichi avec écrans, dossiers, tasses, plantes, ombres et volumes ;
+- sol en dalles nuancées et obstacles mieux détachés du décor ;
+- HUD mobile arrondi, hiérarchie typographique renforcée et contrôles harmonisés ;
+- cônes de vision ambrés conservant une lecture immédiate du gameplay.
+
 ## V0.6 — Consolidation du niveau 1
 
 Cette version transforme la boucle complète du niveau 1 en prototype présentable et plus robuste sur mobile.

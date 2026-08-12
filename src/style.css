@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  background: #111820;
+  background: #0c1425;
 }
 
 html,
@@ -12,7 +12,8 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #111820;
+  background:
+    radial-gradient(circle at 50% 18%, #24344d 0%, #111d35 46%, #090f1c 100%);
 }
 
 html,
@@ -32,4 +33,5 @@ canvas {
   margin: 0 auto;
   touch-action: none;
   outline: none;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
 }

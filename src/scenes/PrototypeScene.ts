@@ -39,7 +39,7 @@ type InteractionTarget = 'restroom' | 'donut' | null;
 interface NpcAgent {
   id: string;
   label: string;
-  actor: Phaser.GameObjects.Arc;
+  actor: Phaser.GameObjects.Sprite;
   body: Phaser.Physics.Arcade.Body;
   nameText: Phaser.GameObjects.Text;
   visionGraphics: Phaser.GameObjects.Graphics;
@@ -65,7 +65,7 @@ interface TutorialBubble {
 }
 
 export class PrototypeScene extends Phaser.Scene {
-  private player!: Phaser.GameObjects.Arc;
+  private player!: Phaser.GameObjects.Sprite;
   private playerBody!: Phaser.Physics.Arcade.Body;
   private npcs: NpcAgent[] = [];
 
@@ -96,7 +96,7 @@ export class PrototypeScene extends Phaser.Scene {
   private interactionTarget: InteractionTarget = null;
   private donut!: Phaser.GameObjects.Container;
   private donutCollected = false;
-  private finalColleague!: Phaser.GameObjects.Arc;
+  private finalColleague!: Phaser.GameObjects.Sprite;
   private finalColleagueName!: Phaser.GameObjects.Text;
   private dialogueContainer?: Phaser.GameObjects.Container;
   private dialogueResolved = false;
@@ -120,12 +120,17 @@ export class PrototypeScene extends Phaser.Scene {
     super('PrototypeScene');
   }
 
+  preload() {
+    this.load.image('office-menu-bg', 'assets/office-menu-bg.webp');
+  }
+
   create() {
     this.resetRuntimeState();
     this.input.addPointer(2);
     this.cameras.main.setBackgroundColor(COLORS.background);
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
+    this.createArtTextures();
     this.drawFloor();
     this.createMap();
     this.createDonut();
@@ -216,38 +221,80 @@ export class PrototypeScene extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.fillStyle(COLORS.floor, 1);
     graphics.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    graphics.lineStyle(1, COLORS.floorLine, 0.45);
-
+    for (let y = 0; y < WORLD_HEIGHT; y += 80) {
+      for (let x = 0; x < WORLD_WIDTH; x += 80) {
+        if ((x / 80 + y / 80) % 2 === 0) graphics.fillStyle(COLORS.floorAlt, 0.32).fillRect(x, y, 80, 80);
+      }
+    }
+    graphics.lineStyle(1, COLORS.floorLine, 0.38);
     for (let y = 0; y <= WORLD_HEIGHT; y += 80) graphics.lineBetween(0, y, WORLD_WIDTH, y);
     for (let x = 0; x <= WORLD_WIDTH; x += 80) graphics.lineBetween(x, 0, x, WORLD_HEIGHT);
 
-    this.add.rectangle(250, 2075, 310, 120, 0xcad8c4, 0.72).setDepth(0);
-    this.add.text(250, 2075, 'TON BUREAU · DÉPART', {
+    this.add.rectangle(250, 2075, 316, 124, 0xc7d8bd, 0.78)
+      .setStrokeStyle(2, 0xffffff, 0.45)
+      .setDepth(0);
+    this.add.text(250, 2075, 'TON BUREAU  •  DÉPART', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '20px',
+      fontSize: '18px',
       fontStyle: 'bold',
-      color: '#52614e'
+      color: '#41553d'
     }).setOrigin(0.5).setDepth(1);
 
-    this.add.rectangle(250, 92, 280, 105, COLORS.green, 0.42).setDepth(0);
-    this.add.text(250, 92, '🚪  SORTIE  🚪', {
+    this.add.rectangle(250, 92, 286, 108, COLORS.green, 0.62)
+      .setStrokeStyle(3, 0xffffff, 0.45)
+      .setDepth(0);
+    this.add.text(250, 92, 'SORTIE  ↑', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '21px',
+      fontSize: '22px',
       fontStyle: 'bold',
-      color: '#31533a'
+      color: '#f7fff5'
     }).setOrigin(0.5).setDepth(1);
 
-    this.add.text(250, 1870, '↑  RENTRE CHEZ TOI  ↑', {
+    this.add.text(250, 1860, 'OBJECTIF  •  RENTRER CHEZ TOI', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '17px',
+      fontSize: '13px',
       fontStyle: 'bold',
-      color: '#7c6d5e'
+      color: '#8c775c',
+      letterSpacing: 1
     }).setOrigin(0.5).setDepth(1);
+  }
+
+  private createArtTextures() {
+    const createCharacter = (key: string, suit: number, hair: number, tie: number, boss = false) => {
+      if (this.textures.exists(key)) return;
+      const g = this.add.graphics().setVisible(false);
+      g.fillStyle(0x172238, 0.18).fillEllipse(32, 55, boss ? 42 : 34, 10);
+      g.lineStyle(3, COLORS.ink, 1);
+      g.fillStyle(suit, 1).fillRoundedRect(boss ? 12 : 15, 29, boss ? 40 : 34, boss ? 27 : 25, 11);
+      g.strokeRoundedRect(boss ? 12 : 15, 29, boss ? 40 : 34, boss ? 27 : 25, 11);
+      g.fillStyle(0xf0b287, 1).fillCircle(32, 22, boss ? 16 : 15);
+      g.strokeCircle(32, 22, boss ? 16 : 15);
+      g.fillStyle(hair, 1).fillEllipse(32, boss ? 10 : 11, boss ? 31 : 29, boss ? 13 : 15);
+      g.fillStyle(0xffffff, 0.95).fillTriangle(25, 31, 39, 31, 32, 41);
+      g.fillStyle(tie, 1).fillTriangle(29, 33, 35, 33, 32, 46);
+      g.fillStyle(COLORS.ink, 1).fillCircle(27, 22, 1.5).fillCircle(37, 22, 1.5);
+      if (boss) {
+        g.lineStyle(2, 0x4c2b23, 1).lineBetween(24, 28, 31, 26).lineBetween(33, 26, 40, 28);
+        g.fillStyle(0x4c2b23, 1).fillRoundedRect(24, 27, 16, 4, 2);
+      } else {
+        g.lineStyle(1.5, 0x8c4c3d, 1).lineBetween(28, 28, 36, 28);
+      }
+      g.generateTexture(key, 64, 64);
+      g.destroy();
+    };
+
+    createCharacter('employee-player', COLORS.player, 0x3b2b27, 0xf0d06b);
+    createCharacter('employee-colleague', COLORS.colleague, 0xb9572e, 0x29445d);
+    createCharacter('employee-boss', COLORS.boss, 0x3a2726, 0xe6b94d, true);
+    createCharacter('employee-final', 0xd98152, 0x71452d, 0x31566b);
   }
 
   private createMap() {
     const wall = (x: number, y: number, width: number, height: number, color: number = COLORS.wall) => {
-      const object = this.add.rectangle(x, y, width, height, color).setDepth(8);
+      this.add.rectangle(x + 5, y + 7, width, height, COLORS.ink, 0.18).setDepth(7);
+      const object = this.add.rectangle(x, y, width, height, color)
+        .setStrokeStyle(3, color === COLORS.wall ? COLORS.wallTrim : COLORS.ink, 0.82)
+        .setDepth(8);
       this.physics.add.existing(object, true);
       this.staticObstacles.push(object);
       this.blockers.push(new Phaser.Geom.Rectangle(x - width / 2, y - height / 2, width, height));
@@ -264,11 +311,14 @@ export class PrototypeScene extends Phaser.Scene {
     wall(394, 1900, 170, 35);
     wall(85, 2030, 90, 105, COLORS.desk);
     wall(415, 2030, 90, 105, COLORS.desk);
+    this.decorateDesk(85, 2030, -1);
+    this.decorateDesk(415, 2030, 1);
 
     // Bloc WC : le joueur disparaît dans la porte, sans changement de scène.
-    wall(77, 1580, 105, 230, 0x7791a0);
+    wall(77, 1580, 105, 230, 0x477286);
+    this.add.rectangle(78, 1580, 72, 190, 0x85b9bd, 0.76).setStrokeStyle(2, 0xdff1ee, 0.55).setDepth(9);
     this.add.rectangle(this.restroomDoor.x, this.restroomDoor.y, 16, 62, COLORS.door)
-      .setStrokeStyle(3, 0xe8f1f5, 0.85)
+      .setStrokeStyle(3, 0xe8f1f5, 1)
       .setDepth(10);
     this.add.text(76, 1580, 'WC', {
       fontFamily: 'system-ui, sans-serif',
@@ -280,10 +330,15 @@ export class PrototypeScene extends Phaser.Scene {
     // Quelques meubles structurent le couloir et coupent réellement la vision.
     wall(420, 1500, 90, 110, COLORS.desk);
     wall(80, 1245, 110, 75, COLORS.desk);
+    this.decorateDesk(420, 1500, 1);
+    this.decorateDesk(80, 1245, -1);
 
     // Deuxième défi : un pilier central autour duquel le boss effectue sa ronde.
-    wall(this.pillarCenter.x, this.pillarCenter.y, 150, 190, 0x75695d);
-    this.add.text(this.pillarCenter.x, this.pillarCenter.y, 'PILIER', {
+    wall(this.pillarCenter.x, this.pillarCenter.y, 150, 190, 0x5d5261);
+    this.add.rectangle(this.pillarCenter.x, this.pillarCenter.y, 122, 160, 0x756b78, 0.66)
+      .setStrokeStyle(2, 0xb9abb6, 0.42)
+      .setDepth(9);
+    this.add.text(this.pillarCenter.x, this.pillarCenter.y, 'ARCHIVES', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '16px',
       fontStyle: 'bold',
@@ -292,9 +347,11 @@ export class PrototypeScene extends Phaser.Scene {
 
     wall(77, 560, 110, 80, COLORS.desk);
     wall(423, 560, 110, 80, COLORS.desk);
+    this.decorateDesk(77, 560, -1);
+    this.decorateDesk(423, 560, 1);
     wall(95, 165, 150, 30);
     wall(405, 165, 150, 30);
-    this.add.rectangle(92, 470, 116, 100, 0xd9c6aa, 0.45).setDepth(0);
+    this.add.rectangle(92, 470, 116, 100, 0xe3bc90, 0.42).setStrokeStyle(2, 0xc99666, 0.45).setDepth(0);
     this.add.text(92, 525, 'ALCÔVE', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
@@ -320,6 +377,34 @@ export class PrototypeScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#9b6b55'
     }).setOrigin(0.5).setDepth(1);
+
+    this.addPlant(52, 1815, 0.82);
+    this.addPlant(445, 1370, 0.75);
+    this.addPlant(55, 1040, 0.78);
+    this.addPlant(444, 350, 0.72);
+  }
+
+  private decorateDesk(x: number, y: number, side: -1 | 1) {
+    const screenX = x - side * 14;
+    this.add.rectangle(screenX, y - 12, 34, 23, 0x172238, 1)
+      .setStrokeStyle(2, 0x718197, 0.9)
+      .setDepth(10);
+    this.add.rectangle(screenX, y + 4, 12, 5, 0x3b485b, 1).setDepth(10);
+    this.add.rectangle(x + side * 18, y + 20, 28, 9, 0xeadfca, 0.92)
+      .setStrokeStyle(1, 0x6e5c4d, 0.7)
+      .setDepth(10);
+    this.add.circle(x + side * 25, y - 20, 7, 0xf2ead8, 1)
+      .setStrokeStyle(2, COLORS.ink, 0.72)
+      .setDepth(10);
+  }
+
+  private addPlant(x: number, y: number, scale: number) {
+    const pot = this.add.ellipse(0, 12, 24, 18, 0x9c633d, 1).setStrokeStyle(2, COLORS.ink, 0.8);
+    const leaves = this.add.graphics();
+    leaves.fillStyle(COLORS.sage, 1);
+    leaves.fillEllipse(-7, -2, 13, 30).fillEllipse(7, -2, 13, 30).fillEllipse(0, -9, 13, 32);
+    leaves.lineStyle(1, 0x344d35, 0.8).lineBetween(0, 11, 0, -20);
+    this.add.container(x, y, [pot, leaves]).setScale(scale).setDepth(12);
   }
 
   private createDonut() {
@@ -353,9 +438,7 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createPlayer() {
-    this.player = this.add.circle(this.spawnPoint.x, this.spawnPoint.y, PLAYER_RADIUS, COLORS.player)
-      .setStrokeStyle(3, 0xffffff, 0.8)
-      .setDepth(30);
+    this.player = this.add.sprite(this.spawnPoint.x, this.spawnPoint.y, 'employee-player').setDepth(30);
     this.physics.add.existing(this.player);
     this.playerBody = this.player.body as Phaser.Physics.Arcade.Body;
     this.playerBody.setCircle(PLAYER_RADIUS);
@@ -401,9 +484,7 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createFinalColleague() {
-    this.finalColleague = this.add.circle(250, 245, NPC_RADIUS + 2, 0xd17a4e)
-      .setStrokeStyle(4, 0xffffff, 0.9)
-      .setDepth(25);
+    this.finalColleague = this.add.sprite(250, 245, 'employee-final').setDepth(25);
     this.finalColleagueName = this.add.text(250, 215, 'COLLÈGUE BAVARD', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
@@ -430,15 +511,14 @@ export class PrototypeScene extends Phaser.Scene {
     visionHalfAngle: number;
   }) {
     const spawn = config.patrolPoints[0];
-    const actor = this.add.circle(spawn.x, spawn.y, NPC_RADIUS, config.color)
-      .setStrokeStyle(3, 0xffffff, 0.85)
-      .setDepth(25);
+    const texture = config.id === 'boss' ? 'employee-boss' : 'employee-colleague';
+    const actor = this.add.sprite(spawn.x, spawn.y, texture).setDepth(25);
     this.physics.add.existing(actor);
     const body = actor.body as Phaser.Physics.Arcade.Body;
     body.setCircle(NPC_RADIUS);
     body.setCollideWorldBounds(true);
 
-    const nameText = this.add.text(actor.x, actor.y - 25, config.label, {
+    const nameText = this.add.text(actor.x, actor.y - 34, config.label, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
@@ -499,32 +579,45 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createHud() {
-    this.add.rectangle(GAME_WIDTH / 2, 48, 370, 76, COLORS.hud, 0.94)
-      .setStrokeStyle(1, 0xffffff, 0.16)
+    const hudShadow = this.add.graphics().setScrollFactor(0).setDepth(299);
+    hudShadow.fillStyle(0x07101f, 0.3).fillRoundedRect(11, 13, 368, 82, 22);
+    const hudPanel = this.add.graphics().setScrollFactor(0).setDepth(300);
+    hudPanel.fillStyle(COLORS.hud, 0.97).fillRoundedRect(10, 9, 370, 80, 22);
+    hudPanel.lineStyle(2, 0xffffff, 0.12).strokeRoundedRect(10, 9, 370, 80, 22);
+
+    this.add.circle(33, 36, 14, COLORS.player, 1)
+      .setStrokeStyle(2, 0xffffff, 0.28)
       .setScrollFactor(0)
-      .setDepth(300);
-
-    this.add.text(24, 30, 'OFFICE ESCAPE', {
+      .setDepth(301);
+    this.add.text(33, 36, '↑', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '16px',
+      fontSize: '17px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(302);
+    this.add.text(55, 25, 'OFFICE ESCAPE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setScrollFactor(0).setDepth(301);
 
-    this.add.text(24, 52, 'V0.6 · Niveau 1 consolidé', {
+    this.add.text(55, 47, 'MISSION 01  •  LA GRANDE SORTIE', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '11px',
-      color: '#c9d5dd'
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#9fb1c5',
+      letterSpacing: 0.5
     }).setScrollFactor(0).setDepth(301);
 
-    this.clockText = this.add.text(350, 29, '17:00', {
+    this.clockText = this.add.text(350, 22, '17:00', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '22px',
+      fontSize: '24px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#fff3d6'
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(301);
 
-    this.stateText = this.add.text(350, 55, 'DISCRET', {
+    this.stateText = this.add.text(350, 54, '●  DISCRET', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '10px',
       fontStyle: 'bold',
@@ -550,20 +643,21 @@ export class PrototypeScene extends Phaser.Scene {
       padding: { x: 13, y: 8 }
     }).setOrigin(0.5).setScrollFactor(0).setDepth(350).setVisible(false);
 
-    this.add.text(21, 80, 'INVENTAIRE', {
+    this.add.text(21, 97, 'POCHES', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '9px',
       fontStyle: 'bold',
-      color: '#42515c'
+      color: '#596777',
+      letterSpacing: 1
     }).setScrollFactor(0).setDepth(301);
 
     for (let index = 0; index < 2; index += 1) {
-      const x = 38 + index * 46;
-      this.add.rectangle(x, 113, 39, 39, 0x18232d, 0.88)
-        .setStrokeStyle(2, 0xffffff, 0.5)
+      const x = 38 + index * 47;
+      this.add.rectangle(x, 126, 40, 40, COLORS.hud, 0.94)
+        .setStrokeStyle(2, 0xffffff, 0.28)
         .setScrollFactor(0)
         .setDepth(302);
-      const label = this.add.text(x, 113, '—', {
+      const label = this.add.text(x, 126, '—', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -593,76 +687,97 @@ export class PrototypeScene extends Phaser.Scene {
     this.gameState = 'menu';
     this.stopActors();
 
-    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b141b, 0.92);
-    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 350, 690, 0xf6f0e4, 1)
-      .setStrokeStyle(5, 0x4f7f96, 1);
-    const title = this.add.text(GAME_WIDTH / 2, 125, 'OFFICE ESCAPE', {
+    const background = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'office-menu-bg')
+      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.hud, 0.62);
+    const panelShadow = this.add.rectangle(GAME_WIDTH / 2 + 5, GAME_HEIGHT / 2 + 8, 350, 694, 0x07101f, 0.36);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 350, 690, 0xfff8e9, 0.96)
+      .setStrokeStyle(4, COLORS.player, 1);
+    const badge = this.add.circle(GAME_WIDTH / 2, 104, 28, COLORS.player, 1)
+      .setStrokeStyle(4, 0xffffff, 0.72);
+    const badgeIcon = this.add.text(GAME_WIDTH / 2, 103, '↑', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '33px',
+      fontSize: '31px',
       fontStyle: 'bold',
-      color: '#21313c'
+      color: '#ffffff'
     }).setOrigin(0.5);
-    const subtitle = this.add.text(GAME_WIDTH / 2, 166, 'NIVEAU 1 · ENFIN 17H', {
+    const title = this.add.text(GAME_WIDTH / 2, 159, 'OFFICE\nESCAPE', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '14px',
+      fontSize: '36px',
       fontStyle: 'bold',
-      color: '#9a5e4b'
+      color: '#172238',
+      align: 'center',
+      lineSpacing: -5
+    }).setOrigin(0.5, 0);
+    const subtitle = this.add.text(GAME_WIDTH / 2, 249, 'MISSION 01  •  ENFIN 17 H', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#b45743',
+      letterSpacing: 1
     }).setOrigin(0.5);
     const objective = this.add.text(
       GAME_WIDTH / 2,
-      270,
+      334,
       'Échappe-toi du bureau sans te faire\nretenir par tes collègues.\n\nObserve · Cache-toi · Choisis vite',
       {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '16px',
-        color: '#33414b',
+        color: '#324154',
         align: 'center',
         lineSpacing: 7
       }
     ).setOrigin(0.5);
-    const targets = this.add.text(GAME_WIDTH / 2, 405, '★★★ avant 17:20\n★★ avant 17:30\n★ avant 17:45', {
+    const targets = this.add.text(GAME_WIDTH / 2, 456, '★★★  avant 17:20   •   ★★  avant 17:30\n★  avant 17:45', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '15px',
+      fontSize: '13px',
       fontStyle: 'bold',
       color: '#6c5b3e',
       align: 'center',
       lineSpacing: 6
     }).setOrigin(0.5);
-    const playButton = this.add.rectangle(GAME_WIDTH / 2, 525, 270, 62, 0x4f8b61, 1)
+    const playShadow = this.add.rectangle(GAME_WIDTH / 2, 555, 274, 66, COLORS.ink, 0.22);
+    const playButton = this.add.rectangle(GAME_WIDTH / 2, 550, 270, 62, COLORS.player, 1)
+      .setStrokeStyle(2, 0xffffff, 0.48)
       .setInteractive({ useHandCursor: true });
-    const playText = this.add.text(GAME_WIDTH / 2, 525, 'JOUER', {
+    const playText = this.add.text(GAME_WIDTH / 2, 550, 'QUITTER LE BUREAU  →', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
-    const resetButton = this.add.rectangle(GAME_WIDTH / 2, 610, 270, 50, 0x586873, 1)
+    const resetButton = this.add.rectangle(GAME_WIDTH / 2, 635, 270, 48, COLORS.hud, 0.88)
       .setInteractive({ useHandCursor: true });
-    const resetText = this.add.text(GAME_WIDTH / 2, 610, 'RÉINITIALISER TUTORIEL + RECORD', {
+    const resetText = this.add.text(GAME_WIDTH / 2, 635, 'RÉINITIALISER TUTORIEL + RECORD', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
-    const feedback = this.add.text(GAME_WIDTH / 2, 652, '', {
+    const feedback = this.add.text(GAME_WIDTH / 2, 674, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       fontStyle: 'bold',
       color: '#4f8b61'
     }).setOrigin(0.5);
-    const version = this.add.text(GAME_WIDTH / 2, 700, 'Prototype V0.6', {
+    const version = this.add.text(GAME_WIDTH / 2, 725, 'DIRECTION GRAPHIQUE  •  V0.7', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '10px',
       color: '#7f898f'
     }).setOrigin(0.5);
 
     const menuObjects = [
+      background,
       shade,
+      panelShadow,
       panel,
+      badge,
+      badgeIcon,
       title,
       subtitle,
       objective,
       targets,
+      playShadow,
       playButton,
       playText,
       resetButton,
@@ -748,16 +863,18 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createJoystick() {
-    this.add.circle(JOYSTICK_X, JOYSTICK_Y, JOYSTICK_RADIUS + 13, 0x17212a, 0.34)
-      .setStrokeStyle(2, 0xffffff, 0.28)
+    this.add.circle(JOYSTICK_X, JOYSTICK_Y + 4, JOYSTICK_RADIUS + 13, COLORS.hud, 0.38)
+      .setStrokeStyle(2, 0xffffff, 0.25)
       .setScrollFactor(0)
       .setDepth(320);
 
-    this.add.circle(JOYSTICK_X, JOYSTICK_Y, JOYSTICK_RADIUS, 0xffffff, 0.14)
+    this.add.circle(JOYSTICK_X, JOYSTICK_Y, JOYSTICK_RADIUS, 0xffffff, 0.16)
+      .setStrokeStyle(2, 0xffffff, 0.28)
       .setScrollFactor(0)
       .setDepth(321);
 
-    this.joystickKnob = this.add.circle(JOYSTICK_X, JOYSTICK_Y, 25, 0xffffff, 0.78)
+    this.joystickKnob = this.add.circle(JOYSTICK_X, JOYSTICK_Y, 25, COLORS.hud, 0.9)
+      .setStrokeStyle(3, 0xffffff, 0.65)
       .setScrollFactor(0)
       .setDepth(322);
 
@@ -774,17 +891,19 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private createRunButton() {
-    this.runButton = this.add.circle(334, 750, 43, 0x8a4e3a, 0.82)
-      .setStrokeStyle(2, 0xffffff, 0.34)
+    this.runButton = this.add.circle(334, 750, 43, COLORS.player, 0.94)
+      .setStrokeStyle(3, 0xffffff, 0.48)
       .setScrollFactor(0)
       .setDepth(320)
       .setInteractive();
 
-    this.runLabel = this.add.text(334, 750, 'COURIR', {
+    this.runLabel = this.add.text(334, 750, '➜\nCOURIR', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '12px',
+      fontSize: '11px',
       fontStyle: 'bold',
-      color: '#ffffff'
+      color: '#ffffff',
+      align: 'center',
+      lineSpacing: -3
     }).setOrigin(0.5).setScrollFactor(0).setDepth(321);
 
     this.runButton.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -887,7 +1006,7 @@ export class PrototypeScene extends Phaser.Scene {
       npc.direction.set(target.x - npc.actor.x, target.y - npc.actor.y);
       if (npc.direction.lengthSq() > 0.001) npc.direction.normalize();
       npc.body.setVelocity(npc.direction.x * speed, npc.direction.y * speed);
-      npc.nameText.setPosition(npc.actor.x, npc.actor.y - 25);
+      npc.nameText.setPosition(npc.actor.x, npc.actor.y - 34);
     }
   }
 
@@ -1529,7 +1648,7 @@ export class PrototypeScene extends Phaser.Scene {
 
   private setRunHeld(active: boolean) {
     this.runHeld = active;
-    this.runButton.setFillStyle(active ? 0xb76142 : 0x8a4e3a, active ? 0.98 : 0.82);
+    this.runButton.setFillStyle(active ? 0x19b7ae : COLORS.player, active ? 1 : 0.94);
     this.runButton.setScale(active ? 1.06 : 1);
     this.runLabel.setScale(active ? 1.06 : 1);
   }
