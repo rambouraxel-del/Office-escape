@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 export interface PointLike {
   x: number;
   y: number;
