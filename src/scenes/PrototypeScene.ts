@@ -32,7 +32,9 @@ import {
 import { buildVisionPolygon, isPointVisible } from '../game/geometry';
 
 type GameState = 'playing' | 'intercepted' | 'completed';
-type TutorialAnchor = 'player' | 'restroom' | 'pillar';
+type TutorialAnchor = 'player' | 'restroom' | 'pillar' | 'donut';
+type InventoryItemId = 'donut';
+type InteractionTarget = 'restroom' | 'donut' | null;
 
 interface NpcAgent {
   id: string;
@@ -89,6 +91,11 @@ export class PrototypeScene extends Phaser.Scene {
   private hiddenText!: Phaser.GameObjects.Text;
   private toastText!: Phaser.GameObjects.Text;
   private toastTimer?: Phaser.Time.TimerEvent;
+  private inventorySlotLabels: Phaser.GameObjects.Text[] = [];
+  private inventory: InventoryItemId[] = [];
+  private interactionTarget: InteractionTarget = null;
+  private donut!: Phaser.GameObjects.Container;
+  private donutCollected = false;
 
   private keyboardKeys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private currentTutorial?: TutorialBubble;
@@ -100,6 +107,7 @@ export class PrototypeScene extends Phaser.Scene {
   private readonly restroomDoor = new Phaser.Math.Vector2(138, 1580);
   private readonly restroomExit = new Phaser.Math.Vector2(168, 1580);
   private readonly pillarCenter = new Phaser.Math.Vector2(250, 860);
+  private readonly donutPosition = new Phaser.Math.Vector2(92, 470);
 
   constructor() {
     super('PrototypeScene');
@@ -113,6 +121,7 @@ export class PrototypeScene extends Phaser.Scene {
 
     this.drawFloor();
     this.createMap();
+    this.createDonut();
     this.createPlayer();
     this.createColleague();
     this.createBoss();
@@ -145,7 +154,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.updateTutorialPosition();
     this.drawNpcVision();
 
-    if (!this.isHidden && this.player.y <= 430) {
+    if (!this.isHidden && this.player.y <= 285) {
       this.completeTest();
     }
   }
@@ -166,9 +175,13 @@ export class PrototypeScene extends Phaser.Scene {
     this.currentTutorial = undefined;
     this.hasMoved = false;
     this.hasRun = false;
+    this.inventory = [];
+    this.inventorySlotLabels = [];
+    this.interactionTarget = null;
+    this.donutCollected = false;
 
     try {
-      this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v03') === 'done';
+      this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v04') === 'done';
     } catch {
       this.tutorialsCompleted = false;
     }
@@ -191,8 +204,8 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#52614e'
     }).setOrigin(0.5).setDepth(1);
 
-    this.add.rectangle(250, 360, 310, 120, COLORS.green, 0.35).setDepth(0);
-    this.add.text(250, 360, 'ZONE VALIDÉE · V0.3', {
+    this.add.rectangle(250, 220, 310, 120, COLORS.green, 0.35).setDepth(0);
+    this.add.text(250, 220, 'ZONE VALIDÉE · V0.4', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '19px',
       fontStyle: 'bold',
@@ -254,6 +267,12 @@ export class PrototypeScene extends Phaser.Scene {
 
     wall(77, 560, 110, 80, COLORS.desk);
     wall(423, 560, 110, 80, COLORS.desk);
+    this.add.rectangle(92, 470, 116, 100, 0xd9c6aa, 0.45).setDepth(0);
+    this.add.text(92, 525, 'ALCÔVE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      color: '#8b745c'
+    }).setOrigin(0.5).setDepth(1);
 
     this.add.text(250, 1840, 'COULOIR PRINCIPAL', {
       fontFamily: 'system-ui, sans-serif',
@@ -267,6 +286,36 @@ export class PrototypeScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#806f83'
     }).setOrigin(0.5).setDepth(1);
+  }
+
+  private createDonut() {
+    const pastry = this.add.circle(0, 0, 21, 0xc88756)
+      .setStrokeStyle(2, 0x895a38, 0.85);
+    const icing = this.add.circle(0, 0, 16, 0xe58e9d, 0.96);
+    const hole = this.add.circle(0, 0, 7, 0xefe7d7, 1)
+      .setStrokeStyle(2, 0x9e6742, 0.8);
+    const shine = this.add.circle(-6, -7, 3, 0xffd9df, 0.9);
+    const label = this.add.text(0, 34, 'DONUT', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#744a35'
+    }).setOrigin(0.5);
+
+    this.donut = this.add.container(
+      this.donutPosition.x,
+      this.donutPosition.y,
+      [pastry, icing, hole, shine, label]
+    ).setDepth(15);
+
+    this.tweens.add({
+      targets: this.donut,
+      y: this.donutPosition.y - 5,
+      duration: 750,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut'
+    });
   }
 
   private createPlayer() {
@@ -410,7 +459,7 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#ffffff'
     }).setScrollFactor(0).setDepth(301);
 
-    this.add.text(24, 52, 'V0.3 · Le boss rôde', {
+    this.add.text(24, 52, 'V0.4 · Donut & inventaire', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       color: '#c9d5dd'
@@ -448,6 +497,28 @@ export class PrototypeScene extends Phaser.Scene {
       align: 'center',
       padding: { x: 13, y: 8 }
     }).setOrigin(0.5).setScrollFactor(0).setDepth(350).setVisible(false);
+
+    this.add.text(21, 80, 'INVENTAIRE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#42515c'
+    }).setScrollFactor(0).setDepth(301);
+
+    for (let index = 0; index < 2; index += 1) {
+      const x = 38 + index * 46;
+      this.add.rectangle(x, 113, 39, 39, 0x18232d, 0.88)
+        .setStrokeStyle(2, 0xffffff, 0.5)
+        .setScrollFactor(0)
+        .setDepth(302);
+      const label = this.add.text(x, 113, '—', {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '18px',
+        fontStyle: 'bold',
+        color: '#91a0aa'
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(303);
+      this.inventorySlotLabels.push(label);
+    }
   }
 
   private createJoystick() {
@@ -514,9 +585,7 @@ export class PrototypeScene extends Phaser.Scene {
     }).setOrigin(0.5).setScrollFactor(0).setDepth(331).setVisible(false);
 
     this.interactionButton.on('pointerdown', () => {
-      if (this.gameState !== 'playing') return;
-      if (this.isHidden) this.leaveRestroom();
-      else this.enterRestroom();
+      this.handleInteraction();
     });
   }
 
@@ -539,8 +608,7 @@ export class PrototypeScene extends Phaser.Scene {
     }) as Record<string, Phaser.Input.Keyboard.Key>;
 
     this.keyboardKeys.space.on('down', () => {
-      if (this.isHidden) this.leaveRestroom();
-      else if (this.isNearRestroom()) this.enterRestroom();
+      this.handleInteraction();
     });
   }
 
@@ -696,10 +764,34 @@ export class PrototypeScene extends Phaser.Scene {
   }
 
   private updateInteraction() {
-    const visible = this.isHidden || this.isNearRestroom();
+    if (this.isHidden || this.isNearRestroom()) this.interactionTarget = 'restroom';
+    else if (!this.donutCollected && this.isNearDonut()) this.interactionTarget = 'donut';
+    else this.interactionTarget = null;
+
+    const visible = this.interactionTarget !== null;
     this.interactionButton.setVisible(visible);
-    this.interactionLabel.setVisible(visible).setText(this.isHidden ? 'SORTIR' : 'ENTRER');
+    this.interactionLabel.setVisible(visible).setText(
+      this.interactionTarget === 'donut'
+        ? 'RAMASSER'
+        : this.isHidden ? 'SORTIR' : 'ENTRER'
+    );
     this.hiddenText.setVisible(this.isHidden);
+  }
+
+  private handleInteraction() {
+    if (this.gameState !== 'playing') return;
+
+    if (this.isHidden) {
+      this.leaveRestroom();
+      return;
+    }
+
+    if (this.isNearRestroom()) {
+      this.enterRestroom();
+      return;
+    }
+
+    if (!this.donutCollected && this.isNearDonut()) this.collectDonut();
   }
 
   private isNearRestroom() {
@@ -709,6 +801,38 @@ export class PrototypeScene extends Phaser.Scene {
       this.restroomDoor.x,
       this.restroomDoor.y
     ) <= 78;
+  }
+
+  private isNearDonut() {
+    return Phaser.Math.Distance.Between(
+      this.player.x,
+      this.player.y,
+      this.donutPosition.x,
+      this.donutPosition.y
+    ) <= 72;
+  }
+
+  private collectDonut() {
+    if (this.inventory.length >= 2) {
+      this.showToast('Inventaire plein : choisis bientôt un objet à échanger.');
+      return;
+    }
+
+    this.inventory.push('donut');
+    this.donutCollected = true;
+    this.donut.setVisible(false).setActive(false);
+    this.updateInventoryDisplay();
+    if (this.currentTutorial?.id === 'donut') this.dismissTutorial();
+    this.showToast('Donut récupéré · 1 objet sur 2');
+  }
+
+  private updateInventoryDisplay() {
+    this.inventorySlotLabels.forEach((label, index) => {
+      const item = this.inventory[index];
+      label
+        .setText(item === 'donut' ? '🍩' : '—')
+        .setColor(item ? '#ffffff' : '#91a0aa');
+    });
   }
 
   private enterRestroom() {
@@ -783,6 +907,21 @@ export class PrototypeScene extends Phaser.Scene {
       !this.dismissedTutorials.has('pillar')
     ) {
       this.showTutorial('pillar', 'Contourne le pilier pour couper la vue du boss.', 'pillar');
+      return;
+    }
+
+    if (
+      this.dismissedTutorials.has('pillar') &&
+      !this.donutCollected &&
+      Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        this.donutPosition.x,
+        this.donutPosition.y
+      ) < 145 &&
+      !this.dismissedTutorials.has('donut')
+    ) {
+      this.showTutorial('donut', 'Approche-toi et ramasse le donut.', 'donut');
     }
   }
 
@@ -822,8 +961,10 @@ export class PrototypeScene extends Phaser.Scene {
       this.currentTutorial.container.setPosition(this.player.x, this.player.y - 85);
     } else if (this.currentTutorial.anchor === 'restroom') {
       this.currentTutorial.container.setPosition(205, 1470);
-    } else {
+    } else if (this.currentTutorial.anchor === 'pillar') {
       this.currentTutorial.container.setPosition(this.pillarCenter.x, this.pillarCenter.y - 150);
+    } else {
+      this.currentTutorial.container.setPosition(this.donutPosition.x + 125, this.donutPosition.y - 75);
     }
   }
 
@@ -834,10 +975,10 @@ export class PrototypeScene extends Phaser.Scene {
     this.currentTutorial = undefined;
     this.dismissedTutorials.add(id);
 
-    if (id === 'pillar') {
+    if (id === 'donut') {
       this.tutorialsCompleted = true;
       try {
-        localStorage.setItem('office-escape-tutorial-v03', 'done');
+        localStorage.setItem('office-escape-tutorial-v04', 'done');
       } catch {
         // Le jeu reste fonctionnel si le stockage privé du navigateur est bloqué.
       }
@@ -871,9 +1012,12 @@ export class PrototypeScene extends Phaser.Scene {
     if (this.gameState !== 'playing') return;
     this.gameState = 'completed';
     this.stopActors();
+    const inventoryResult = this.inventory.includes('donut')
+      ? 'Donut en poche pour la prochaine rencontre.'
+      : 'Tu as laissé le donut dans l’alcôve.';
     this.showEndOverlay(
       'ZONE VALIDÉE',
-      `Tu as passé le collègue et le boss à ${this.formatCurrentTime()}.`,
+      `Collègue et boss dépassés à ${this.formatCurrentTime()}.\n${inventoryResult}`,
       0x4f8b61,
       'REJOUER'
     );
