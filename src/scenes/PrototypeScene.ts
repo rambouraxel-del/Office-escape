@@ -31,7 +31,7 @@ import {
 } from '../game/constants';
 import { buildVisionPolygon, isPointVisible } from '../game/geometry';
 
-type GameState = 'playing' | 'intercepted' | 'completed';
+type GameState = 'playing' | 'dialogue' | 'intercepted' | 'completed';
 type TutorialAnchor = 'player' | 'restroom' | 'pillar' | 'donut';
 type InventoryItemId = 'donut';
 type InteractionTarget = 'restroom' | 'donut' | null;
@@ -96,6 +96,10 @@ export class PrototypeScene extends Phaser.Scene {
   private interactionTarget: InteractionTarget = null;
   private donut!: Phaser.GameObjects.Container;
   private donutCollected = false;
+  private finalColleague!: Phaser.GameObjects.Arc;
+  private finalColleagueName!: Phaser.GameObjects.Text;
+  private dialogueContainer?: Phaser.GameObjects.Container;
+  private dialogueResolved = false;
 
   private keyboardKeys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private currentTutorial?: TutorialBubble;
@@ -125,6 +129,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.createPlayer();
     this.createColleague();
     this.createBoss();
+    this.createFinalColleague();
     this.createCamera();
     this.createHud();
     this.createJoystick();
@@ -154,8 +159,13 @@ export class PrototypeScene extends Phaser.Scene {
     this.updateTutorialPosition();
     this.drawNpcVision();
 
-    if (!this.isHidden && this.player.y <= 285) {
-      this.completeTest();
+    if (!this.isHidden && !this.dialogueResolved && this.player.y <= 355) {
+      this.startFinalDialogue();
+      return;
+    }
+
+    if (!this.isHidden && this.dialogueResolved && this.player.y <= 105) {
+      this.completeLevel();
     }
   }
 
@@ -179,6 +189,8 @@ export class PrototypeScene extends Phaser.Scene {
     this.inventorySlotLabels = [];
     this.interactionTarget = null;
     this.donutCollected = false;
+    this.dialogueContainer = undefined;
+    this.dialogueResolved = false;
 
     try {
       this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v04') === 'done';
@@ -204,10 +216,10 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#52614e'
     }).setOrigin(0.5).setDepth(1);
 
-    this.add.rectangle(250, 220, 310, 120, COLORS.green, 0.35).setDepth(0);
-    this.add.text(250, 220, 'ZONE VALIDÉE · V0.4', {
+    this.add.rectangle(250, 92, 280, 105, COLORS.green, 0.42).setDepth(0);
+    this.add.text(250, 92, '🚪  SORTIE  🚪', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '19px',
+      fontSize: '21px',
       fontStyle: 'bold',
       color: '#31533a'
     }).setOrigin(0.5).setDepth(1);
@@ -267,6 +279,8 @@ export class PrototypeScene extends Phaser.Scene {
 
     wall(77, 560, 110, 80, COLORS.desk);
     wall(423, 560, 110, 80, COLORS.desk);
+    wall(95, 165, 150, 30);
+    wall(405, 165, 150, 30);
     this.add.rectangle(92, 470, 116, 100, 0xd9c6aa, 0.45).setDepth(0);
     this.add.text(92, 525, 'ALCÔVE', {
       fontFamily: 'system-ui, sans-serif',
@@ -285,6 +299,13 @@ export class PrototypeScene extends Phaser.Scene {
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#806f83'
+    }).setOrigin(0.5).setDepth(1);
+
+    this.add.text(250, 315, 'DERNIER OBSTACLE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '12px',
+      fontStyle: 'bold',
+      color: '#9b6b55'
     }).setOrigin(0.5).setDepth(1);
   }
 
@@ -364,6 +385,24 @@ export class PrototypeScene extends Phaser.Scene {
       visionRange: BOSS_VISION_RANGE,
       visionHalfAngle: BOSS_VISION_HALF_ANGLE
     });
+  }
+
+  private createFinalColleague() {
+    this.finalColleague = this.add.circle(250, 245, NPC_RADIUS + 2, 0xd17a4e)
+      .setStrokeStyle(4, 0xffffff, 0.9)
+      .setDepth(25);
+    this.finalColleagueName = this.add.text(250, 215, 'COLLÈGUE BAVARD', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#713a30'
+    }).setOrigin(0.5).setDepth(27);
+
+    this.add.text(250, 275, 'PASSAGE OBLIGATOIRE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '9px',
+      color: '#9b6b55'
+    }).setOrigin(0.5).setDepth(1);
   }
 
   private createNpc(config: {
@@ -459,7 +498,7 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#ffffff'
     }).setScrollFactor(0).setDepth(301);
 
-    this.add.text(24, 52, 'V0.4 · Donut & inventaire', {
+    this.add.text(24, 52, 'V0.5 · Dialogue final', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       color: '#c9d5dd'
@@ -519,6 +558,7 @@ export class PrototypeScene extends Phaser.Scene {
       }).setOrigin(0.5).setScrollFactor(0).setDepth(303);
       this.inventorySlotLabels.push(label);
     }
+    this.updateInventoryDisplay();
   }
 
   private createJoystick() {
@@ -998,6 +1038,178 @@ export class PrototypeScene extends Phaser.Scene {
     });
   }
 
+  private startFinalDialogue() {
+    if (this.gameState !== 'playing' || this.dialogueResolved) return;
+    this.gameState = 'dialogue';
+    this.stopActors();
+    this.stateText.setText('DISCUSSION').setColor('#ffd270');
+
+    const elements: Phaser.GameObjects.GameObject[] = [];
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x081017, 0.84);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 354, 650, 0xf8f4ea, 1)
+      .setStrokeStyle(5, COLORS.colleague, 1);
+    const heading = this.add.text(GAME_WIDTH / 2, 130, '« Tu pars déjà ? »', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '25px',
+      fontStyle: 'bold',
+      color: '#783f33'
+    }).setOrigin(0.5);
+    const body = this.add.text(GAME_WIDTH / 2, 178, 'Le collègue bloque le passage.\nChoisis comment t’en sortir :', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '14px',
+      color: '#33414b',
+      align: 'center',
+      lineSpacing: 5
+    }).setOrigin(0.5);
+    elements.push(shade, panel, heading, body);
+
+    const addChoice = (
+      y: number,
+      title: string,
+      detail: string,
+      color: number,
+      enabled: boolean,
+      onSelect: () => void
+    ) => {
+      const button = this.add.rectangle(GAME_WIDTH / 2, y, 312, 92, enabled ? color : 0x9aa2a7, enabled ? 1 : 0.72)
+        .setStrokeStyle(2, 0xffffff, 0.52);
+      const titleText = this.add.text(GAME_WIDTH / 2, y - 17, title, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '15px',
+        fontStyle: 'bold',
+        color: '#ffffff',
+        align: 'center',
+        wordWrap: { width: 280 }
+      }).setOrigin(0.5);
+      const detailText = this.add.text(GAME_WIDTH / 2, y + 19, detail, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '11px',
+        color: enabled ? '#edf5f8' : '#e2e5e7',
+        align: 'center'
+      }).setOrigin(0.5);
+
+      if (enabled) button.setInteractive({ useHandCursor: true }).on('pointerdown', onSelect);
+      elements.push(button, titleText, detailText);
+    };
+
+    const hasDonut = this.inventory.includes('donut');
+    addChoice(
+      290,
+      '🍩  Lui donner le donut',
+      hasDonut ? '100 % · aucune pénalité' : 'Donut requis',
+      0xb96876,
+      hasDonut,
+      () => this.resolveFinalDialogue('donut')
+    );
+    addChoice(
+      412,
+      '« Désolé, je suis pressé »',
+      '70 % · échec : +10 min',
+      0x4f7f96,
+      true,
+      () => this.resolveFinalDialogue('polite')
+    );
+    addChoice(
+      534,
+      'Faire semblant de ne pas entendre',
+      '30 % · échec : +30 min',
+      0x8a5949,
+      true,
+      () => this.resolveFinalDialogue('ignore')
+    );
+
+    const freezeHint = this.add.text(GAME_WIDTH / 2, 620, '⏸ Le temps est arrêté pendant le dialogue.', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#6a747a'
+    }).setOrigin(0.5);
+    elements.push(freezeHint);
+
+    this.dialogueContainer = this.add.container(0, 0, elements)
+      .setScrollFactor(0)
+      .setDepth(600);
+  }
+
+  private resolveFinalDialogue(choice: 'donut' | 'polite' | 'ignore') {
+    if (this.gameState !== 'dialogue') return;
+
+    let success = true;
+    let penaltyMinutes = 0;
+    let title = 'ÇA PASSE !';
+    let message = '';
+
+    if (choice === 'donut') {
+      const donutIndex = this.inventory.indexOf('donut');
+      if (donutIndex < 0) return;
+      this.inventory.splice(donutIndex, 1);
+      this.updateInventoryDisplay();
+      message = '« Oh, un donut ! À demain ! »\nAucune minute perdue.';
+    } else if (choice === 'polite') {
+      success = Math.random() < 0.7;
+      penaltyMinutes = success ? 0 : 10;
+      message = success
+        ? 'Il comprend et te laisse passer.\nAucune minute perdue.'
+        : 'Il te raconte quand même sa journée.\n+10 minutes.';
+    } else {
+      success = Math.random() < 0.3;
+      penaltyMinutes = success ? 0 : 30;
+      message = success
+        ? 'Ton esquive sociale fonctionne.\nAucune minute perdue.'
+        : 'Il te rattrape près de la porte.\n+30 minutes.';
+    }
+
+    if (!success) title = 'AÏE…';
+    this.elapsedRealMs += penaltyMinutes * REAL_MS_PER_GAME_MINUTE;
+    this.updateClock();
+    this.dialogueContainer?.destroy(true);
+    this.dialogueContainer = undefined;
+    this.showDialogueResult(title, message, success ? 0x4f8b61 : 0xb8493f);
+  }
+
+  private showDialogueResult(title: string, message: string, color: number) {
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x081017, 0.84);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 330, 310, 0xf8f4ea, 1)
+      .setStrokeStyle(5, color, 1);
+    const heading = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 85, title, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '28px',
+      fontStyle: 'bold',
+      color: Phaser.Display.Color.IntegerToColor(color).rgba
+    }).setOrigin(0.5);
+    const body = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, message, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      color: '#33414b',
+      align: 'center',
+      lineSpacing: 5,
+      wordWrap: { width: 270 }
+    }).setOrigin(0.5);
+    const button = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 92, 210, 54, color, 1)
+      .setInteractive({ useHandCursor: true });
+    const buttonText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 92, 'CONTINUER', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+
+    const container = this.add.container(0, 0, [shade, panel, heading, body, button, buttonText])
+      .setScrollFactor(0)
+      .setDepth(600);
+    this.dialogueContainer = container;
+    button.on('pointerdown', () => {
+      container.destroy(true);
+      this.dialogueContainer = undefined;
+      this.dialogueResolved = true;
+      this.finalColleague.setPosition(90, 245);
+      this.finalColleagueName.setPosition(90, 215).setText('COLLÈGUE RAVI');
+      this.gameState = 'playing';
+      this.stateText.setText('DISCRET').setColor('#9fd4ad');
+      this.showToast('La sortie est libre !');
+    });
+  }
+
   private interceptPlayer(reason: 'vision' | 'contact', npcLabel: string) {
     if (this.gameState !== 'playing') return;
     this.gameState = 'intercepted';
@@ -1008,16 +1220,29 @@ export class PrototypeScene extends Phaser.Scene {
     this.showEndOverlay('INTERCEPTÉ !', explanation, 0xb8493f, 'RECOMMENCER');
   }
 
-  private completeTest() {
+  private completeLevel() {
     if (this.gameState !== 'playing') return;
     this.gameState = 'completed';
     this.stopActors();
-    const inventoryResult = this.inventory.includes('donut')
-      ? 'Donut en poche pour la prochaine rencontre.'
-      : 'Tu as laissé le donut dans l’alcôve.';
+    const elapsedMinutes = Math.floor(this.elapsedRealMs / REAL_MS_PER_GAME_MINUTE);
+    const stars = elapsedMinutes <= 20 ? 3 : elapsedMinutes <= 30 ? 2 : elapsedMinutes <= 45 ? 1 : 0;
+    const starDisplay = `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
+    let recordMessage = '';
+
+    try {
+      const storedRecord = localStorage.getItem('office-escape-best-v05');
+      const previousRecord = storedRecord === null ? null : Number(storedRecord);
+      if (previousRecord === null || elapsedMinutes < previousRecord) {
+        localStorage.setItem('office-escape-best-v05', String(elapsedMinutes));
+        recordMessage = '\nNouveau record !';
+      }
+    } catch {
+      // Le score reste affiché même si le stockage privé du navigateur est bloqué.
+    }
+
     this.showEndOverlay(
-      'ZONE VALIDÉE',
-      `Collègue et boss dépassés à ${this.formatCurrentTime()}.\n${inventoryResult}`,
+      `SORTIE : ${this.formatCurrentTime()}`,
+      `${starDisplay}\nNiveau 1 terminé.${recordMessage}`,
       0x4f8b61,
       'REJOUER'
     );

@@ -2,9 +2,9 @@
 
 Prototype mobile 2D d'infiltration/puzzle développé avec Phaser 4, TypeScript et Vite.
 
-## V0.4 — Donut et inventaire
+## V0.5 — Dialogue final et sortie
 
-Cette version ajoute le premier objet du niveau 1 après la zone du boss : le donut est placé dans une alcôve optionnelle et doit être ramassé manuellement avant d'apparaître dans l'inventaire.
+Cette version ferme la boucle complète du niveau 1 : après le collègue, les toilettes, le boss et le donut, une dernière rencontre obligatoire propose trois choix avant la vraie porte de sortie.
 
 - format portrait et progression du bas vers le haut ;
 - joystick tactile et bouton **COURIR** à maintenir avec un second doigt ;
@@ -15,7 +15,11 @@ Cette version ajoute le premier objet du niveau 1 après la zone du boss : le do
 - donut animé placé sur un détour optionnel ;
 - bouton contextuel **RAMASSER** uniquement visible à proximité ;
 - inventaire permanent limité à deux emplacements ;
-- écran de fin indiquant si le donut a été récupéré ;
+- dialogue final à trois choix avec probabilités affichées ;
+- donut consommable garantissant une sortie sans pénalité ;
+- réponses à 70 % et 30 %, avec pénalités respectives de 10 et 30 minutes en cas d'échec ;
+- temps figé pendant le dialogue puis repris après le résultat ;
+- vraie sortie avec heure finale, étoiles et meilleur temps local ;
 - cône de vision visible, coupé par les murs et les meubles ;
 - course augmentant la portée du cône et la vitesse de détection ;
 - jauge de suspicion, alerte après 2 secondes et interception après 4 secondes ;
