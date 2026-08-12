@@ -31,7 +31,7 @@ import {
 } from '../game/constants';
 import { buildVisionPolygon, isPointVisible } from '../game/geometry';
 
-type GameState = 'playing' | 'dialogue' | 'intercepted' | 'completed';
+type GameState = 'menu' | 'playing' | 'paused' | 'dialogue' | 'intercepted' | 'completed' | 'catastrophic';
 type TutorialAnchor = 'player' | 'restroom' | 'pillar' | 'donut';
 type InventoryItemId = 'donut';
 type InteractionTarget = 'restroom' | 'donut' | null;
@@ -100,6 +100,9 @@ export class PrototypeScene extends Phaser.Scene {
   private finalColleagueName!: Phaser.GameObjects.Text;
   private dialogueContainer?: Phaser.GameObjects.Container;
   private dialogueResolved = false;
+  private menuObjects: Phaser.GameObjects.GameObject[] = [];
+  private pauseObjects: Phaser.GameObjects.GameObject[] = [];
+  private pauseButton!: Phaser.GameObjects.Arc;
 
   private keyboardKeys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private currentTutorial?: TutorialBubble;
@@ -132,6 +135,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.createFinalColleague();
     this.createCamera();
     this.createHud();
+    this.createPauseButton();
     this.createJoystick();
     this.createRunButton();
     this.createInteractionButton();
@@ -140,10 +144,13 @@ export class PrototypeScene extends Phaser.Scene {
     this.input.on('pointermove', this.onPointerMove, this);
     this.input.on('pointerup', this.onPointerUp, this);
     this.input.on('pointerupoutside', this.onPointerUp, this);
-
-    if (!this.tutorialsCompleted) {
-      this.showTutorial('move', 'Utilise le joystick pour avancer.', 'player');
-    }
+    this.game.events.on(Phaser.Core.Events.BLUR, this.pauseForBackground, this);
+    this.game.events.on(Phaser.Core.Events.HIDDEN, this.pauseForBackground, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.game.events.off(Phaser.Core.Events.BLUR, this.pauseForBackground, this);
+      this.game.events.off(Phaser.Core.Events.HIDDEN, this.pauseForBackground, this);
+    });
+    this.showStartMenu();
   }
 
   update(_time: number, delta: number) {
@@ -151,6 +158,10 @@ export class PrototypeScene extends Phaser.Scene {
 
     this.elapsedRealMs += delta;
     this.updateClock();
+    if (this.getCurrentTotalMinutes() >= 22 * 60) {
+      this.triggerCatastrophicOvertime();
+      return;
+    }
     this.updatePlayer();
     this.updateNpcs();
     this.updateDetection(delta / 1000);
@@ -180,7 +191,7 @@ export class PrototypeScene extends Phaser.Scene {
     this.isActuallyRunning = false;
     this.isHidden = false;
     this.elapsedRealMs = 0;
-    this.gameState = 'playing';
+    this.gameState = 'menu';
     this.dismissedTutorials.clear();
     this.currentTutorial = undefined;
     this.hasMoved = false;
@@ -191,6 +202,8 @@ export class PrototypeScene extends Phaser.Scene {
     this.donutCollected = false;
     this.dialogueContainer = undefined;
     this.dialogueResolved = false;
+    this.menuObjects = [];
+    this.pauseObjects = [];
 
     try {
       this.tutorialsCompleted = localStorage.getItem('office-escape-tutorial-v04') === 'done';
@@ -480,8 +493,8 @@ export class PrototypeScene extends Phaser.Scene {
 
   private createCamera() {
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
-    this.cameras.main.setDeadzone(80, 175);
+    this.cameras.main.startFollow(this.player, true, 0.16, 0.16);
+    this.cameras.main.setDeadzone(72, 150);
     this.cameras.main.roundPixels = true;
   }
 
@@ -498,7 +511,7 @@ export class PrototypeScene extends Phaser.Scene {
       color: '#ffffff'
     }).setScrollFactor(0).setDepth(301);
 
-    this.add.text(24, 52, 'V0.5 · Dialogue final', {
+    this.add.text(24, 52, 'V0.6 · Niveau 1 consolidé', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '11px',
       color: '#c9d5dd'
@@ -559,6 +572,179 @@ export class PrototypeScene extends Phaser.Scene {
       this.inventorySlotLabels.push(label);
     }
     this.updateInventoryDisplay();
+  }
+
+  private createPauseButton() {
+    this.pauseButton = this.add.circle(276, 46, 16, 0xffffff, 0.12)
+      .setStrokeStyle(1, 0xffffff, 0.35)
+      .setScrollFactor(0)
+      .setDepth(305)
+      .setInteractive({ useHandCursor: true });
+    this.add.text(276, 46, 'Ⅱ', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(306);
+    this.pauseButton.on('pointerdown', () => this.pauseGame());
+  }
+
+  private showStartMenu() {
+    this.gameState = 'menu';
+    this.stopActors();
+
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0b141b, 0.92);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 350, 690, 0xf6f0e4, 1)
+      .setStrokeStyle(5, 0x4f7f96, 1);
+    const title = this.add.text(GAME_WIDTH / 2, 125, 'OFFICE ESCAPE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '33px',
+      fontStyle: 'bold',
+      color: '#21313c'
+    }).setOrigin(0.5);
+    const subtitle = this.add.text(GAME_WIDTH / 2, 166, 'NIVEAU 1 · ENFIN 17H', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '14px',
+      fontStyle: 'bold',
+      color: '#9a5e4b'
+    }).setOrigin(0.5);
+    const objective = this.add.text(
+      GAME_WIDTH / 2,
+      270,
+      'Échappe-toi du bureau sans te faire\nretenir par tes collègues.\n\nObserve · Cache-toi · Choisis vite',
+      {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '16px',
+        color: '#33414b',
+        align: 'center',
+        lineSpacing: 7
+      }
+    ).setOrigin(0.5);
+    const targets = this.add.text(GAME_WIDTH / 2, 405, '★★★ avant 17:20\n★★ avant 17:30\n★ avant 17:45', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#6c5b3e',
+      align: 'center',
+      lineSpacing: 6
+    }).setOrigin(0.5);
+    const playButton = this.add.rectangle(GAME_WIDTH / 2, 525, 270, 62, 0x4f8b61, 1)
+      .setInteractive({ useHandCursor: true });
+    const playText = this.add.text(GAME_WIDTH / 2, 525, 'JOUER', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '18px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    const resetButton = this.add.rectangle(GAME_WIDTH / 2, 610, 270, 50, 0x586873, 1)
+      .setInteractive({ useHandCursor: true });
+    const resetText = this.add.text(GAME_WIDTH / 2, 610, 'RÉINITIALISER TUTORIEL + RECORD', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    const feedback = this.add.text(GAME_WIDTH / 2, 652, '', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#4f8b61'
+    }).setOrigin(0.5);
+    const version = this.add.text(GAME_WIDTH / 2, 700, 'Prototype V0.6', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '10px',
+      color: '#7f898f'
+    }).setOrigin(0.5);
+
+    const menuObjects = [
+      shade,
+      panel,
+      title,
+      subtitle,
+      objective,
+      targets,
+      playButton,
+      playText,
+      resetButton,
+      resetText,
+      feedback,
+      version
+    ];
+    menuObjects.forEach((object) => object.setScrollFactor(0).setDepth(700));
+    this.menuObjects = menuObjects;
+
+    playButton.on('pointerdown', () => this.startGameFromMenu());
+    resetButton.on('pointerdown', () => {
+      try {
+        localStorage.removeItem('office-escape-tutorial-v04');
+        localStorage.removeItem('office-escape-best-v05');
+      } catch {
+        // La remise à zéro visuelle reste possible si le stockage privé est bloqué.
+      }
+      this.tutorialsCompleted = false;
+      this.dismissedTutorials.clear();
+      feedback.setText('Tutoriel et meilleur temps réinitialisés.');
+      this.vibrate(30);
+    });
+  }
+
+  private startGameFromMenu() {
+    if (this.gameState !== 'menu') return;
+    this.menuObjects.forEach((object) => object.destroy());
+    this.menuObjects = [];
+    this.gameState = 'playing';
+    this.stateText.setText('DISCRET').setColor('#9fd4ad');
+    if (!this.tutorialsCompleted) {
+      this.showTutorial('move', 'Utilise le joystick pour avancer.', 'player');
+    }
+  }
+
+  private pauseGame() {
+    if (this.gameState !== 'playing') return;
+    this.gameState = 'paused';
+    this.stopActors();
+    this.stateText.setText('PAUSE').setColor('#cbd5db');
+
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x081017, 0.82);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, 320, 270, 0xf8f4ea, 1)
+      .setStrokeStyle(5, 0x4f7f96, 1);
+    const heading = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 72, 'PAUSE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '30px',
+      fontStyle: 'bold',
+      color: '#35596b'
+    }).setOrigin(0.5);
+    const body = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 20, 'Le temps et les patrouilles sont arrêtés.', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+      color: '#46545d',
+      align: 'center'
+    }).setOrigin(0.5);
+    const button = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 70, 220, 56, 0x4f7f96, 1)
+      .setInteractive({ useHandCursor: true });
+    const buttonText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 70, 'REPRENDRE', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+
+    const pauseObjects = [shade, panel, heading, body, button, buttonText];
+    pauseObjects.forEach((object) => object.setScrollFactor(0).setDepth(720));
+    this.pauseObjects = pauseObjects;
+    button.on('pointerdown', () => this.resumeGame());
+  }
+
+  private resumeGame() {
+    if (this.gameState !== 'paused') return;
+    this.pauseObjects.forEach((object) => object.destroy());
+    this.pauseObjects = [];
+    this.gameState = 'playing';
+    this.stateText.setText('DISCRET').setColor('#9fd4ad');
+  }
+
+  private pauseForBackground() {
+    this.pauseGame();
   }
 
   private createJoystick() {
@@ -710,6 +896,7 @@ export class PrototypeScene extends Phaser.Scene {
     let anyoneAlerted = false;
 
     for (const npc of this.npcs) {
+      const wasAlerted = npc.alerted;
       const directionAngle = Math.atan2(npc.direction.y, npc.direction.x);
       const range = npc.visionRange * (this.isActuallyRunning ? RUN_VISION_MULTIPLIER : 1);
       const visible = !this.isHidden && isPointVisible(
@@ -737,6 +924,8 @@ export class PrototypeScene extends Phaser.Scene {
       if (npc.detectionSeconds >= DETECTION_ALERT_SECONDS) npc.alerted = true;
       else if (npc.detectionSeconds < 0.35) npc.alerted = false;
 
+      if (!wasAlerted && npc.alerted) this.signalNpcAlert(npc);
+
       if (npc.detectionSeconds >= DETECTION_INTERCEPT_SECONDS) {
         this.interceptPlayer('vision', npc.label);
         return;
@@ -756,6 +945,18 @@ export class PrototypeScene extends Phaser.Scene {
     } else {
       this.stateText.setText('DISCRET').setColor('#9fd4ad');
     }
+  }
+
+  private signalNpcAlert(npc: NpcAgent) {
+    this.tweens.add({
+      targets: npc.actor,
+      scale: 1.28,
+      duration: 120,
+      yoyo: true,
+      repeat: 1
+    });
+    this.cameras.main.flash(90, 239, 106, 91, false);
+    this.vibrate(45);
   }
 
   private updateDetectionDisplay(npc: NpcAgent) {
@@ -863,6 +1064,8 @@ export class PrototypeScene extends Phaser.Scene {
     this.donut.setVisible(false).setActive(false);
     this.updateInventoryDisplay();
     if (this.currentTutorial?.id === 'donut') this.dismissTutorial();
+    this.tweens.add({ targets: this.player, scale: 1.25, duration: 110, yoyo: true });
+    this.vibrate(30);
     this.showToast('Donut récupéré · 1 objet sur 2');
   }
 
@@ -917,6 +1120,23 @@ export class PrototypeScene extends Phaser.Scene {
     const hours = Math.floor(totalMinutes / 60) % 24;
     const minutes = totalMinutes % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  private getCurrentTotalMinutes() {
+    return START_HOUR * 60 + START_MINUTE + Math.floor(this.elapsedRealMs / REAL_MS_PER_GAME_MINUTE);
+  }
+
+  private triggerCatastrophicOvertime() {
+    if (this.gameState !== 'playing') return;
+    this.gameState = 'catastrophic';
+    this.stopActors();
+    this.vibrate([80, 60, 120]);
+    this.showEndOverlay(
+      '22:00 · HEURES SUP !',
+      'Le bureau est vide. Même l’équipe de ménage est partie.\nIl est vraiment temps de rentrer.',
+      0x6e4d78,
+      'RECOMMENCER'
+    );
   }
 
   private updateTutorials() {
@@ -1162,6 +1382,7 @@ export class PrototypeScene extends Phaser.Scene {
     if (!success) title = 'AÏE…';
     this.elapsedRealMs += penaltyMinutes * REAL_MS_PER_GAME_MINUTE;
     this.updateClock();
+    this.vibrate(success ? 35 : [70, 45, 90]);
     this.dialogueContainer?.destroy(true);
     this.dialogueContainer = undefined;
     this.showDialogueResult(title, message, success ? 0x4f8b61 : 0xb8493f);
@@ -1214,10 +1435,19 @@ export class PrototypeScene extends Phaser.Scene {
     if (this.gameState !== 'playing') return;
     this.gameState = 'intercepted';
     this.stopActors();
+    this.vibrate([80, 50, 120]);
     const explanation = reason === 'contact'
       ? `Tu as touché ${npcLabel} à ${this.formatCurrentTime()}.`
       : `${npcLabel} t'a repéré à ${this.formatCurrentTime()}.`;
     this.showEndOverlay('INTERCEPTÉ !', explanation, 0xb8493f, 'RECOMMENCER');
+  }
+
+  private vibrate(pattern: number | number[]) {
+    try {
+      navigator.vibrate?.(pattern);
+    } catch {
+      // Les vibrations sont optionnelles et absentes sur certains navigateurs iOS.
+    }
   }
 
   private completeLevel() {

@@ -2,9 +2,9 @@
 
 Prototype mobile 2D d'infiltration/puzzle développé avec Phaser 4, TypeScript et Vite.
 
-## V0.5 — Dialogue final et sortie
+## V0.6 — Consolidation du niveau 1
 
-Cette version ferme la boucle complète du niveau 1 : après le collègue, les toilettes, le boss et le donut, une dernière rencontre obligatoire propose trois choix avant la vraie porte de sortie.
+Cette version transforme la boucle complète du niveau 1 en prototype présentable et plus robuste sur mobile.
 
 - format portrait et progression du bas vers le haut ;
 - joystick tactile et bouton **COURIR** à maintenir avec un second doigt ;
@@ -20,6 +20,12 @@ Cette version ferme la boucle complète du niveau 1 : après le collègue, les t
 - réponses à 70 % et 30 %, avec pénalités respectives de 10 et 30 minutes en cas d'échec ;
 - temps figé pendant le dialogue puis repris après le résultat ;
 - vraie sortie avec heure finale, étoiles et meilleur temps local ;
+- écran d'accueil avec objectif et seuils d'étoiles ;
+- pause manuelle et pause automatique lorsque l'application passe en arrière-plan ;
+- écran spécial **Heures sup catastrophiques** à 22h00 ;
+- remise à zéro du tutoriel et du meilleur temps depuis l'accueil ;
+- retours visuels et vibrations optionnelles lors des alertes, objets et résultats ;
+- caméra plus réactive et zone morte réduite pour améliorer le contrôle en portrait ;
 - cône de vision visible, coupé par les murs et les meubles ;
 - course augmentant la portée du cône et la vitesse de détection ;
 - jauge de suspicion, alerte après 2 secondes et interception après 4 secondes ;
