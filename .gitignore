@@ -2,3 +2,6 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Le lockfile EST versionné : `npm ci` en CI garantit un build reproductible.
+!package-lock.json

@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Un déploiement Pages interrompu en vol laisse le site dans un état incertain.
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -31,12 +32,22 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
 
       - name: Build
         run: npm run build
+
+      - name: Bundle budget
+        run: npm run budget
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

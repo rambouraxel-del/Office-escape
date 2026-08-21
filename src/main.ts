@@ -1,35 +1,45 @@
 import Phaser from 'phaser';
 import './style.css';
-import { GAME_HEIGHT, GAME_WIDTH } from './game/constants';
-import { PrototypeScene } from './scenes/PrototypeScene';
+import { VIEW_HEIGHT, VIEW_WIDTH } from './game/constants';
+import { BootScene } from './scenes/BootScene';
+import { MenuScene } from './scenes/MenuScene';
+import { LevelScene } from './scenes/LevelScene';
+import { UiScene } from './scenes/UiScene';
+import { ResultScene } from './scenes/ResultScene';
+
+declare const __APP_VERSION__: string;
+
+document.title = `Office Escape — v${__APP_VERSION__}`;
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: 'game-root',
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  width: VIEW_WIDTH,
+  height: VIEW_HEIGHT,
   backgroundColor: '#efe7d7',
-  render: {
-    antialias: true,
-    roundPixels: true
-  },
+  render: { antialias: true, roundPixels: true },
   physics: {
     default: 'arcade',
-    arcade: {
-      debug: false,
-      gravity: { x: 0, y: 0 }
-    }
+    arcade: { debug: false, gravity: { x: 0, y: 0 } }
   },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT
+    width: VIEW_WIDTH,
+    height: VIEW_HEIGHT
   },
-  input: {
-    activePointers: 3
-  },
-  scene: [PrototypeScene]
+  // Joystick + course + interaction peuvent être pressés simultanément.
+  input: { activePointers: 4 },
+  scene: [BootScene, MenuScene, LevelScene, UiScene, ResultScene]
 };
 
-new Phaser.Game(config);
+export const game = new Phaser.Game(config);
+
+// Le service worker n'a de sens qu'en production servie en HTTPS.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  globalThis.addEventListener('load', () => {
+    void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
+      /* hors ligne indisponible : le jeu fonctionne quand même */
+    });
+  });
+}

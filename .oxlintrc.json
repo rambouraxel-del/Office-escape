@@ -1,0 +1,53 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-console": "warn",
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "typescript/no-explicit-any": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": [
+          "__APP_VERSION__"
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "public/**"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "tools/**/*.mjs"
+      ],
+      "rules": {
+        "no-console": "off",
+        "no-await-in-loop": "off"
+      }
+    },
+    {
+      "files": [
+        "tests/**/*.ts"
+      ],
+      "rules": {
+        "typescript/no-explicit-any": "off"
+      }
+    }
+  ]
+}
