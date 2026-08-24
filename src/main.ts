@@ -17,7 +17,9 @@ const config: Phaser.Types.Core.GameConfig = {
   width: VIEW_WIDTH,
   height: VIEW_HEIGHT,
   backgroundColor: '#efe7d7',
-  render: { antialias: true, roundPixels: true },
+  // `pixelArt` coupe le lissage et cale le rendu sur des pixels entiers :
+  // sans lui, chaque sprite serait interpolé et le pixel art disparaîtrait.
+  render: { pixelArt: true, roundPixels: true },
   physics: {
     default: 'arcade',
     arcade: { debug: false, gravity: { x: 0, y: 0 } }

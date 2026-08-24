@@ -1,0 +1,88 @@
+{
+  "$comment": "Palette pixel art V0.9. Source de vérité UNIQUE : lue par le jeu (palette.ts) et par le générateur de sprites (tools/art). Ne jamais dupliquer une couleur ailleurs.",
+
+  "ink": "#241a24",
+  "inkSoft": "#4a3a48",
+  "shadow": "#5b4a58",
+  "paper": "#fff6e6",
+  "paperDim": "#e8dcc6",
+
+  "floorLight": "#f2dcb8",
+  "floorMid": "#e6c99b",
+  "floorDark": "#d4b183",
+  "floorSeam": "#c49a6c",
+  "carpetStart": "#a8c48a",
+  "carpetStartDark": "#88a86c",
+  "carpetExit": "#7ac44f",
+  "carpetExitDark": "#4f8f36",
+  "carpetAlcove": "#e0b98c",
+
+  "wallTop": "#8b9bc4",
+  "wallLight": "#6f7fa8",
+  "wallMid": "#4e5c80",
+  "wallDark": "#35405c",
+
+  "woodLight": "#d99a5c",
+  "woodMid": "#b87340",
+  "woodDark": "#8a5230",
+
+  "metalLight": "#a8b6c4",
+  "metalMid": "#7d8b9c",
+  "metalDark": "#56616f",
+
+  "stoneLight": "#8f8496",
+  "stoneMid": "#6d6274",
+  "stoneDark": "#4c4353",
+
+  "tealLight": "#5fe0d2",
+  "teal": "#2ec4b6",
+  "tealDark": "#1a8a80",
+
+  "coralLight": "#ff9c7f",
+  "coral": "#f4795b",
+  "coralDark": "#c4543a",
+
+  "plumLight": "#c07fae",
+  "plum": "#9b5d8a",
+  "plumDark": "#6e3f62",
+
+  "blueLight": "#7fb4e0",
+  "blue": "#4f85b8",
+  "blueDark": "#345c85",
+
+  "navyLight": "#5a6f88",
+  "navy": "#3c4d63",
+  "navyDark": "#26323f",
+
+  "gold": "#f5c451",
+  "goldDark": "#c99a2e",
+  "alert": "#e8543f",
+  "alertDark": "#b03424",
+
+  "glass": "#7fd4e8",
+  "glassDim": "#57a8bd",
+  "screen": "#1e2a38",
+  "screenGlow": "#6ee0c8",
+
+  "skin": "#f5c9a0",
+  "skinShade": "#d99f75",
+  "hairDark": "#3a2a24",
+  "hairRed": "#b4573a",
+  "hairBlond": "#e0b25e",
+  "hairGrey": "#9a9088",
+
+  "leaf": "#6aa84f",
+  "leafDark": "#46703a",
+  "pot": "#c1683c",
+  "potDark": "#93482a",
+
+  "icing": "#f49ac1",
+  "icingDark": "#c96f97",
+  "dough": "#e0a869",
+  "doughDark": "#b07f46",
+
+  "hudPanel": "#2b2438",
+  "hudPanelLight": "#4a3f5c",
+  "hudEdge": "#8a7aa8",
+  "hudInset": "#1a1524"
+}

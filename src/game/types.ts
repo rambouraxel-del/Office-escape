@@ -31,14 +31,24 @@ export interface ObstacleDef extends RectDef {
   id?: string;
 }
 
+/** Matières de sol nommées, pour les zones de décor. */
+export type ZoneMaterial = 'start' | 'exit' | 'alcove' | 'neutral';
+
+/** Accessoires posés librement dans le niveau. */
+export type PropKind = 'plant' | 'chair' | 'exitSign';
+
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {
-  kind: 'plant' | 'zone' | 'text' | 'deskProps';
+  kind: 'plant' | 'zone' | 'text' | 'deskProps' | 'prop';
   x: number;
   y: number;
   w?: number;
   h?: number;
   text?: string;
+  /** Zones : matière de sol. À défaut, `neutral`. */
+  material?: ZoneMaterial;
+  /** `prop` : quel accessoire poser. */
+  prop?: PropKind;
   color?: number;
   size?: number;
   scale?: number;

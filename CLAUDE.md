@@ -12,12 +12,19 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 - **Aucun accès direct à `localStorage`** : passer par `Save`.
 - **Phaser réutilise l'instance de scène** : les initialiseurs de champs ne rejouent pas entre deux parties. Remettre l'état à zéro en tête de `create()`. Ce piège a déjà causé un crash.
 - Les objets renvoyés par `NpcController.update()` et `buildVisionPolygon()` sont **réutilisés d'une frame à l'autre** : les consommer immédiatement.
+- **Aucune couleur en dur** : tout passe par `src/game/palette.json`. Aucun nom d'asset dans une scène : tout passe par `src/game/artTheme.ts`.
+- **1 pixel d'art = 2 unités de monde**, agrandissement entier uniquement. Les sprites se régénèrent avec `npm run art`.
+- **Les textures de personnage font 64 × 64, obligatoirement** : `Body.setCircle()` positionne le cercle de collision à partir des dimensions de la texture.
+- **Le rendu ne touche jamais au gameplay** : un obstacle garde son rectangle de collision d'origine, rendu invisible, et l'habillage se dessine par-dessus.
 
 ## Vérifier
 
 ```bash
 npm run verify   # lint + typage + tests + build + budget
 npm run smoke    # parcours réel dans Chromium (après build)
+npm run art      # régénère les sprites après modification de tools/art/
 ```
+
+Direction artistique : `docs/art-direction-v0.9.md`.
 
 Un changement de gameplay sans test dans `tests/` est incomplet. Un changement de scène non passé au `smoke` est non vérifié.

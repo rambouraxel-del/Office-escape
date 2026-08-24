@@ -1,4 +1,3 @@
-import { COLORS } from '../game/constants';
 import type { LevelDef } from '../game/types';
 
 /**
@@ -41,8 +40,8 @@ export const LEVEL_03: LevelDef = {
   ],
 
   decor: [
-    { kind: 'zone', x: 250, y: 2075, w: 300, h: 110, color: 0x4d5566, text: 'SORTIE ASCENSEUR' },
-    { kind: 'zone', x: 250, y: 92, w: 286, h: 108, color: COLORS.green, text: 'TA VOITURE  ↑' },
+    { kind: 'zone', x: 250, y: 2075, w: 300, h: 110, material: 'neutral', text: 'ASCENSEUR' },
+    { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'TA VOITURE  ↑' },
     { kind: 'text', x: 250, y: 1560, text: 'NIVEAU −1', size: 13, color: 0x8a93a3 },
     { kind: 'text', x: 250, y: 960, text: 'NIVEAU −2', size: 13, color: 0x8a93a3 },
     { kind: 'text', x: 250, y: 400, text: 'RAMPE DE SORTIE', size: 12, color: 0x9b8b78 },

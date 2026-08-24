@@ -28,6 +28,7 @@ import { NpcController } from '../systems/NpcController';
 import { TutorialDirector } from '../systems/TutorialDirector';
 import { REGISTRY_KEYS, type InputState, type RunRequest, type RunResult } from '../game/session';
 import { getLevel } from '../levels';
+import { ITEM_TEXTURES, PLAYER_TEXTURE } from '../game/artTheme';
 import { LevelView, type NpcVisual } from './LevelView';
 import { rectContains } from '../game/geometry';
 import type { ItemId, LevelDef, ObstacleDef, TriggerDef } from '../game/types';
@@ -162,7 +163,7 @@ export class LevelScene extends Phaser.Scene {
 
   private spawnPlayer() {
     this.player = this.add
-      .sprite(this.level.spawn.x, this.level.spawn.y, 'char-player')
+      .sprite(this.level.spawn.x, this.level.spawn.y, PLAYER_TEXTURE)
       .setDepth(DEPTH.player);
     this.physics.add.existing(this.player);
     this.playerBody = this.player.body as Phaser.Physics.Arcade.Body;
@@ -198,7 +199,7 @@ export class LevelScene extends Phaser.Scene {
 
   private spawnItems() {
     this.level.items.forEach((spawn) => {
-      const sprite = this.add.sprite(spawn.at.x, spawn.at.y, `item-${spawn.id}`).setDepth(DEPTH.item);
+      const sprite = this.add.sprite(spawn.at.x, spawn.at.y, ITEM_TEXTURES[spawn.id]).setDepth(DEPTH.item);
       this.tweens.add({
         targets: sprite,
         y: spawn.at.y - 5,
@@ -223,7 +224,7 @@ export class LevelScene extends Phaser.Scene {
     if (!track || track.length < 2 || this.request.daily) return;
     this.ghostPlayer = new GhostPlayer(track);
     this.ghost = this.add
-      .sprite(track[0].x, track[0].y, 'char-player')
+      .sprite(track[0].x, track[0].y, PLAYER_TEXTURE)
       .setDepth(DEPTH.ghost)
       .setAlpha(0.32)
       .setTint(COLORS.ghost);

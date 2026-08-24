@@ -1,4 +1,3 @@
-import { COLORS } from '../game/constants';
 import type { LevelDef } from '../game/types';
 
 /**
@@ -44,9 +43,9 @@ export const LEVEL_02: LevelDef = {
   ],
 
   decor: [
-    { kind: 'zone', x: 250, y: 1915, w: 316, h: 110, color: 0xc7d8bd, text: 'ASCENSEUR  •  DÉPART' },
-    { kind: 'zone', x: 250, y: 92, w: 286, h: 108, color: COLORS.green, text: 'ESCALIER DE SECOURS  ↑' },
-    { kind: 'zone', x: 425, y: 1180, w: 100, h: 120, color: 0xd7c9e0, text: '' },
+    { kind: 'zone', x: 250, y: 1915, w: 316, h: 110, material: 'start', text: 'ASCENSEUR' },
+    { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'ESCALIER  ↑' },
+    { kind: 'zone', x: 425, y: 1180, w: 100, h: 120, material: 'alcove' },
     { kind: 'text', x: 425, y: 1250, text: 'VESTIAIRE', size: 11, color: 0x7c6d88 },
     { kind: 'text', x: 250, y: 1640, text: 'OPEN SPACE', size: 13, color: 0x8b9aa5 },
     { kind: 'text', x: 250, y: 880, text: 'ZONE SURVEILLÉE', size: 14, color: 0x806f83 },

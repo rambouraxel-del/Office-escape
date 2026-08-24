@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import {
-  COLORS,
   CONTROL_MARGIN_X,
   INVENTORY_SLOTS,
   JOYSTICK_MARGIN_X,
@@ -15,7 +14,9 @@ import { SettingsStore } from '../core/settings';
 import { FR } from '../core/strings';
 import { REGISTRY_KEYS, type InputState } from '../game/session';
 import type { DialogueDef, ItemId } from '../game/types';
-import { makeButton, makeShade, makeText } from '../ui/theme';
+import { PixelClock, makePanel, makePixelButton, makeShade, makeText } from '../ui/theme';
+import { PALETTE } from '../game/palette';
+import { OUTLINE } from '../game/artTheme';
 import type { LevelScene } from './LevelScene';
 
 interface DialogueOutcome {
@@ -36,24 +37,25 @@ export class UiScene extends Phaser.Scene {
   private level!: LevelScene;
   private inputState!: InputState;
 
-  private clockText!: Phaser.GameObjects.Text;
+  private clock!: PixelClock;
   private stateText!: Phaser.GameObjects.Text;
   private hiddenText!: Phaser.GameObjects.Text;
   private toastText!: Phaser.GameObjects.Text;
   private toastTimer?: Phaser.Time.TimerEvent;
   private boostText!: Phaser.GameObjects.Text;
   private slotIcons: Phaser.GameObjects.Text[] = [];
+  private slotFrames: Phaser.GameObjects.NineSlice[] = [];
 
-  private joystickKnob!: Phaser.GameObjects.Arc;
-  private joystickBase!: Phaser.GameObjects.Arc;
-  private joystickRing!: Phaser.GameObjects.Arc;
+  private joystickKnob!: Phaser.GameObjects.Image;
+  private joystickBase!: Phaser.GameObjects.Image;
+  private joystickRing!: Phaser.GameObjects.Image;
   private joystickZone!: Phaser.GameObjects.Zone;
   private joystickOrigin = new Phaser.Math.Vector2();
   private joystickPointer: number | null = null;
-  private runButton!: Phaser.GameObjects.Arc;
+  private runButton!: Phaser.GameObjects.Image;
   private runLabel!: Phaser.GameObjects.Text;
   private runPointer: number | null = null;
-  private interactionButton!: Phaser.GameObjects.Arc;
+  private interactionButton!: Phaser.GameObjects.Image;
   private interactionLabel!: Phaser.GameObjects.Text;
 
   private overlay: Phaser.GameObjects.GameObject[] = [];
@@ -69,6 +71,7 @@ export class UiScene extends Phaser.Scene {
     // initialiseurs de champs ne rejouent pas. Tout état par partie doit être
     // remis à zéro ici, sinon on garde des références vers des objets détruits.
     this.slotIcons = [];
+    this.slotFrames = [];
     this.overlay = [];
     this.joystickPointer = null;
     this.runPointer = null;
@@ -101,13 +104,20 @@ export class UiScene extends Phaser.Scene {
     });
   }
 
+  /** Affiche (ou masque) un texte HUD avec le panneau qui lui sert de fond. */
+  private static setBadgeVisible(text: Phaser.GameObjects.Text, visible: boolean, alpha = 1): void {
+    text.setVisible(visible).setAlpha(alpha);
+    const panel = text.getData('panel') as Phaser.GameObjects.NineSlice | undefined;
+    panel?.setVisible(visible).setAlpha(alpha);
+  }
+
   update() {
     // La scène de jeu peut s'éteindre entre deux frames (fin de partie) :
     // lire son état ensuite provoquerait un accès à des objets détruits.
     if (!this.live || !this.scene.isActive('Level')) return;
 
     const snapshot = this.level.hudSnapshot;
-    this.clockText.setText(snapshot.time);
+    this.clock.setText(snapshot.time);
 
     if (snapshot.hidden) this.stateText.setText(FR.hud.hidden).setColor('#9dd6ef');
     else if (this.level.state === 'paused') this.stateText.setText(FR.hud.paused).setColor('#cbd5db');
@@ -117,10 +127,9 @@ export class UiScene extends Phaser.Scene {
     else if (snapshot.seen) this.stateText.setText(FR.hud.scanning).setColor('#ffd270');
     else this.stateText.setText(FR.hud.discreet).setColor('#9fd4ad');
 
-    this.hiddenText.setVisible(snapshot.hidden);
-    this.boostText
-      .setVisible(snapshot.coffeeRemaining > 0)
-      .setText(`☕ ${Math.ceil(snapshot.coffeeRemaining / 1000)} s`);
+    UiScene.setBadgeVisible(this.hiddenText, snapshot.hidden);
+    this.boostText.setText(`☕ ${Math.ceil(snapshot.coffeeRemaining / 1000)} s`);
+    UiScene.setBadgeVisible(this.boostText, snapshot.coffeeRemaining > 0);
 
     snapshot.inventory.forEach((item, index) => {
       const icon = this.slotIcons[index];
@@ -143,97 +152,93 @@ export class UiScene extends Phaser.Scene {
   // ───────────────────────────────── HUD ──────────────────────────────────
 
   private buildHud() {
-    this.add.graphics().fillStyle(0x07101f, 0.3).fillRoundedRect(11, 13, 368, 82, 22).setDepth(299);
-    const panel = this.add.graphics().setDepth(300);
-    panel.fillStyle(COLORS.hud, 0.97).fillRoundedRect(10, 9, 370, 80, 22);
-    panel.lineStyle(2, 0xffffff, 0.12).strokeRoundedRect(10, 9, 370, 80, 22);
+    // Bandeau en 9 tranches : plus de rectangle arrondi lissé, un vrai cadre
+    // pixel art qui s'étire sans déformer ses coins.
+    makePanel(this, VIEW_WIDTH / 2, 50, 372, 84, 'ui-panel-dark').setDepth(300);
 
-    this.add.circle(33, 36, 14, COLORS.player, 1).setStrokeStyle(2, 0xffffff, 0.28).setDepth(301);
-    makeText(this, 33, 36, '↑', { size: 17, bold: true, color: '#ffffff' }).setOrigin(0.5).setDepth(302);
-    makeText(this, 55, 24, FR.app.title, { size: 14, bold: true, color: '#ffffff' }).setDepth(301);
-    makeText(this, 55, 47, this.level.hudSnapshot.levelName, {
+    this.add.image(34, 38, 'char-player').setScale(0.5).setDepth(302);
+    makeText(this, 56, 24, FR.app.title, { size: 13, bold: true, color: '#fff6e6' }).setDepth(301);
+    makeText(this, 56, 44, this.level.hudSnapshot.levelName, {
       size: 9,
       bold: true,
-      color: '#9fb1c5',
+      color: '#a99cc4',
       letterSpacing: 0.5
     }).setDepth(301);
 
-    this.clockText = makeText(this, 350, 20, '', { size: 23, bold: true, color: '#fff3d6' })
-      .setOrigin(1, 0)
-      .setDepth(301);
-    this.stateText = makeText(this, 350, 54, '', { size: 10, bold: true, color: '#9fd4ad' })
+    this.clock = new PixelClock(this, 370, 26, 301, PALETTE.paper);
+    this.stateText = makeText(this, 370, 58, '', { size: 10, bold: true, color: '#9fd4ad' })
       .setOrigin(1, 0)
       .setDepth(301);
 
-    // « II » en ASCII : les chiffres romains Unicode manquent à beaucoup de
-    // polices système et s'affichent en carré vide.
-    const pause = makeButton(
-      this,
-      276,
-      46,
-      'II',
-      { width: 32, height: 32, color: 0x2c3c58, size: 15 },
-      () => {
-        this.inputState.pausePressed = true;
-      }
-    );
-    pause.background.setDepth(305);
-    pause.label.setDepth(306);
+    const pause = this.add
+      .image(248, 46, 'ui-btn-pause')
+      .setDepth(305)
+      .setInteractive({ useHandCursor: true });
+    makeText(this, 248, 46, 'II', { size: 13, bold: true, color: '#fff6e6' }).setOrigin(0.5).setDepth(306);
+    pause.on('pointerdown', () => {
+      this.inputState.pausePressed = true;
+    });
 
-    this.hiddenText = makeText(this, VIEW_WIDTH / 2, 105, FR.hud.hidden, {
+    this.hiddenText = makeText(this, VIEW_WIDTH / 2, 112, FR.hud.hidden, {
       size: 13,
       bold: true,
-      color: '#ffffff',
-      backgroundColor: '#365b6d',
-      padding: { x: 12, y: 7 }
+      color: '#fff6e6'
     })
       .setOrigin(0.5)
-      .setDepth(310)
+      .setDepth(311)
       .setVisible(false);
+    const hiddenPanel = makePanel(this, VIEW_WIDTH / 2, 112, 210, 34, 'ui-panel-inset').setDepth(310);
+    this.hiddenText.setData('panel', hiddenPanel);
+    hiddenPanel.setVisible(false);
 
-    this.boostText = makeText(this, VIEW_WIDTH / 2, 140, '', {
+    this.boostText = makeText(this, VIEW_WIDTH / 2, 150, '', {
       size: 12,
       bold: true,
-      color: '#3b2a1c',
-      backgroundColor: '#e8c48a',
-      padding: { x: 10, y: 5 }
+      color: '#3b2a1c'
     })
       .setOrigin(0.5)
-      .setDepth(310)
+      .setDepth(311)
       .setVisible(false);
+    const boostPanel = makePanel(this, VIEW_WIDTH / 2, 150, 108, 30, 'ui-button-warm').setDepth(310);
+    this.boostText.setData('panel', boostPanel);
+    boostPanel.setVisible(false);
 
-    this.toastText = makeText(this, VIEW_WIDTH / 2, 605, '', {
+    this.toastText = makeText(this, VIEW_WIDTH / 2, 600, '', {
       size: 13,
       bold: true,
-      color: '#ffffff',
-      backgroundColor: '#18232de6',
+      color: '#fff6e6',
       align: 'center',
-      padding: { x: 13, y: 8 }
+      wrap: 290
     })
       .setOrigin(0.5)
-      .setDepth(350)
+      .setDepth(351)
       .setVisible(false);
+    const toastPanel = makePanel(this, VIEW_WIDTH / 2, 600, 320, 48, 'ui-panel-dark').setDepth(350);
+    this.toastText.setData('panel', toastPanel);
+    toastPanel.setVisible(false);
 
-    makeText(this, 21, 97, FR.hud.pockets, {
+    makePanel(this, 66, 128, 116, 82, 'ui-panel-dark').setDepth(300);
+    makeText(this, 66, 100, FR.hud.pockets, {
       size: 9,
       bold: true,
-      color: '#596777',
+      color: '#a99cc4',
       letterSpacing: 1
-    }).setDepth(301);
+    })
+      .setOrigin(0.5)
+      .setDepth(301);
 
     for (let index = 0; index < INVENTORY_SLOTS; index += 1) {
-      const x = 38 + index * 47;
-      const slot = this.add
-        .rectangle(x, 126, 40, 40, COLORS.hud, 0.94)
-        .setStrokeStyle(2, 0xffffff, 0.28)
+      const x = 44 + index * 44;
+      const frame = makePanel(this, x, 136, 40, 40, 'ui-panel-inset')
         .setDepth(302)
         .setInteractive({ useHandCursor: true });
       // Toucher une poche utilise son objet : le café et le rapport sont actifs.
-      slot.on('pointerdown', () => {
+      frame.on('pointerdown', () => {
         this.inputState.useSlot = index;
       });
+      this.slotFrames.push(frame);
       this.slotIcons.push(
-        makeText(this, x, 126, FR.hud.empty, { size: 18, bold: true, color: '#91a0aa' })
+        makeText(this, x, 136, FR.hud.empty, { size: 18, bold: true, color: '#6c5f88' })
           .setOrigin(0.5)
           .setDepth(303)
       );
@@ -248,18 +253,13 @@ export class UiScene extends Phaser.Scene {
     const actionX = onLeft ? VIEW_WIDTH - CONTROL_MARGIN_X : CONTROL_MARGIN_X;
     this.joystickOrigin.set(joystickX, JOYSTICK_Y);
 
-    this.joystickBase = this.add
-      .circle(joystickX, JOYSTICK_Y + 4, JOYSTICK_RADIUS + 13, COLORS.hud, 0.38)
-      .setStrokeStyle(2, 0xffffff, 0.25)
-      .setDepth(320);
+    this.joystickBase = this.add.image(joystickX, JOYSTICK_Y, 'ui-stick-base').setDepth(320).setAlpha(0.35);
     this.joystickRing = this.add
-      .circle(joystickX, JOYSTICK_Y, JOYSTICK_RADIUS, 0xffffff, 0.16)
-      .setStrokeStyle(2, 0xffffff, 0.28)
-      .setDepth(321);
-    this.joystickKnob = this.add
-      .circle(joystickX, JOYSTICK_Y, 25, COLORS.hud, 0.9)
-      .setStrokeStyle(3, 0xffffff, 0.65)
-      .setDepth(322);
+      .image(joystickX, JOYSTICK_Y, 'ui-stick-base')
+      .setDepth(321)
+      .setScale(0.6)
+      .setAlpha(0.3);
+    this.joystickKnob = this.add.image(joystickX, JOYSTICK_Y, 'ui-stick-knob').setDepth(322).setAlpha(0.9);
 
     this.joystickZone = this.add.zone(joystickX, JOYSTICK_Y, 175, 175).setDepth(323).setInteractive();
     this.joystickZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -268,11 +268,7 @@ export class UiScene extends Phaser.Scene {
       this.updateJoystick(pointer);
     });
 
-    this.runButton = this.add
-      .circle(actionX, RUN_BUTTON_Y, 43, COLORS.player, 0.94)
-      .setStrokeStyle(3, 0xffffff, 0.48)
-      .setDepth(320)
-      .setInteractive();
+    this.runButton = this.add.image(actionX, RUN_BUTTON_Y, 'ui-btn-run').setDepth(320).setInteractive();
     this.runLabel = makeText(this, actionX, RUN_BUTTON_Y, FR.controls.run, {
       size: 11,
       bold: true,
@@ -289,15 +285,14 @@ export class UiScene extends Phaser.Scene {
     });
 
     this.interactionButton = this.add
-      .circle(actionX, RUN_BUTTON_Y - 112, 47, COLORS.door, 0.92)
-      .setStrokeStyle(2, 0xffffff, 0.45)
+      .image(actionX, RUN_BUTTON_Y - 112, 'ui-btn-action')
       .setDepth(330)
       .setInteractive()
       .setVisible(false);
     this.interactionLabel = makeText(this, actionX, RUN_BUTTON_Y - 112, '', {
       size: 12,
       bold: true,
-      color: '#ffffff',
+      color: '#241a24',
       align: 'center'
     })
       .setOrigin(0.5)
@@ -310,9 +305,10 @@ export class UiScene extends Phaser.Scene {
 
   private setRunHeld(active: boolean) {
     this.inputState.runHeld = active;
-    this.runButton.setFillStyle(active ? 0x19b7ae : COLORS.player, active ? 1 : 0.94);
-    this.runButton.setScale(active ? 1.06 : 1);
-    this.runLabel.setScale(active ? 1.06 : 1);
+    // Deux sprites distincts plutôt qu'un changement de teinte : l'état
+    // « en course » doit se voir au premier coup d'œil, pouce posé dessus.
+    this.runButton.setTexture(active ? 'ui-btn-run-on' : 'ui-btn-run');
+    this.runLabel.setY(RUN_BUTTON_Y + (active ? OUTLINE : 0));
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -362,13 +358,15 @@ export class UiScene extends Phaser.Scene {
 
   private showToast(message: string) {
     this.toastTimer?.remove(false);
-    this.toastText.setText(message).setVisible(true).setAlpha(1);
+    this.toastText.setText(message);
+    UiScene.setBadgeVisible(this.toastText, true);
+    const panel = this.toastText.getData('panel') as Phaser.GameObjects.NineSlice;
     this.toastTimer = this.time.delayedCall(2200, () => {
       this.tweens.add({
-        targets: this.toastText,
+        targets: [this.toastText, panel],
         alpha: 0,
         duration: 220,
-        onComplete: () => this.toastText.setVisible(false)
+        onComplete: () => UiScene.setBadgeVisible(this.toastText, false)
       });
     });
   }
@@ -381,9 +379,7 @@ export class UiScene extends Phaser.Scene {
   private showPausePanel(automatic: boolean) {
     this.clearOverlay();
     const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT);
-    const panel = this.add
-      .rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 320, 300, 0xf8f4ea, 1)
-      .setStrokeStyle(5, 0x4f7f96, 1);
+    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 320, 300);
     const heading = makeText(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 92, FR.pause.title, {
       size: 30,
       bold: true,
@@ -397,23 +393,23 @@ export class UiScene extends Phaser.Scene {
       { size: 13, color: '#46545d', align: 'center', wrap: 260, lineSpacing: 4 }
     ).setOrigin(0.5);
 
-    const resume = makeButton(
+    const resume = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       VIEW_HEIGHT / 2 + 55,
       FR.pause.resume,
-      { width: 220, height: 54, color: 0x4f7f96 },
+      { width: 220, height: 54 },
       () => {
         this.clearOverlay();
         this.level.resumeFromPause();
       }
     );
-    const quit = makeButton(
+    const quit = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       VIEW_HEIGHT / 2 + 118,
       FR.pause.quit,
-      { width: 220, height: 42, color: 0x8a5949, size: 12 },
+      { width: 220, height: 42, skin: 'ui-button-muted', size: 12 },
       () => {
         this.clearOverlay();
         this.level.abandonRun();
@@ -428,9 +424,7 @@ export class UiScene extends Phaser.Scene {
   private showDialogue(dialogue: DialogueDef, resolve: ChoiceResolver) {
     this.clearOverlay();
     const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.84);
-    const panel = this.add
-      .rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 354, 650, 0xf8f4ea, 1)
-      .setStrokeStyle(5, COLORS.colleague, 1);
+    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 354, 650);
     const heading = makeText(this, VIEW_WIDTH / 2, 130, dialogue.heading, {
       size: 24,
       bold: true,
@@ -451,12 +445,18 @@ export class UiScene extends Phaser.Scene {
     dialogue.choices.forEach((choice, index) => {
       const y = 290 + index * 122;
       const available = !choice.requiresItem || snapshot.inventory.includes(choice.requiresItem);
-      const button = makeButton(
+      const button = makePixelButton(
         this,
         VIEW_WIDTH / 2,
         y,
         choice.title,
-        { width: 312, height: 92, color: choice.color, enabled: available, size: 15 },
+        {
+          width: 312,
+          height: 92,
+          skin: index === 0 ? 'ui-button-warm' : index === 1 ? 'ui-button' : 'ui-button-muted',
+          enabled: available,
+          size: 15
+        },
         () => {
           Audio.play('ui');
           const outcome = resolve(choice.id);
@@ -485,11 +485,8 @@ export class UiScene extends Phaser.Scene {
 
   private showDialogueOutcome(outcome: DialogueOutcome) {
     this.clearOverlay();
-    const color = outcome.success ? 0x4f8b61 : 0xb8493f;
     const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.84);
-    const panel = this.add
-      .rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 330, 310, 0xf8f4ea, 1)
-      .setStrokeStyle(5, color, 1);
+    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 330, 310);
     const heading = makeText(
       this,
       VIEW_WIDTH / 2,
@@ -505,12 +502,12 @@ export class UiScene extends Phaser.Scene {
       lineSpacing: 5
     }).setOrigin(0.5);
 
-    const button = makeButton(
+    const button = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       VIEW_HEIGHT / 2 + 92,
       'CONTINUER',
-      { width: 210, height: 54, color },
+      { width: 210, height: 54, skin: outcome.success ? 'ui-button' : 'ui-button-warm' },
       () => {
         this.clearOverlay();
         this.level.events.emit('dialogue-closed');

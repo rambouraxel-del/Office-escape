@@ -1,5 +1,54 @@
 # Journal des versions
 
+## V0.9 — Direction artistique pixel art (étape 1)
+
+Refonte **visuelle uniquement** : aucune règle de jeu, aucun timing, aucune
+collision n'a changé. Les 111 tests de gameplay de la V0.8 passent à
+l'identique.
+
+**Direction artistique**
+- Mini bible graphique : [`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
+- Style : bureau de dessin animé vu de dessus, chaleureux et caricatural.
+  Décor en vue de dessus stricte, personnages dessinés de face.
+- Règle d'échelle : **1 pixel d'art = 2 unités de monde**, agrandissement
+  entier uniquement.
+- `src/game/palette.json` devient la **source de vérité unique des couleurs**,
+  lue à la fois par le jeu et par le générateur de sprites.
+
+**Chaîne de production d'assets**
+- `npm run art` génère 41 PNG (~30 Ko) dans `public/assets/`, rangés par
+  famille : `characters/`, `tiles/`, `props/`, `ui/`.
+- Les sprites sont écrits en **ASCII lisible** dans `tools/art/`, avec un
+  encodeur PNG RGBA sans dépendance. Un graphiste peut remplacer n'importe
+  quel PNG sans toucher au code.
+- `src/game/artTheme.ts` : couche de configuration visuelle, seul pont entre
+  une donnée de niveau et un asset.
+
+**Niveau 1 refait visuellement**
+- Sol, murs, bureaux, armoires, pilier et portes en motifs raccordables
+  étirés, avec arête éclairée, base assombrie et contour.
+- Six personnages caricaturaux, reconnaissables à leur silhouette et à un
+  accessoire signature : joueur, collègue à lunettes, boss moustachu,
+  stagiaire au casque, vigile à casquette, collègue bavard.
+- Objets, plantes, écrans, tasses, dossiers et chaises en pixel art.
+- Les zones de sol (départ, sortie, alcôve) sont déclarées **dans la donnée
+  du niveau** (`material`), plus par une couleur codée en dur.
+
+**Interface — premier passage**
+- Panneaux et boutons en 9 tranches, avec enfoncement au toucher.
+- **Horloge en chiffres dessinés** : l'information la plus regardée du jeu.
+- Poches d'inventaire regroupées dans un cadre dédié.
+- Commandes tactiles en sprites, joystick allégé.
+- Menu et écran de fin alignés sur la même direction ; le fond du menu est un
+  diorama composé des mêmes motifs que le jeu.
+
+**Technique**
+- Rendu en mode `pixelArt` : filtrage NEAREST, aucune interpolation.
+- 71 nouveaux tests : présence des assets déclarés, gabarit 64 × 64 des
+  personnages, échelle des motifs, couverture du thème, validité de la palette.
+- L'illustration peinte de la V0.7 quitte `public/` (elle jurait avec le pixel
+  art) et est conservée dans `docs/legacy/`.
+
 ## V0.8 — Refonte data-driven, contenu et outillage
 
 **Architecture**

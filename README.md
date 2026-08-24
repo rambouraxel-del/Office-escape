@@ -1,7 +1,7 @@
 # Office Escape
 
-Jeu web 2D d'infiltration/puzzle **mobile-first** : quitter le bureau avant les heures sup.
-Phaser 4 · TypeScript · Vite. Trois niveaux, aucun asset binaire hormis l'illustration du menu — tout le reste est dessiné et synthétisé par le code.
+Jeu web 2D d'infiltration/puzzle **mobile-first** en **pixel art** : quitter le bureau avant les heures sup.
+Phaser 4 · TypeScript · Vite. Trois niveaux ; tous les visuels et tous les sons sont produits par le code.
 
 **→ [Jouer](https://rambouraxel-del.github.io/Office-escape/)**
 
@@ -22,6 +22,7 @@ npm run dev        # serveur de développement
 | `npm run build` | typage + build de production dans `dist/` |
 | `npm run budget` | budget de poids du bundle (après `build`) |
 | `npm run smoke` | parcourt le jeu dans un vrai Chromium (après `build`) |
+| `npm run art` | régénère les sprites pixel art dans `public/assets/` |
 | `npm run icons` | régénère les icônes PWA |
 | `npm run verify` | tout l'enchaînement ci-dessus |
 
@@ -59,6 +60,15 @@ export const LEVEL_04: LevelDef = { id: 'level-04', obstacles: [...], npcs: [...
 ```
 
 Puis l'ajouter à `src/levels/index.ts`. `LevelScene` l'interprète tel quel, et les tests valident automatiquement qu'il est jouable (départ hors des murs, rondes atteignables, objets accessibles, sortie existante, choix de dialogue non dominés…).
+
+## Direction artistique
+
+Pixel art, bureau de dessin animé vu de dessus, chaleureux et caricatural.
+Les sprites sont écrits en ASCII dans `tools/art/` et cuits en PNG par
+`npm run art` — un graphiste peut remplacer n'importe quel fichier de
+`public/assets/` sans toucher au code.
+
+Règles, palette et limites : [`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
 
 Détails du format et de l'architecture : [`ARCHITECTURE.md`](ARCHITECTURE.md).
 Comment contribuer : [`CONTRIBUTING.md`](CONTRIBUTING.md).

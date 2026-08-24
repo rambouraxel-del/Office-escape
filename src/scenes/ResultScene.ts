@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { COLORS, VIEW_HEIGHT, VIEW_WIDTH } from '../game/constants';
+import { VIEW_HEIGHT, VIEW_WIDTH } from '../game/constants';
+import { PALETTE } from '../game/palette';
 import { Audio } from '../core/audio';
 import { randomSeed } from '../core/prng';
 import { Save } from '../core/save';
@@ -8,7 +9,7 @@ import { scoreRun, starDisplay } from '../core/scoring';
 import { FR } from '../core/strings';
 import { getLevel, nextLevelId } from '../levels';
 import { REGISTRY_KEYS, resetInputState, type InputState, type RunResult } from '../game/session';
-import { makeButton, makeShade, makeText } from '../ui/theme';
+import { makePanel, makePixelButton, makeShade, makeText } from '../ui/theme';
 
 /**
  * Écran de fin : détaille le score sur ses trois axes plutôt que d'afficher un
@@ -27,9 +28,7 @@ export class ResultScene extends Phaser.Scene {
     const color = escaped ? 0x4f8b61 : result.outcome === 'overtime' ? 0x6e4d78 : 0xb8493f;
 
     makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.9);
-    this.add
-      .rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 340, escaped ? 560 : 380, 0xf8f4ea, 1)
-      .setStrokeStyle(5, color, 1);
+    makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 340, escaped ? 560 : 380);
 
     const top = VIEW_HEIGHT / 2 - (escaped ? 250 : 160);
     const title = escaped
@@ -57,7 +56,7 @@ export class ResultScene extends Phaser.Scene {
       ).setOrigin(0.5);
     }
 
-    this.buildActions(result, escaped, color);
+    this.buildActions(result, escaped);
     // Respecte le réglage : ne jamais réactiver le son de force.
     Audio.setMuted(SettingsStore.get().muted);
   }
@@ -88,7 +87,7 @@ export class ResultScene extends Phaser.Scene {
     });
 
     const totalY = top + 280;
-    this.add.rectangle(VIEW_WIDTH / 2, totalY - 14, 268, 2, 0xd8cdb8, 1);
+    this.add.rectangle(VIEW_WIDTH / 2, totalY - 14, 268, 2, PALETTE.floorSeam, 1);
     makeText(this, 70, totalY, FR.result.scoreTotal, { size: 15, bold: true, color: '#2c3a48' });
     makeText(this, 320, totalY + 4, `${breakdown.total}`, {
       size: 22,
@@ -109,32 +108,33 @@ export class ResultScene extends Phaser.Scene {
     ).setOrigin(0.5);
   }
 
-  private buildActions(result: RunResult, escaped: boolean, color: number) {
+  private buildActions(result: RunResult, escaped: boolean) {
     const followUp = escaped ? nextLevelId(result.request.levelId) : null;
     const baseY = VIEW_HEIGHT / 2 + (escaped ? 200 : 110);
+    const skin = escaped ? 'ui-button' : 'ui-button-warm';
 
     if (followUp && !result.request.daily) {
-      makeButton(this, VIEW_WIDTH / 2, baseY, FR.result.next, { width: 240, height: 52, color }, () =>
+      makePixelButton(this, VIEW_WIDTH / 2, baseY, FR.result.next, { width: 240, height: 52, skin }, () =>
         this.launch({ levelId: followUp, seed: randomSeed(), daily: false })
       );
     } else {
-      makeButton(
+      makePixelButton(
         this,
         VIEW_WIDTH / 2,
         baseY,
         escaped ? FR.result.replay : FR.result.retry,
-        { width: 240, height: 52, color },
+        { width: 240, height: 52, skin },
         () =>
           this.launch({ ...result.request, seed: result.request.daily ? result.request.seed : randomSeed() })
       );
     }
 
-    makeButton(
+    makePixelButton(
       this,
       VIEW_WIDTH / 2,
       baseY + 64,
       FR.result.menu,
-      { width: 240, height: 44, color: COLORS.hud, size: 13 },
+      { width: 240, height: 44, skin: 'ui-button-muted', size: 13 },
       () => {
         resetInputState(this.registry.get(REGISTRY_KEYS.input) as InputState);
         this.scene.start('Menu');

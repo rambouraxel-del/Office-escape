@@ -8,7 +8,8 @@ import { formatMinutes } from '../core/clock';
 import { FR } from '../core/strings';
 import { LEVELS, LEVEL_IDS } from '../levels';
 import { REGISTRY_KEYS, resetInputState, type InputState, type RunRequest } from '../game/session';
-import { makeButton, makeText } from '../ui/theme';
+import { makePanel, makePixelButton, makeText } from '../ui/theme';
+import { MENU_BACKGROUND } from '../game/artTheme';
 
 declare const __APP_VERSION__: string;
 
@@ -26,8 +27,8 @@ export class MenuScene extends Phaser.Scene {
     // Instance de scène réutilisée : on repart d'une liste d'objets vierge.
     this.objects = [];
     resetInputState(this.registry.get(REGISTRY_KEYS.input) as InputState);
-    this.add.image(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 'office-menu-bg').setDisplaySize(VIEW_WIDTH, VIEW_HEIGHT);
-    this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH, VIEW_HEIGHT, COLORS.hud, 0.62);
+    this.add.image(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, MENU_BACKGROUND);
+    this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH, VIEW_HEIGHT, COLORS.hud, 0.55);
     this.show('home');
   }
 
@@ -36,10 +37,8 @@ export class MenuScene extends Phaser.Scene {
     this.objects.forEach((object) => object.destroy());
     this.objects = [];
 
-    const shadow = this.add.rectangle(VIEW_WIDTH / 2 + 5, VIEW_HEIGHT / 2 + 8, 350, 694, 0x07101f, 0.36);
-    const card = this.add
-      .rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 350, 690, 0xfff8e9, 0.96)
-      .setStrokeStyle(4, COLORS.player, 1);
+    const shadow = this.add.rectangle(VIEW_WIDTH / 2 + 4, VIEW_HEIGHT / 2 + 6, 350, 690, 0x120d18, 0.4);
+    const card = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 350, 690);
     this.objects.push(shadow, card);
 
     if (panel === 'home') this.buildHome();
@@ -88,32 +87,32 @@ export class MenuScene extends Phaser.Scene {
     ).setOrigin(0.5);
     this.push(summary);
 
-    const play = makeButton(
+    const play = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       378,
       FR.menu.play,
-      { width: 274, height: 62, color: COLORS.player, size: 17 },
+      { width: 274, height: 62, size: 17 },
       () => this.startRun({ levelId: LEVELS[0].id, seed: randomSeed(), daily: false })
     );
-    const levels = makeButton(
+    const levels = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       452,
       FR.menu.levels,
-      { width: 274, height: 50, color: 0x4f7f96, size: 14 },
+      { width: 274, height: 50, skin: 'ui-button-muted', size: 14 },
       () => this.show('levels')
     );
     this.push(...play.objects, ...levels.objects);
 
     const dayKey = dailyKey();
     const dailyRecord = Save.getDailyRecord(dayKey);
-    const daily = makeButton(
+    const daily = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       518,
       FR.menu.daily,
-      { width: 274, height: 50, color: 0x8a6f4f, size: 14 },
+      { width: 274, height: 50, skin: 'ui-button-warm', size: 14 },
       () =>
         this.startRun({
           levelId: LEVELS[new Date().getDate() % LEVELS.length].id,
@@ -131,12 +130,12 @@ export class MenuScene extends Phaser.Scene {
     ).setOrigin(0.5);
     this.push(...daily.objects, dailyHint);
 
-    const settings = makeButton(
+    const settings = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       606,
       FR.menu.settings,
-      { width: 274, height: 46, color: COLORS.hud, size: 13 },
+      { width: 274, height: 46, skin: 'ui-button-muted', size: 13 },
       () => this.show('settings')
     );
     this.push(...settings.objects);
@@ -147,12 +146,12 @@ export class MenuScene extends Phaser.Scene {
       color: '#4f8b61',
       align: 'center'
     }).setOrigin(0.5);
-    const reset = makeButton(
+    const reset = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       648,
       FR.menu.reset,
-      { width: 274, height: 34, color: 0x8a5949, size: 10 },
+      { width: 274, height: 34, skin: 'ui-button-warm', size: 10 },
       () => {
         Save.resetProgress([...LEVEL_IDS]);
         feedback.setText(FR.menu.resetDone);
@@ -180,12 +179,18 @@ export class MenuScene extends Phaser.Scene {
       const unlocked = Save.isLevelUnlocked(index === 0 ? level.id : LEVELS[index - 1].id, index);
       const record = Save.getRecord(level.id);
 
-      const button = makeButton(
+      const button = makePixelButton(
         this,
         VIEW_WIDTH / 2,
         y,
         `${index + 1}. ${level.name}`,
-        { width: 290, height: 62, color: unlocked ? COLORS.player : 0x8d9199, enabled: unlocked, size: 16 },
+        {
+          width: 290,
+          height: 62,
+          skin: unlocked ? 'ui-button' : 'ui-button-muted',
+          enabled: unlocked,
+          size: 16
+        },
         () => this.startRun({ levelId: level.id, seed: randomSeed(), daily: false })
       );
       const subtitle = makeText(this, VIEW_WIDTH / 2, y + 48, level.subtitle, {
@@ -289,17 +294,10 @@ export class MenuScene extends Phaser.Scene {
       const hint = row.hint
         ? makeText(this, 60, y + 30, row.hint, { size: 9, color: '#8b8377', wrap: 200 })
         : null;
-      const toggle = makeButton(
-        this,
-        305,
-        y,
-        '⇄',
-        { width: 54, height: 44, color: COLORS.player, size: 16 },
-        () => {
-          row.onPress();
-          if (this.panel === 'settings') valueText.setText(row.value(SettingsStore.get()));
-        }
-      );
+      const toggle = makePixelButton(this, 305, y, '⇄', { width: 54, height: 44, size: 16 }, () => {
+        row.onPress();
+        if (this.panel === 'settings') valueText.setText(row.value(SettingsStore.get()));
+      });
       this.push(label, valueText, ...toggle.objects);
       if (hint) this.push(hint);
     });
@@ -308,12 +306,12 @@ export class MenuScene extends Phaser.Scene {
   }
 
   private pushBackButton() {
-    const back = makeButton(
+    const back = makePixelButton(
       this,
       VIEW_WIDTH / 2,
       700,
       FR.menu.back,
-      { width: 200, height: 44, color: COLORS.hud, size: 13 },
+      { width: 200, height: 44, skin: 'ui-button-muted', size: 13 },
       () => this.show('home')
     );
     this.push(...back.objects);

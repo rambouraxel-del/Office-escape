@@ -19,6 +19,9 @@ src/
 ├── game/
 │   ├── types.ts       contrat LevelDef / DialogueDef / TutorialDef…
 │   ├── constants.ts   game feel : uniquement des nombres
+│   ├── palette.json   LA palette — source de vérité unique des couleurs
+│   ├── palette.ts     accès typé à la palette
+│   ├── artTheme.ts    donnée de niveau → asset (matières, rôles, objets)
 │   ├── geometry.ts    raycast AABB, cônes de vision
 │   ├── validateLevel.ts  filet de sécurité du format data-driven
 │   └── session.ts     état partagé entre scènes
@@ -28,17 +31,48 @@ src/
 │   ├── TutorialDirector.ts table de conditions
 │   └── GhostRecorder.ts   enregistrement et relecture du record
 ├── levels/          level01.ts, level02.ts, level03.ts — du contenu
-├── ui/theme.ts      fabrique de textes et de boutons (échelle d'accessibilité)
+├── ui/theme.ts      textes, panneaux 9 tranches, boutons, horloge pixel
 └── scenes/
-    ├── BootScene.ts    textures procédurales, une seule fois
+    ├── BootScene.ts    chargement des assets, une seule fois
     ├── MenuScene.ts    accueil, niveaux, réglages
     ├── LevelScene.ts   orchestration et règles
-    ├── LevelView.ts    tout le dessin d'un niveau
+    ├── LevelView.ts    tout le dessin d'un niveau (pixel art)
     ├── UiScene.ts      HUD et contrôles, en surimpression
     └── ResultScene.ts  score détaillé
 ```
 
-Règle de dépendance : `core/` et `systems/` **n'importent jamais Phaser**. C'est ce qui rend 111 tests unitaires possibles sans navigateur.
+```
+tools/art/          générateur de sprites, hors du bundle
+├── canvas.mjs        canvas pixel + DSL de sprites en ASCII
+├── png.mjs           encodeur PNG RGBA sans dépendance
+├── characters.mjs    les six rôles
+├── tiles.mjs         motifs de matière raccordables
+├── props.mjs         accessoires et objets
+├── ui.mjs            panneaux, boutons, chiffres d'horloge
+├── menu.mjs          diorama du menu
+└── build-art.mjs     `npm run art` → public/assets/
+```
+
+Règle de dépendance : `core/` et `systems/` **n'importent jamais Phaser**. C'est ce qui rend les tests unitaires possibles sans navigateur.
+
+## La couche visuelle (V0.9)
+
+Le rendu est en **pixel art**, entièrement produit hors ligne par `npm run art`
+puis chargé comme de vrais assets. Trois règles portent tout le reste :
+
+1. **1 pixel d'art = 2 unités de monde**, agrandissement entier uniquement.
+2. **`palette.json` est la seule source de couleurs** — le jeu et le générateur
+   lisent le même fichier.
+3. **`artTheme.ts` est le seul pont entre une donnée de niveau et un asset.**
+   `LevelView` ne connaît aucun nom de fichier.
+
+Le détail (intention, palette, règles de lisibilité, limites) vit dans
+[`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
+
+**Le rendu n'a pas le droit de toucher au gameplay.** Un obstacle crée
+toujours le rectangle de collision exact de la V0.8 ; il est simplement rendu
+invisible, et l'habillage est dessiné par-dessus. C'est ce qui garantit qu'une
+refonte visuelle ne déplace pas un mur d'un pixel.
 
 ## Le format `LevelDef`
 
@@ -72,6 +106,12 @@ Le format data-driven déplace les fautes de frappe du compilateur vers l'exécu
 **Zéro allocation par frame.** `buildVisionPolygon` écrit dans un tableau préalloué et `NpcController.update()` renvoie une instance **réutilisée**. Il faut la consommer immédiatement, jamais la stocker ni la comparer à un appel précédent — un test le vérifie.
 
 **Broad-phase avant raycast.** `cullBlockers` rejette par cercle englobant les obstacles hors de portée avant tout test fin.
+
+**Le gabarit 64 × 64 des personnages est imposé par la physique.**
+`Body.setCircle()` conserve l'offset (0,0) du corps : le cercle de collision
+est positionné à partir des dimensions de la texture. Changer la taille d'une
+texture de personnage déplacerait toutes les collisions du jeu. Un test le
+verrouille.
 
 **Phaser réutilise l'instance de scène.** `create()` rejoue, mais **pas** les initialiseurs de champs de classe. Tout état par partie doit être remis à zéro explicitement en tête de `create()`. Ce piège a causé un crash réel (des `Text` détruits conservés dans un tableau), attrapé par `npm run smoke`.
 

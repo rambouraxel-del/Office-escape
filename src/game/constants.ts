@@ -2,6 +2,7 @@
  * Réglages de game feel. Aucune logique ici : uniquement des nombres que l'on
  * peut modifier sans lire le reste du code.
  */
+import { PALETTE } from './palette';
 
 export const VIEW_WIDTH = 390;
 export const VIEW_HEIGHT = 844;
@@ -55,34 +56,39 @@ export const GHOST_MAX_SAMPLES = 3000;
 
 export const VISION_SEGMENTS = 30;
 
+/**
+ * Couleurs utilisées par le code de jeu, toutes tirées de `palette.json`.
+ * Aucune valeur hexadécimale ne doit apparaître ailleurs que dans la palette.
+ */
 export const COLORS = {
-  background: 0xefe3c9,
-  floor: 0xf2e7ce,
-  floorAlt: 0xeadcc0,
-  floorLine: 0xd8c9aa,
-  wall: 0x243247,
-  wallTrim: 0x44546b,
-  desk: 0x9c633d,
-  cabinet: 0x6d7f92,
-  pillar: 0x5d5261,
-  partition: 0x8a9bb0,
-  doorLocked: 0xb07a3d,
-  player: 0x149c96,
-  colleague: 0xe06f4f,
-  boss: 0x714868,
-  intern: 0x4f7f96,
-  guard: 0x3f5d70,
-  camera: 0x53616f,
-  coneCalm: 0xe9b949,
-  coneAlert: 0xe85d4f,
-  coneSearch: 0xc98f4a,
-  hud: 0x111d35,
-  door: 0x337f87,
-  green: 0x5c9567,
-  ink: 0x172238,
-  sage: 0x718d57,
-  coral: 0xe06f4f,
-  ghost: 0x9fd4ad
+  background: PALETTE.floorDark,
+  floor: PALETTE.floorMid,
+  floorAlt: PALETTE.floorDark,
+  floorLine: PALETTE.floorSeam,
+  wall: PALETTE.wallMid,
+  wallTrim: PALETTE.wallTop,
+  desk: PALETTE.woodMid,
+  cabinet: PALETTE.metalMid,
+  pillar: PALETTE.stoneMid,
+  partition: PALETTE.navyLight,
+  doorLocked: PALETTE.gold,
+  player: PALETTE.teal,
+  colleague: PALETTE.coral,
+  boss: PALETTE.plum,
+  intern: PALETTE.blue,
+  guard: PALETTE.navy,
+  camera: PALETTE.metalMid,
+  coneCalm: PALETTE.gold,
+  coneAlert: PALETTE.alert,
+  coneSearch: PALETTE.goldDark,
+  hud: PALETTE.hudPanel,
+  restroom: PALETTE.glassDim,
+  door: PALETTE.teal,
+  green: PALETTE.carpetExit,
+  ink: PALETTE.ink,
+  sage: PALETTE.leaf,
+  coral: PALETTE.coral,
+  ghost: PALETTE.tealLight
 } as const;
 
 export const ARCHETYPE_COLORS: Record<string, number> = {

@@ -7,6 +7,22 @@ import {
   NPC_RADIUS,
   VISION_SEGMENTS
 } from '../game/constants';
+import {
+  ART_SCALE,
+  CHARACTER_TEXTURES,
+  DESK_PROPS,
+  DOOR_TEXTURE,
+  FLOOR_TILE,
+  MATERIALS,
+  NINE_SLICE_CORNER,
+  OUTLINE,
+  PROP_TEXTURES,
+  TALKER_TEXTURE,
+  ZONE_EDGES,
+  ZONE_TILES,
+  type MaterialStyle
+} from '../game/artTheme';
+import { PALETTE, type PaletteKey } from '../game/palette';
 import { SettingsStore } from '../core/settings';
 import { FR } from '../core/strings';
 import {
@@ -40,27 +56,27 @@ export interface NpcVisual {
   polygon: Phaser.Math.Vector2[];
 }
 
-const OBSTACLE_STYLE: Record<ObstacleDef['kind'], { fill: number; stroke: number }> = {
-  wall: { fill: COLORS.wall, stroke: COLORS.wallTrim },
-  desk: { fill: COLORS.desk, stroke: COLORS.ink },
-  pillar: { fill: COLORS.pillar, stroke: COLORS.ink },
-  cabinet: { fill: COLORS.cabinet, stroke: COLORS.ink },
-  partition: { fill: COLORS.partition, stroke: COLORS.ink },
-  door: { fill: COLORS.doorLocked, stroke: COLORS.ink }
-};
+/** Aligne une coordonnée sur la grille du pixel d'art. */
+function snap(value: number): number {
+  return Math.round(value / ART_SCALE) * ART_SCALE;
+}
 
 /**
- * Toute la couche « dessin » d'un niveau.
+ * Toute la couche « dessin » d'un niveau, en pixel art.
  *
  * Séparer la vue de `LevelScene` évite de retomber dans la classe-dieu de la
  * V0.7 : ici, aucune règle de jeu, uniquement des pixels.
+ *
+ * Principe de la V0.9 : le rectangle de collision d'un obstacle reste
+ * EXACTEMENT celui de la V0.8, simplement rendu invisible ; l'habillage est
+ * dessiné par-dessus. Le gameplay ne peut donc pas bouger d'un pixel.
  */
 export class LevelView {
   readonly solids: Phaser.GameObjects.Rectangle[] = [];
   private blockers: Blocker[] = [];
   private culled: Blocker[] = [];
   private talkers = new Map<string, { sprite: Phaser.GameObjects.Sprite; name: Phaser.GameObjects.Text }>();
-  private darkness?: Phaser.GameObjects.Graphics;
+  private dressing = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.GameObject[]>();
   private light?: Phaser.GameObjects.Arc;
 
   constructor(
@@ -70,19 +86,7 @@ export class LevelView {
 
   drawFloor() {
     const { w, h } = this.level.size;
-    const floor = this.level.ambient?.floor ?? COLORS.floor;
-    const floorAlt = this.level.ambient?.floorAlt ?? COLORS.floorAlt;
-
-    const graphics = this.scene.add.graphics().setDepth(DEPTH.floor);
-    graphics.fillStyle(floor, 1).fillRect(0, 0, w, h);
-    for (let y = 0; y < h; y += 80) {
-      for (let x = 0; x < w; x += 80) {
-        if ((x / 80 + y / 80) % 2 === 0) graphics.fillStyle(floorAlt, 0.32).fillRect(x, y, 80, 80);
-      }
-    }
-    graphics.lineStyle(1, COLORS.floorLine, 0.28);
-    for (let y = 0; y <= h; y += 80) graphics.lineBetween(0, y, w, y);
-    for (let x = 0; x <= w; x += 80) graphics.lineBetween(x, 0, x, h);
+    this.scene.add.tileSprite(0, 0, w, h, FLOOR_TILE).setOrigin(0, 0).setDepth(DEPTH.floor);
   }
 
   /** Dessine les obstacles et renvoie les portes verrouillables, par identifiant. */
@@ -90,46 +94,116 @@ export class LevelView {
     const doors = new Map<string, Phaser.GameObjects.Rectangle>();
 
     this.level.obstacles.forEach((obstacle) => {
-      const style = OBSTACLE_STYLE[obstacle.kind];
-      this.scene.add
-        .rectangle(obstacle.x + 5, obstacle.y + 7, obstacle.w, obstacle.h, COLORS.ink, 0.18)
-        .setDepth(DEPTH.obstacleShadow);
-
-      const rectangle = this.scene.add
-        .rectangle(obstacle.x, obstacle.y, obstacle.w, obstacle.h, style.fill)
-        .setStrokeStyle(3, style.stroke, 0.82)
-        .setDepth(DEPTH.obstacle);
-      this.scene.physics.add.existing(rectangle, true);
-      this.solids.push(rectangle);
+      // Corps physique : identique à la V0.8, mais invisible.
+      const solid = this.scene.add
+        .rectangle(obstacle.x, obstacle.y, obstacle.w, obstacle.h)
+        .setVisible(false);
+      this.scene.physics.add.existing(solid, true);
+      this.solids.push(solid);
       if (!obstacle.transparent) {
         this.blockers.push(makeBlocker(obstacle.x, obstacle.y, obstacle.w, obstacle.h));
       }
 
-      if (obstacle.kind === 'cabinet') {
-        this.scene.add
-          .rectangle(obstacle.x + 1, obstacle.y, obstacle.w - 33, obstacle.h - 40, 0x85b9bd, 0.5)
-          .setStrokeStyle(2, 0xdff1ee, 0.45)
-          .setDepth(DEPTH.obstacleDetail);
-      }
-      if (obstacle.kind === 'pillar') {
-        this.scene.add
-          .rectangle(obstacle.x, obstacle.y, obstacle.w - 28, obstacle.h - 30, 0x756b78, 0.6)
-          .setStrokeStyle(2, 0xb9abb6, 0.42)
-          .setDepth(DEPTH.obstacleDetail);
-      }
-      if (obstacle.label) {
-        makeText(this.scene, obstacle.x, obstacle.y, obstacle.label, {
-          size: obstacle.kind === 'pillar' ? 16 : 15,
-          bold: true,
-          color: '#f3ece0'
-        })
-          .setOrigin(0.5)
-          .setDepth(DEPTH.obstacleLabel);
-      }
-      if (obstacle.kind === 'door' && obstacle.id) doors.set(obstacle.id, rectangle);
+      this.dressing.set(solid, this.dressObstacle(obstacle));
+      if (obstacle.kind === 'door' && obstacle.id) doors.set(obstacle.id, solid);
     });
 
     return doors;
+  }
+
+  /** Habillage pixel art d'un obstacle : ombre, matière, arêtes, incrustation. */
+  private dressObstacle(obstacle: ObstacleDef): Phaser.GameObjects.GameObject[] {
+    const style = MATERIALS[obstacle.kind];
+    const parts: Phaser.GameObjects.GameObject[] = [];
+    const left = snap(obstacle.x - obstacle.w / 2);
+    const top = snap(obstacle.y - obstacle.h / 2);
+    const width = snap(obstacle.w);
+    const height = snap(obstacle.h);
+
+    // Ombre portée, décalée d'un pixel d'art : détache le meuble du sol.
+    parts.push(
+      this.scene.add
+        .rectangle(left + ART_SCALE * 2, top + ART_SCALE * 3, width, height, PALETTE.ink, 0.22)
+        .setOrigin(0, 0)
+        .setDepth(DEPTH.obstacleShadow)
+    );
+
+    const fill = this.scene.add
+      .tileSprite(left, top, width, height, style.tile)
+      .setOrigin(0, 0)
+      .setDepth(DEPTH.obstacle);
+    // Le motif suit une grille de monde commune : deux meubles voisins ne
+    // montrent pas de rupture de raccord.
+    fill.tilePositionX = left;
+    fill.tilePositionY = top;
+    parts.push(fill);
+
+    parts.push(this.drawEdges(left, top, width, height, style));
+
+    if (style.inset && width > 40 && height > 40) {
+      parts.push(
+        this.scene.add
+          .rectangle(
+            left + OUTLINE * 4,
+            top + OUTLINE * 4,
+            width - OUTLINE * 8,
+            height - OUTLINE * 8,
+            PALETTE[style.inset],
+            0.35
+          )
+          .setOrigin(0, 0)
+          .setDepth(DEPTH.obstacleDetail)
+      );
+    }
+
+    if (obstacle.kind === 'door') {
+      parts.push(
+        this.scene.add.image(snap(obstacle.x), snap(obstacle.y), DOOR_TEXTURE).setDepth(DEPTH.obstacleDetail)
+      );
+    }
+
+    if (obstacle.label) {
+      parts.push(
+        makeText(this.scene, snap(obstacle.x), snap(obstacle.y), obstacle.label, {
+          size: 13,
+          bold: true,
+          color: '#fff6e6'
+        })
+          .setOrigin(0.5)
+          .setDepth(DEPTH.obstacleLabel)
+      );
+    }
+
+    return parts;
+  }
+
+  /**
+   * Contour à traits pleins d'un pixel d'art. On utilise `fillRect` et non
+   * `lineStyle` : un trait Phaser est centré et lissé, donc jamais net.
+   */
+  private drawEdges(
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    style: MaterialStyle
+  ): Phaser.GameObjects.Graphics {
+    const graphics = this.scene.add.graphics().setDepth(DEPTH.obstacleDetail);
+    const line = (x: number, y: number, w: number, h: number, key: PaletteKey, alpha = 1) => {
+      graphics.fillStyle(PALETTE[key], alpha);
+      graphics.fillRect(x, y, w, h);
+    };
+
+    // Arête supérieure éclairée, base assombrie : du volume sans perspective.
+    line(left + OUTLINE, top + OUTLINE, width - OUTLINE * 2, OUTLINE, style.crest);
+    line(left + OUTLINE, top + height - OUTLINE * 2, width - OUTLINE * 2, OUTLINE, style.base);
+
+    line(left, top, width, OUTLINE, style.edge);
+    line(left, top + height - OUTLINE, width, OUTLINE, style.edge);
+    line(left, top, OUTLINE, height, style.edge);
+    line(left + width - OUTLINE, top, OUTLINE, height, style.edge);
+
+    return graphics;
   }
 
   drawDecor() {
@@ -142,12 +216,12 @@ export class LevelView {
         const dialogue = this.level.dialogues.find((candidate) => candidate.id === trigger.payload);
         if (!dialogue) return;
         const sprite = this.scene.add
-          .sprite(trigger.zone.x, trigger.zone.y - 50, 'char-talker')
+          .sprite(snap(trigger.zone.x), snap(trigger.zone.y - 50), TALKER_TEXTURE)
           .setDepth(DEPTH.npc);
-        const name = makeText(this.scene, trigger.zone.x, trigger.zone.y - 80, dialogue.speaker, {
+        const name = makeText(this.scene, snap(trigger.zone.x), snap(trigger.zone.y - 80), dialogue.speaker, {
           size: 11,
           bold: true,
-          color: '#713a30'
+          color: '#7a3f30'
         })
           .setOrigin(0.5)
           .setDepth(DEPTH.npcDetail);
@@ -157,15 +231,32 @@ export class LevelView {
 
   private drawDecorItem(decor: DecorDef) {
     if (decor.kind === 'zone') {
-      this.scene.add
-        .rectangle(decor.x, decor.y, decor.w ?? 100, decor.h ?? 100, decor.color ?? COLORS.green, 0.7)
-        .setStrokeStyle(2, 0xffffff, 0.42)
-        .setDepth(DEPTH.floor);
+      const material = decor.material ?? 'neutral';
+      const width = snap(decor.w ?? 100);
+      const height = snap(decor.h ?? 100);
+      const left = snap(decor.x - width / 2);
+      const top = snap(decor.y - height / 2);
+
+      const zone = this.scene.add
+        .tileSprite(left, top, width, height, ZONE_TILES[material])
+        .setOrigin(0, 0)
+        .setDepth(DEPTH.floor + 0.1);
+      zone.tilePositionX = left;
+      zone.tilePositionY = top;
+
+      // Liseré : la zone doit se lire comme un tapis posé, pas comme une tache.
+      const border = this.scene.add.graphics().setDepth(DEPTH.floor + 0.2);
+      border.fillStyle(PALETTE[ZONE_EDGES[material]], 0.9);
+      border.fillRect(left, top, width, OUTLINE);
+      border.fillRect(left, top + height - OUTLINE, width, OUTLINE);
+      border.fillRect(left, top, OUTLINE, height);
+      border.fillRect(left + width - OUTLINE, top, OUTLINE, height);
+
       if (decor.text) {
-        makeText(this.scene, decor.x, decor.y, decor.text, {
-          size: 17,
+        makeText(this.scene, snap(decor.x), snap(decor.y), decor.text, {
+          size: 15,
           bold: true,
-          color: '#f7fff5'
+          color: '#3a2f24'
         })
           .setOrigin(0.5)
           .setDepth(DEPTH.floorLabel);
@@ -174,45 +265,31 @@ export class LevelView {
     }
 
     if (decor.kind === 'text') {
-      makeText(this.scene, decor.x, decor.y, decor.text ?? '', {
+      makeText(this.scene, snap(decor.x), snap(decor.y), decor.text ?? '', {
         size: decor.size ?? 12,
         bold: true,
-        color: `#${(decor.color ?? 0x8c775c).toString(16).padStart(6, '0')}`
+        color: `#${(decor.color ?? PALETTE.shadow).toString(16).padStart(6, '0')}`
       })
         .setOrigin(0.5)
         .setDepth(DEPTH.floorLabel);
       return;
     }
 
-    if (decor.kind === 'plant') {
-      const pot = this.scene.add.ellipse(0, 12, 24, 18, 0x9c633d, 1).setStrokeStyle(2, COLORS.ink, 0.8);
-      const leaves = this.scene.add.graphics();
-      leaves.fillStyle(COLORS.sage, 1);
-      leaves.fillEllipse(-7, -2, 13, 30).fillEllipse(7, -2, 13, 30).fillEllipse(0, -9, 13, 32);
-      leaves.lineStyle(1, 0x344d35, 0.8).lineBetween(0, 11, 0, -20);
+    if (decor.kind === 'plant' || decor.kind === 'prop') {
+      const prop = decor.kind === 'plant' ? 'plant' : (decor.prop ?? 'plant');
       this.scene.add
-        .container(decor.x, decor.y, [pot, leaves])
-        .setScale(decor.scale ?? 0.8)
-        .setDepth(DEPTH.plant);
+        .image(snap(decor.x), snap(decor.y), PROP_TEXTURES[prop])
+        .setDepth(prop === 'exitSign' ? DEPTH.obstacleLabel : DEPTH.plant);
       return;
     }
 
-    // deskProps : écran, dossier, tasse.
+    // deskProps : écran, tasse, dossiers, chaise — la vie de bureau.
     const side = decor.side ?? 1;
-    const screenX = decor.x - side * 14;
-    this.scene.add
-      .rectangle(screenX, decor.y - 12, 34, 23, 0x172238, 1)
-      .setStrokeStyle(2, 0x718197, 0.9)
-      .setDepth(DEPTH.deskProps);
-    this.scene.add.rectangle(screenX, decor.y + 4, 12, 5, 0x3b485b, 1).setDepth(DEPTH.deskProps);
-    this.scene.add
-      .rectangle(decor.x + side * 18, decor.y + 20, 28, 9, 0xeadfca, 0.92)
-      .setStrokeStyle(1, 0x6e5c4d, 0.7)
-      .setDepth(DEPTH.deskProps);
-    this.scene.add
-      .circle(decor.x + side * 25, decor.y - 20, 7, 0xf2ead8, 1)
-      .setStrokeStyle(2, COLORS.ink, 0.72)
-      .setDepth(DEPTH.deskProps);
+    const x = snap(decor.x);
+    const y = snap(decor.y);
+    this.scene.add.image(x - side * 14, y - 10, DESK_PROPS.screen).setDepth(DEPTH.deskProps);
+    this.scene.add.image(x + side * 22, y - 16, DESK_PROPS.mug).setDepth(DEPTH.deskProps);
+    this.scene.add.image(x + side * 20, y + 18, DESK_PROPS.folder).setDepth(DEPTH.deskProps);
   }
 
   /** Voile de nuit + halo porté par le joueur. */
@@ -220,11 +297,14 @@ export class LevelView {
     const darkness = this.level.ambient?.darkness ?? 0;
     if (darkness <= 0) return;
 
-    this.darkness = this.scene.add.graphics().setDepth(DEPTH.darkness);
-    this.darkness.fillStyle(0x060a12, darkness).fillRect(0, 0, this.level.size.w, this.level.size.h);
+    this.scene.add
+      .graphics()
+      .setDepth(DEPTH.darkness)
+      .fillStyle(PALETTE.hudInset, darkness)
+      .fillRect(0, 0, this.level.size.w, this.level.size.h);
 
     this.light = this.scene.add
-      .circle(this.level.spawn.x, this.level.spawn.y, 150, 0xffe9b8, 0.13)
+      .circle(this.level.spawn.x, this.level.spawn.y, 150, PALETTE.gold, 0.13)
       .setDepth(DEPTH.light)
       .setBlendMode(Phaser.BlendModes.ADD);
   }
@@ -236,8 +316,9 @@ export class LevelView {
   createNpc(def: NpcDef, controller: NpcController, index: number): NpcVisual {
     const spawn = def.patrol[0];
     const isCamera = def.archetype === 'camera';
-    const texture = isCamera ? 'device-camera' : `char-${def.archetype}`;
-    const sprite = this.scene.add.sprite(spawn.x, spawn.y, texture).setDepth(DEPTH.npc);
+    const sprite = this.scene.add
+      .sprite(spawn.x, spawn.y, CHARACTER_TEXTURES[def.archetype])
+      .setDepth(DEPTH.npc);
 
     let body: Phaser.Physics.Arcade.Body | null = null;
     if (!isCamera) {
@@ -250,18 +331,18 @@ export class LevelView {
     const nameText = makeText(this.scene, spawn.x, spawn.y - 34, def.label, {
       size: 11,
       bold: true,
-      color: '#5a4a55'
+      color: '#3a2f3a'
     })
       .setOrigin(0.5)
       .setDepth(DEPTH.npcDetail);
 
     const gaugeBack = this.scene.add
-      .rectangle(spawn.x - 34, spawn.y - 45, 68, 8, 0x2d3942, 0.85)
+      .rectangle(spawn.x - 34, spawn.y - 45, 68, 8, PALETTE.ink, 0.85)
       .setOrigin(0, 0.5)
       .setDepth(DEPTH.detection)
       .setVisible(false);
     const gaugeFill = this.scene.add
-      .rectangle(spawn.x - 32, spawn.y - 45, 64, 5, 0xf0c75e, 1)
+      .rectangle(spawn.x - 32, spawn.y - 45, 64, 4, PALETTE.gold, 1)
       .setOrigin(0, 0.5)
       .setDepth(DEPTH.detection + 1)
       .setVisible(false);
@@ -327,20 +408,23 @@ export class LevelView {
 
     // Mode daltonien : des hachures distinguent l'alerte autrement que par la teinte.
     if (alerted && SettingsStore.get().colorBlindMode) {
-      npc.vision.lineStyle(2, 0xffffff, 0.5);
+      npc.vision.lineStyle(2, PALETTE.paper, 0.5);
       for (let index = 1; index < vertices; index += 4) {
         npc.vision.lineBetween(npc.sprite.x, npc.sprite.y, npc.polygon[index].x, npc.polygon[index].y);
       }
     }
 
     npc.nose.clear();
-    npc.nose.lineStyle(4, 0xffffff, 0.9);
-    npc.nose.lineBetween(
-      npc.sprite.x,
-      npc.sprite.y,
-      npc.sprite.x + Math.cos(facing) * 24,
-      npc.sprite.y + Math.sin(facing) * 24
-    );
+    npc.nose.fillStyle(PALETTE.paper, 0.9);
+    // Repère de direction en pixels carrés plutôt qu'un trait lissé.
+    for (let step = 1; step <= 3; step += 1) {
+      npc.nose.fillRect(
+        snap(npc.sprite.x + Math.cos(facing) * (10 + step * 6)) - OUTLINE,
+        snap(npc.sprite.y + Math.sin(facing) * (10 + step * 6)) - OUTLINE,
+        OUTLINE * 2,
+        OUTLINE * 2
+      );
+    }
 
     this.updateGauge(npc, color);
   }
@@ -350,13 +434,13 @@ export class LevelView {
     npc.gaugeBack.setPosition(npc.sprite.x - 34, npc.sprite.y - 45).setVisible(active);
     npc.gaugeFill
       .setPosition(npc.sprite.x - 32, npc.sprite.y - 45)
-      .setDisplaySize(Math.max(1, 64 * npc.controller.detectionRatio), 5)
+      .setDisplaySize(Math.max(2, snap(64 * npc.controller.detectionRatio)), 4)
       .setFillStyle(color, 1)
       .setVisible(active);
     npc.gaugeLabel
       .setPosition(npc.sprite.x, npc.sprite.y - 58)
       .setText(npc.controller.alerted ? 'ALERTE !' : npc.controller.isSearching ? FR.hud.search : 'SUSPICION')
-      .setColor(npc.controller.alerted ? '#b13f35' : '#7b5c22')
+      .setColor(npc.controller.alerted ? '#b03424' : '#7b5c22')
       .setVisible(active);
   }
 
@@ -369,14 +453,18 @@ export class LevelView {
     );
     if (blockerIndex >= 0) this.blockers.splice(blockerIndex, 1);
 
+    // L'habillage disparaît avec le corps : une porte ouverte ne doit pas
+    // laisser son battant peint sur le sol.
+    this.dressing.get(rectangle)?.forEach((part) => part.destroy());
+    this.dressing.delete(rectangle);
     rectangle.destroy();
   }
 
   showDistraction(x: number, y: number, durationMs: number) {
-    const marker = this.scene.add.sprite(x, y, 'item-report').setDepth(DEPTH.item).setAlpha(0.9);
+    const marker = this.scene.add.image(snap(x), snap(y), 'item-report').setDepth(DEPTH.item);
     const ring = this.scene.add
-      .circle(x, y, 20, 0xffffff, 0)
-      .setStrokeStyle(3, 0xf0c75e, 0.8)
+      .circle(snap(x), snap(y), 20, 0xffffff, 0)
+      .setStrokeStyle(OUTLINE, PALETTE.gold, 0.8)
       .setDepth(DEPTH.item);
     this.scene.tweens.add({
       targets: ring,
@@ -400,26 +488,35 @@ export class LevelView {
   }
 
   createTutorialBubble(tutorial: TutorialDef, onDismiss: () => void): Phaser.GameObjects.Container {
-    const background = this.scene.add
-      .rectangle(0, 0, 252, 72, 0x14212b, 0.96)
-      .setStrokeStyle(2, 0xffffff, 0.45);
-    const text = makeText(this.scene, 0, -9, tutorial.text, {
+    const panel = this.scene.add.nineslice(
+      0,
+      0,
+      'ui-panel-dark',
+      undefined,
+      252,
+      76,
+      NINE_SLICE_CORNER,
+      NINE_SLICE_CORNER,
+      NINE_SLICE_CORNER,
+      NINE_SLICE_CORNER
+    );
+    const text = makeText(this.scene, 0, -10, tutorial.text, {
       size: 14,
       bold: true,
-      color: '#ffffff',
+      color: '#fff6e6',
       align: 'center',
-      wrap: 224
+      wrap: 216
     }).setOrigin(0.5);
-    const hint = makeText(this.scene, 0, 22, FR.tutorial.close, { size: 10, color: '#b9cbd6' }).setOrigin(
+    const hint = makeText(this.scene, 0, 24, FR.tutorial.close, { size: 10, color: '#a99cc4' }).setOrigin(
       0.5
     );
 
     const anchor = tutorial.anchor === 'player' ? { x: 0, y: 0 } : tutorial.anchor;
     const container = this.scene.add
-      .container(anchor.x, anchor.y, [background, text, hint])
-      .setSize(252, 72)
+      .container(snap(anchor.x), snap(anchor.y), [panel, text, hint])
+      .setSize(252, 76)
       .setDepth(DEPTH.tutorial)
-      .setInteractive(new Phaser.Geom.Rectangle(-126, -36, 252, 72), Phaser.Geom.Rectangle.Contains);
+      .setInteractive(new Phaser.Geom.Rectangle(-126, -38, 252, 76), Phaser.Geom.Rectangle.Contains);
     container.setData('anchor', tutorial.anchor);
     container.setData('id', tutorial.id);
     container.on('pointerdown', onDismiss);
