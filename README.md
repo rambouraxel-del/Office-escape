@@ -64,9 +64,11 @@ Puis l'ajouter à `src/levels/index.ts`. `LevelScene` l'interprète tel quel, et
 ## Direction artistique
 
 Pixel art, bureau de dessin animé vu de dessus, chaleureux et caricatural.
-Les sprites sont écrits en ASCII dans `tools/art/` et cuits en PNG par
-`npm run art` — un graphiste peut remplacer n'importe quel fichier de
-`public/assets/` sans toucher au code.
+Les personnages sont des **planches animées** de 8 poses × 3 orientations :
+ils marchent, courent et sursautent quand ils te repèrent. Les sprites sont
+écrits en ASCII dans `tools/art/` et cuits en PNG par `npm run art` — un
+graphiste peut remplacer n'importe quel fichier de `public/assets/` sans
+toucher au code, tant qu'il respecte les tailles de frame.
 
 Règles, palette et limites : [`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
 

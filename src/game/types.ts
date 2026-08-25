@@ -35,7 +35,20 @@ export interface ObstacleDef extends RectDef {
 export type ZoneMaterial = 'start' | 'exit' | 'alcove' | 'neutral';
 
 /** Accessoires posés librement dans le niveau. */
-export type PropKind = 'plant' | 'chair' | 'exitSign';
+export type PropKind =
+  | 'plant'
+  | 'cactus'
+  | 'chair'
+  | 'exitSign'
+  | 'trash'
+  | 'cooler'
+  | 'printer'
+  | 'boxes'
+  | 'books'
+  | 'phone'
+  | 'lamp'
+  | 'keyboard'
+  | 'sticky';
 
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {

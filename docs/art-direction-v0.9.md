@@ -1,5 +1,8 @@
 # Direction artistique — V0.9
 
+> Étape 1 : identité visuelle et niveau 1 vitrine.
+> **Étape 2 : assets de production, animations et retours visuels** (§ 6 bis, 7 bis, 8 bis).
+
 Document court et exploitable. Il fixe ce qui est **non négociable** pour que
 tout ce qui sera ajouté au jeu reste cohérent avec le niveau 1.
 
@@ -31,6 +34,21 @@ perspective 3/4, texte décoratif illisible.
 Cette combinaison — décor de dessus, personnages de face — est la signature
 visuelle du jeu. Ne pas la mélanger avec de l'isométrie.
 
+**Trois orientations, pas quatre** (étape 2) :
+
+| Orientation | Ce qu'on voit | Quand |
+| --- | --- | --- |
+| `down` | le visage complet | déplacement vers le bas, et par défaut |
+| `side` | tête **tournée**, jamais de profil strict | déplacement latéral ; miroir pour la gauche |
+| `up` | l'arrière du crâne, entièrement en cheveux | déplacement vers le haut |
+
+La variante latérale garde la **même masse de tête** que la vue de face : les
+cheveux glissent vers l'arrière, le visage vers l'avant, les deux yeux restent
+visibles. Un vrai profil ferait perdre un œil et les lunettes, donc la
+caricature — et le personnage semblerait changer de taille en tournant. Un seul
+côté est dessiné : la gauche est un `flipX`, ce qui divise par deux le nombre de
+frames à maintenir.
+
 ## 3. Échelle : la règle la plus importante
 
 > **1 pixel d'art = 2 unités de monde.**
@@ -42,15 +60,24 @@ générateur refuse d'ailleurs tout facteur non entier.
 | Élément | Grille source | Taille en jeu |
 | --- | --- | --- |
 | Motif de matière (sol, bois, mur…) | 16 × 16 | 32 × 32 |
-| Personnage | 24 × 24 dans un cadre de 32 × 32 | **64 × 64 — imposé** |
-| Objet ramassable | 16 × 16 | 32 × 32 |
+| Personnage (une frame) | 32 × 32, silhouette dans 16 × 26 | **64 × 64 — imposé** |
+| Objet ramassable, porte, effet | 16 × 16 | 32 × 32 |
 | Chiffre d'horloge | 8 × 12 | 16 × 24 |
 | Trait de contour | 1 | 2 |
 
-> ⚠️ **Le cadre de 64 × 64 des personnages est imposé par la physique.**
+Un accessoire libre (plante, imprimante, carton…) n'a pas de gabarit fixe :
+il est dessiné à sa taille naturelle puis cuit ×2. Seules les **planches
+d'animation** exigent une frame carrée, parce que Phaser les découpe à pas
+constant.
+
+> ⚠️ **La frame de 64 × 64 des personnages est imposée par la physique.**
 > `Body.setCircle()` conserve l'offset (0,0) du corps : le cercle de collision
-> est positionné à partir des dimensions de la texture. Changer ce cadre
-> déplacerait toutes les collisions du jeu.
+> est positionné à partir des dimensions de la FRAME. Changer ce gabarit
+> déplacerait toutes les collisions du jeu. Un test le verrouille.
+>
+> Corollaire assumé : le cercle de collision n'est pas centré sur le
+> personnage dessiné. C'est le comportement de la V0.8, donc du gameplay
+> réglé et testé — le rendu ne le corrige pas, il fait avec.
 
 ## 4. Palette
 
@@ -92,7 +119,7 @@ Un décor doré attirerait l'œil sur une fausse alerte.
 
 ## 6. Personnages
 
-- Gabarit **24 × 24** : tête très large (≈ la moitié de la hauteur), corps
+- Gabarit **24 × 26 dans une frame de 32 × 32** : tête très large (≈ la moitié de la hauteur), corps
   trapu, jambes courtes. Proportions « chibi », adultes ridicules.
 - **Un accessoire signature par rôle**, dessiné par-dessus la silhouette :
   lunettes, moustache, casquette, casque audio, badge, cravate.
@@ -103,6 +130,53 @@ Un décor doré attirerait l'œil sur une fausse alerte.
   personnage sans introduire de perspective.
 - Visage minimal : deux yeux de 2 pixels, une bouche de 4. C'est suffisant, et
   au-delà ça devient illisible.
+- **La tête est écrite en ASCII, le corps est paramétrique.** La tête ne change
+  jamais d'une pose à l'autre : elle reste donc une grille de caractères
+  lisible. Le buste et les jambes, eux, bougent à chaque frame : les écrire à
+  la main en huit exemplaires serait ingérable et se désynchroniserait.
+
+## 6 bis. Animation
+
+**Une planche par rôle, huit colonnes × trois lignes.**
+
+```
+             col 0-1     col 2-5        col 6-7
+ligne 0  ┃   repos       marche         sursaut     ┃ face
+ligne 1  ┃   repos       marche         sursaut     ┃ tournée (droite)
+ligne 2  ┃   repos       marche         sursaut     ┃ dos
+```
+
+| État | Frames | Cadence | Boucle |
+| --- | --- | --- | --- |
+| `idle` | 2 | 2 i/s | oui |
+| `walk` | 4 | 8 i/s | oui |
+| `run` | **les mêmes 4** | 14 i/s | oui |
+| `react` | 2 | 7 i/s | oui, pendant 520 ms |
+
+**Pourquoi la course ne dessine pas ses propres frames.** Quatre poses bien
+rythmées jouées plus vite se lisent comme une course. Un second cycle
+doublerait la surface de texture et le travail de maintenance pour un gain
+qu'on ne voit pas à 24 pixels de haut.
+
+**Les trois principes du cycle de marche**, tous appliqués dans
+`tools/art/characters.mjs` :
+
+1. **Les pieds restent au sol.** C'est le corps qui monte d'un pixel sur les
+   frames de passage ; la jambe s'allonge d'autant. L'inverse donne un
+   personnage qui sautille.
+2. **La jambe avancée descend d'un pixel de plus.** C'est le seul indice de
+   pas dont on dispose de face.
+3. **La main avancée occupe deux lignes.** Un balancement d'un seul pixel est
+   invisible en mouvement.
+
+**Règles d'usage, côté code :**
+
+- Une animation ne se **rejoue que si elle change**. Appeler `play()` à chaque
+  frame la bloquerait sur sa première image.
+- L'orientation se déduit de la **vitesse**, jamais de la direction du cône :
+  un vigile qui balaie du regard ne marche pas de côté.
+- **À l'arrêt, l'orientation est conservée.** Un PNJ immobile qui se
+  retournerait vers le joueur donnerait une information de gameplay fausse.
 
 ## 7. Décor
 
@@ -123,6 +197,33 @@ Un décor doré attirerait l'œil sur une fausse alerte.
 - Le décor doit être **habité** : chaises dépareillées, tasses, plantes. Un
   bureau vide n'est pas drôle.
 
+## 7 bis. Objets interactifs et retours visuels
+
+Le principe : **un feedback n'existe que s'il ne concurrence pas les cônes de
+vision.** Le jeu ne doit pas virer au sapin de Noël.
+
+| Élément | Retour | Pourquoi |
+| --- | --- | --- |
+| Objet ramassable | reflet diagonal en 4 frames, **généré** par `sheen()` | un objet ajouté demain hérite de l'animation sans dessin |
+| Ramassage | éclat de 4 frames, puis vol de l'objet vers la poche du HUD | on voit *où* va ce qu'on ramasse |
+| Porte | 4 frames, du battant fermé à l'embrasure vide | une porte ne doit pas disparaître d'un coup |
+| Cachette, porte verrouillée | halo turquoise qui respire, très pâle | dire « ici, quelque chose » sans dire quoi |
+| PNJ méfiant | bulle « ? » dorée | |
+| PNJ alerté | bulle « ! » rouge **et** bras levés | deux signaux valent mieux qu'un |
+| PNJ qui fouille | bulle « … » | |
+
+**Le vol de l'objet s'accroche à l'écran, pas au monde.** La caméra continue de
+défiler pendant les 300 ms du trajet : une cible en coordonnées de monde
+manquerait la poche de plusieurs dizaines de pixels.
+
+**Les bulles remplacent l'étiquette texte** de l'étape 1. Une glyphe se lit plus
+vite qu'un mot, et se distingue par sa **forme** — donc aussi en mode daltonien.
+La jauge de détection, elle, reste : c'est de l'information de gameplay.
+
+**La collision d'une porte disparaît d'un coup**, au moment exact où le joueur
+l'ouvre ; seul l'habillage prend le temps de s'ouvrir. Le gameplay ne dépend
+jamais d'une durée d'animation.
+
 ## 8. Interface
 
 - Panneaux et boutons en **9 tranches** (`nineslice`) : les coins gardent leur
@@ -138,6 +239,20 @@ Un décor doré attirerait l'œil sur une fausse alerte.
   fonte pixel complète avec accents français serait illisible à petite taille
   et coûterait cher pour un gain douteux. Voir les limites (§10).
 
+## 8 bis. Conventions de planche
+
+- Une planche est une **bande ou une grille de frames CARRÉES** de taille
+  constante : `load.spritesheet` découpe à pas fixe et ne signale rien s'il
+  tombe à côté. Un sprite plus petit est centré dans sa frame par le
+  générateur (`ITEM_FRAME`), jamais rogné.
+- **Tout se déclare dans `src/game/animations.ts`** : taille de frame, nombre
+  de frames, indices, cadence, boucle. `BootScene` déroule ces tables ; aucune
+  scène ne crée d'animation ni ne connaît un découpage.
+- Les tests vérifient que chaque PNG livré contient **exactement** le nombre de
+  frames annoncé, et qu'aucune animation ne pointe hors bornes.
+- Dossiers : `characters/`, `tiles/`, `props/`, `fx/`, `ui/`. Une planche
+  d'effet va dans `fx/`, jamais dans `props/`.
+
 ## 9. Cohérence : les sept règles
 
 1. **1 pixel d'art = 2 unités de monde.** Agrandissement entier uniquement.
@@ -148,19 +263,28 @@ Un décor doré attirerait l'œil sur une fausse alerte.
 6. **Le cadre des personnages reste 64 × 64.**
 7. **Un niveau reste une donnée** : une matière de sol se déclare dans le
    `LevelDef`, jamais dans une scène.
+8. **Une animation se déclare dans `animations.ts`**, jamais dans une scène.
+9. **`gold` et `alert` restent réservés** — y compris pour les bulles, qui
+   font justement partie du système de détection.
 
-## 10. Limites assumées de l'étape 1
+## 10. Limites assumées de l'étape 2
 
-- **Pas d'animation.** Les personnages sont des poses fixes ; aucun cycle de
-  marche, aucune orientation selon la direction. C'est le premier chantier de
-  l'étape suivante.
+- **Pas d'animation de caméra de surveillance.** La caméra du niveau 2 reste un
+  accessoire fixe : elle n'a pas de planche, et l'animateur l'ignore proprement.
+- **Pas d'animation d'attente ni de dialogue.** Un PNJ arrêté respire, mais ne
+  regarde pas sa montre ; l'interlocuteur ne gesticule pas quand il parle.
+- **Pas de transition entre orientations.** Le personnage change de ligne d'un
+  coup, sans frame de rotation. À cette taille, personne ne le voit.
+- **La silhouette tournée reste proche de la vue de face** : les deux vues se
+  distinguent par la coiffure et les accessoires, pas par une vraie rotation
+  des épaules. Assumé — c'est le prix de la lisibilité du visage.
 - **Police système pour tout sauf l'horloge** (voir §8).
-- **Un PNG par sprite**, pas d'atlas : 41 fichiers, ~30 Ko au total. Le
-  regroupement en atlas n'a de sens qu'à partir de quelques centaines
-  d'assets.
-- **Niveaux 2 et 3 non retravaillés.** Ils héritent automatiquement des
-  nouvelles matières et des nouveaux personnages — donc ils ne sont pas
-  cassés — mais leur décor n'a pas été composé pour le pixel art.
+- **Un PNG par planche, pas d'atlas** : 54 fichiers, 46 Ko au total (dont
+  19 Ko pour le seul diorama du menu). Le regroupement en atlas n'a de sens
+  qu'à partir de quelques centaines d'assets.
+- **Niveaux 2 et 3 non recomposés.** Ils héritent automatiquement des nouveaux
+  personnages, matières, animations et retours visuels — donc rien n'est cassé
+  — mais leur décor n'a pas encore été composé accessoire par accessoire.
 - **Éclairage sommaire** au niveau 3 : un voile sombre et un halo additif, pas
   de vraie occlusion lumineuse.
 
@@ -174,6 +298,24 @@ Les sprites sont écrits en **ASCII lisible** dans `tools/art/` : une grille de
 caractères et une légende qui relie chaque caractère à la palette. Le
 générateur vérifie que les lignes ont toutes la même longueur et refuse les
 couleurs absentes de la palette.
+
+| Fichier | Contenu |
+| --- | --- |
+| `characters.mjs` | les six rôles, leurs poses et leurs accessoires |
+| `tiles.mjs` | motifs de matière raccordables |
+| `props.mjs` | accessoires, objets ramassables, porte animée |
+| `fx.mjs` | bulles d'émotion, éclat de ramassage, halo d'interaction |
+| `ui.mjs` | panneaux, boutons, chiffres d'horloge |
+| `menu.mjs` | diorama du menu, composé des mêmes sprites |
+
+**Ajouter un personnage** : une entrée dans `CHARACTERS` (couleurs + accessoire
+signature), une clé dans `CHARACTER_SHEETS` et `CHARACTER_TEXTURES`. Les huit
+poses, les trois orientations et les quatre animations sont générées et
+déclarées automatiquement.
+
+**Ajouter un accessoire de décor** : un sprite dans `PROPS`, une valeur dans
+`PropKind`, une entrée dans `PROP_TEXTURES` et `IMAGE_MANIFEST`. Il devient
+posable dans n'importe quel `LevelDef` sans toucher à une scène.
 
 Un graphiste qui préfère son propre outil peut **remplacer n'importe quel PNG**
 de `public/assets/` sans toucher au code, tant qu'il respecte les dimensions du

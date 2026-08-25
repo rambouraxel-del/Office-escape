@@ -47,6 +47,18 @@ export const DISTRACTION_SECONDS = 6;
 export const INTERACTION_RADIUS = 76;
 export const INVENTORY_SLOTS = 2;
 
+/**
+ * Position des poches dans le HUD. Partagée entre `UiScene`, qui les dessine,
+ * et `LevelScene`, qui y envoie l'objet ramassé : deux valeurs séparées se
+ * seraient désynchronisées au premier ajustement de maquette.
+ */
+export const POCKET_SLOT_X = 44;
+export const POCKET_SLOT_Y = 136;
+export const POCKET_SLOT_STEP = 44;
+
+/** Durée du sursaut d'un PNJ qui vient de repérer le joueur. */
+export const REACT_MS = 520;
+
 /** Pénalité anti-exploit : la pause manuelle gèle l'horloge mais se paie. */
 export const MANUAL_PAUSE_PENALTY_MINUTES = 1;
 

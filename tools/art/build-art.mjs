@@ -9,14 +9,16 @@
  *
  * Règle d'échelle du projet : 1 pixel d'art = 2 unités de monde (ART_SCALE).
  * Tout est donc dessiné en résolution native puis agrandi ×2, jamais
- * interpolé.
+ * interpolé. Les planches d'animation ne font pas exception : ce sont des
+ * images comme les autres, découpées en frames par le jeu.
  */
 import { mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHARACTERS, makeCharacter } from './characters.mjs';
+import { CHARACTERS, makeCharacterSheet } from './characters.mjs';
 import { TILES } from './tiles.mjs';
-import { PROPS } from './props.mjs';
+import { PROPS, PROP_SHEETS } from './props.mjs';
+import { FX_SHEETS } from './fx.mjs';
 import { UI } from './ui.mjs';
 import { makeMenuBackground } from './menu.mjs';
 
@@ -24,17 +26,18 @@ const ART_SCALE = 2;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ASSETS = join(ROOT, 'public', 'assets');
 
-/** Les personnages sont déjà cuits en 64×64 par `makeCharacter`. */
+const characterSheets = Object.entries(CHARACTERS).map(([key, spec]) => [
+  key,
+  () => makeCharacterSheet(spec)
+]);
+
 const GROUPS = [
-  {
-    dir: 'characters',
-    entries: Object.entries(CHARACTERS).map(([key, spec]) => [key, () => makeCharacter(spec)]),
-    scale: 1
-  },
-  { dir: 'tiles', entries: Object.entries(TILES), scale: ART_SCALE },
-  { dir: 'props', entries: Object.entries(PROPS), scale: ART_SCALE },
-  { dir: 'ui', entries: Object.entries(UI), scale: ART_SCALE },
-  { dir: 'tiles', entries: [['menu-bg', makeMenuBackground]], scale: ART_SCALE, keep: true }
+  { dir: 'characters', entries: characterSheets },
+  { dir: 'tiles', entries: Object.entries(TILES) },
+  { dir: 'props', entries: [...Object.entries(PROPS), ...Object.entries(PROP_SHEETS)] },
+  { dir: 'fx', entries: Object.entries(FX_SHEETS) },
+  { dir: 'ui', entries: Object.entries(UI) },
+  { dir: 'tiles', entries: [['menu-bg', makeMenuBackground]], keep: true }
 ];
 
 let written = 0;
@@ -50,13 +53,13 @@ for (const group of GROUPS) {
   }
 
   for (const [key, make] of group.entries) {
-    const canvas = group.scale > 1 ? make().scale(group.scale) : make();
+    const canvas = make().scale(ART_SCALE);
     const png = canvas.toPng();
     writeFileSync(join(target, `${key}.png`), png);
     written += 1;
     console.log(
       `  ${group.dir}/${key}.png`.padEnd(42),
-      `${canvas.width}×${canvas.height}`.padStart(9),
+      `${canvas.width}×${canvas.height}`.padStart(11),
       `${png.length} o`.padStart(9)
     );
   }

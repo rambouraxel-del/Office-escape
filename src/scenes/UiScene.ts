@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import {
   CONTROL_MARGIN_X,
   INVENTORY_SLOTS,
+  POCKET_SLOT_STEP,
+  POCKET_SLOT_X,
+  POCKET_SLOT_Y,
   JOYSTICK_MARGIN_X,
   JOYSTICK_RADIUS,
   JOYSTICK_Y,
@@ -16,7 +19,7 @@ import { REGISTRY_KEYS, type InputState } from '../game/session';
 import type { DialogueDef, ItemId } from '../game/types';
 import { PixelClock, makePanel, makePixelButton, makeShade, makeText } from '../ui/theme';
 import { PALETTE } from '../game/palette';
-import { OUTLINE } from '../game/artTheme';
+import { OUTLINE, PLAYER_TEXTURE, UI_TEXTURES } from '../game/artTheme';
 import type { LevelScene } from './LevelScene';
 
 interface DialogueOutcome {
@@ -87,6 +90,7 @@ export class UiScene extends Phaser.Scene {
     this.level.events.on('toast', this.showToast, this);
     this.level.events.on('paused', this.showPausePanel, this);
     this.level.events.on('dialogue-open', this.showDialogue, this);
+    this.level.events.on('item-collected', this.pulseSlot, this);
 
     this.input.on('pointermove', this.onPointerMove, this);
     this.input.on('pointerup', this.onPointerUp, this);
@@ -101,7 +105,18 @@ export class UiScene extends Phaser.Scene {
       this.level.events.off('toast', this.showToast, this);
       this.level.events.off('paused', this.showPausePanel, this);
       this.level.events.off('dialogue-open', this.showDialogue, this);
+      this.level.events.off('item-collected', this.pulseSlot, this);
     });
+  }
+
+  /**
+   * La poche encaisse l'arrivée de l'objet. C'est le bout de la trajectoire
+   * commencée dans le monde : sans ce sursaut, l'objet disparaît dans le vide.
+   */
+  private pulseSlot(slot: number) {
+    const frame = this.slotFrames[slot];
+    if (!frame || SettingsStore.get().reducedMotion) return;
+    this.tweens.add({ targets: frame, scale: 1.22, duration: 110, yoyo: true, ease: 'Quad.Out' });
   }
 
   /** Affiche (ou masque) un texte HUD avec le panneau qui lui sert de fond. */
@@ -156,7 +171,7 @@ export class UiScene extends Phaser.Scene {
     // pixel art qui s'étire sans déformer ses coins.
     makePanel(this, VIEW_WIDTH / 2, 50, 372, 84, 'ui-panel-dark').setDepth(300);
 
-    this.add.image(34, 38, 'char-player').setScale(0.5).setDepth(302);
+    this.add.image(34, 38, PLAYER_TEXTURE).setScale(0.5).setDepth(302);
     makeText(this, 56, 24, FR.app.title, { size: 13, bold: true, color: '#fff6e6' }).setDepth(301);
     makeText(this, 56, 44, this.level.hudSnapshot.levelName, {
       size: 9,
@@ -171,7 +186,7 @@ export class UiScene extends Phaser.Scene {
       .setDepth(301);
 
     const pause = this.add
-      .image(248, 46, 'ui-btn-pause')
+      .image(248, 46, UI_TEXTURES.pause)
       .setDepth(305)
       .setInteractive({ useHandCursor: true });
     makeText(this, 248, 46, 'II', { size: 13, bold: true, color: '#fff6e6' }).setOrigin(0.5).setDepth(306);
@@ -228,8 +243,8 @@ export class UiScene extends Phaser.Scene {
       .setDepth(301);
 
     for (let index = 0; index < INVENTORY_SLOTS; index += 1) {
-      const x = 44 + index * 44;
-      const frame = makePanel(this, x, 136, 40, 40, 'ui-panel-inset')
+      const x = POCKET_SLOT_X + index * POCKET_SLOT_STEP;
+      const frame = makePanel(this, x, POCKET_SLOT_Y, 40, 40, 'ui-panel-inset')
         .setDepth(302)
         .setInteractive({ useHandCursor: true });
       // Toucher une poche utilise son objet : le café et le rapport sont actifs.
@@ -238,7 +253,7 @@ export class UiScene extends Phaser.Scene {
       });
       this.slotFrames.push(frame);
       this.slotIcons.push(
-        makeText(this, x, 136, FR.hud.empty, { size: 18, bold: true, color: '#6c5f88' })
+        makeText(this, x, POCKET_SLOT_Y, FR.hud.empty, { size: 18, bold: true, color: '#6c5f88' })
           .setOrigin(0.5)
           .setDepth(303)
       );
@@ -253,13 +268,13 @@ export class UiScene extends Phaser.Scene {
     const actionX = onLeft ? VIEW_WIDTH - CONTROL_MARGIN_X : CONTROL_MARGIN_X;
     this.joystickOrigin.set(joystickX, JOYSTICK_Y);
 
-    this.joystickBase = this.add.image(joystickX, JOYSTICK_Y, 'ui-stick-base').setDepth(320).setAlpha(0.35);
+    this.joystickBase = this.add.image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickBase).setDepth(320).setAlpha(0.35);
     this.joystickRing = this.add
-      .image(joystickX, JOYSTICK_Y, 'ui-stick-base')
+      .image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickBase)
       .setDepth(321)
       .setScale(0.6)
       .setAlpha(0.3);
-    this.joystickKnob = this.add.image(joystickX, JOYSTICK_Y, 'ui-stick-knob').setDepth(322).setAlpha(0.9);
+    this.joystickKnob = this.add.image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickKnob).setDepth(322).setAlpha(0.9);
 
     this.joystickZone = this.add.zone(joystickX, JOYSTICK_Y, 175, 175).setDepth(323).setInteractive();
     this.joystickZone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
@@ -268,7 +283,7 @@ export class UiScene extends Phaser.Scene {
       this.updateJoystick(pointer);
     });
 
-    this.runButton = this.add.image(actionX, RUN_BUTTON_Y, 'ui-btn-run').setDepth(320).setInteractive();
+    this.runButton = this.add.image(actionX, RUN_BUTTON_Y, UI_TEXTURES.run).setDepth(320).setInteractive();
     this.runLabel = makeText(this, actionX, RUN_BUTTON_Y, FR.controls.run, {
       size: 11,
       bold: true,
@@ -285,7 +300,7 @@ export class UiScene extends Phaser.Scene {
     });
 
     this.interactionButton = this.add
-      .image(actionX, RUN_BUTTON_Y - 112, 'ui-btn-action')
+      .image(actionX, RUN_BUTTON_Y - 112, UI_TEXTURES.action)
       .setDepth(330)
       .setInteractive()
       .setVisible(false);
@@ -307,7 +322,7 @@ export class UiScene extends Phaser.Scene {
     this.inputState.runHeld = active;
     // Deux sprites distincts plutôt qu'un changement de teinte : l'état
     // « en course » doit se voir au premier coup d'œil, pouce posé dessus.
-    this.runButton.setTexture(active ? 'ui-btn-run-on' : 'ui-btn-run');
+    this.runButton.setTexture(active ? UI_TEXTURES.runOn : UI_TEXTURES.run);
     this.runLabel.setY(RUN_BUTTON_Y + (active ? OUTLINE : 0));
   }
 

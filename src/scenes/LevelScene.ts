@@ -12,6 +12,10 @@ import {
   INTERACTION_RADIUS,
   MANUAL_PAUSE_PENALTY_MINUTES,
   PLAYER_RADIUS,
+  POCKET_SLOT_STEP,
+  POCKET_SLOT_X,
+  POCKET_SLOT_Y,
+  REACT_MS,
   RUN_SPEED,
   RUN_VISION_MULTIPLIER,
   WALK_SPEED
@@ -29,6 +33,8 @@ import { TutorialDirector } from '../systems/TutorialDirector';
 import { REGISTRY_KEYS, type InputState, type RunRequest, type RunResult } from '../game/session';
 import { getLevel } from '../levels';
 import { ITEM_TEXTURES, PLAYER_TEXTURE } from '../game/artTheme';
+import type { CharacterState } from '../game/animations';
+import { playCharacter } from './animate';
 import { LevelView, type NpcVisual } from './LevelView';
 import { rectContains } from '../game/geometry';
 import type { ItemId, LevelDef, ObstacleDef, TriggerDef } from '../game/types';
@@ -39,6 +45,8 @@ export type LevelState = 'playing' | 'paused' | 'dialogue' | 'finished';
 interface ItemInstance {
   id: ItemId;
   sprite: Phaser.GameObjects.Sprite;
+  /** Étiquette au sol : elle part avec l'objet, sinon elle reste orpheline. */
+  label: Phaser.GameObjects.Text;
   collected: boolean;
   x: number;
   y: number;
@@ -108,6 +116,7 @@ export class LevelScene extends Phaser.Scene {
     this.view.drawFloor();
     this.doors = this.view.drawObstacles();
     this.view.drawDecor();
+    this.view.drawInteractionHints();
 
     this.spawnItems();
     this.spawnPlayer();
@@ -200,6 +209,7 @@ export class LevelScene extends Phaser.Scene {
   private spawnItems() {
     this.level.items.forEach((spawn) => {
       const sprite = this.add.sprite(spawn.at.x, spawn.at.y, ITEM_TEXTURES[spawn.id]).setDepth(DEPTH.item);
+      this.view.playItemIdle(sprite, ITEM_TEXTURES[spawn.id]);
       this.tweens.add({
         targets: sprite,
         y: spawn.at.y - 5,
@@ -208,14 +218,14 @@ export class LevelScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.InOut'
       });
-      makeText(this, spawn.at.x, spawn.at.y + 30, FR.items[spawn.id].name.toUpperCase(), {
+      const label = makeText(this, spawn.at.x, spawn.at.y + 30, FR.items[spawn.id].name.toUpperCase(), {
         size: 10,
         bold: true,
         color: '#74513a'
       })
         .setOrigin(0.5)
         .setDepth(DEPTH.item);
-      this.items.push({ id: spawn.id, sprite, collected: false, x: spawn.at.x, y: spawn.at.y });
+      this.items.push({ id: spawn.id, sprite, label, collected: false, x: spawn.at.x, y: spawn.at.y });
     });
   }
 
@@ -353,6 +363,11 @@ export class LevelScene extends Phaser.Scene {
       Audio.play('step');
       if (this.isRunning) this.hasRun = true;
     }
+
+    const state: CharacterState = moving ? (this.isRunning ? 'run' : 'walk') : 'idle';
+    // On passe la VITESSE, pas le vecteur normalisé : l'animateur raisonne en
+    // unités de monde par seconde, comme pour les PNJ.
+    playCharacter(this.player, PLAYER_TEXTURE, state, dx * speed, dy * speed);
   }
 
   private updateGhost(delta: number) {
@@ -362,7 +377,19 @@ export class LevelScene extends Phaser.Scene {
       this.ghost.setVisible(false);
       return;
     }
+    const dx = sample.x - this.ghost.x;
+    const dy = sample.y - this.ghost.y;
     this.ghost.setPosition(sample.x, sample.y);
+    // Le fantôme rejoue des positions, pas des vitesses : on redérive son
+    // orientation du déplacement, ramené à une seconde.
+    const scale = 1000 / Math.max(delta, 1);
+    playCharacter(
+      this.ghost,
+      PLAYER_TEXTURE,
+      Math.hypot(dx, dy) > 0.4 ? 'walk' : 'idle',
+      dx * scale,
+      dy * scale
+    );
   }
 
   private updateDistraction(time: number) {
@@ -425,6 +452,7 @@ export class LevelScene extends Phaser.Scene {
     }
 
     if (justAlerted) {
+      npc.reactUntil = this.time.now + REACT_MS;
       this.neverSpotted = false;
       Audio.play('alert');
       vibrate(45);
@@ -505,7 +533,13 @@ export class LevelScene extends Phaser.Scene {
       return;
     }
     item.collected = true;
-    item.sprite.setVisible(false).setActive(false);
+    const slot = this.inventory.items.indexOf(item.id);
+    this.view.collectItem(item.sprite, {
+      x: POCKET_SLOT_X + Math.max(0, slot) * POCKET_SLOT_STEP,
+      y: POCKET_SLOT_Y
+    });
+    this.tweens.add({ targets: item.label, alpha: 0, duration: 200, onComplete: () => item.label.destroy() });
+    this.events.emit('item-collected', slot);
     this.tutorials.dismissIf(item.id);
     this.dismissTutorialBubble(item.id);
     Audio.play('pickup');
@@ -525,7 +559,7 @@ export class LevelScene extends Phaser.Scene {
     }
     const rectangle = this.doors.get(door.id ?? '');
     if (!rectangle) return;
-    this.view.removeSolid(rectangle);
+    this.view.openDoor(rectangle);
     this.doors.delete(door.id ?? '');
     Audio.play('door');
     vibrate(25);

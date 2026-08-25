@@ -8,11 +8,24 @@ import {
   VISION_SEGMENTS
 } from '../game/constants';
 import {
+  DOOR_OPEN_ANIM,
+  DOOR_OPEN_MS,
+  EMOTES,
+  HINT_ANIM,
+  PICKUP_ANIM,
+  itemAnimKey,
+  type CharacterState
+} from '../game/animations';
+import { playCharacter, playLoop } from './animate';
+import {
   ART_SCALE,
   CHARACTER_TEXTURES,
   DESK_PROPS,
   DOOR_TEXTURE,
   FLOOR_TILE,
+  FX_TEXTURES,
+  ITEM_TEXTURES,
+  PROP_ELEVATION,
   MATERIALS,
   NINE_SLICE_CORNER,
   OUTLINE,
@@ -47,7 +60,10 @@ export interface NpcVisual {
   nose: Phaser.GameObjects.Graphics;
   gaugeBack: Phaser.GameObjects.Rectangle;
   gaugeFill: Phaser.GameObjects.Rectangle;
-  gaugeLabel: Phaser.GameObjects.Text;
+  /** Bulle « ? / ! / … » au-dessus de la tête. */
+  emote: Phaser.GameObjects.Sprite;
+  /** Horodatage jusqu'auquel le PNJ joue son sursaut, écrit par `LevelScene`. */
+  reactUntil: number;
   visionRange: number;
   visionHalfAngle: number;
   /** Orientation courante du cône (radians), écrite par `LevelScene`. */
@@ -77,6 +93,7 @@ export class LevelView {
   private culled: Blocker[] = [];
   private talkers = new Map<string, { sprite: Phaser.GameObjects.Sprite; name: Phaser.GameObjects.Text }>();
   private dressing = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.GameObject[]>();
+  private doorSprites = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.Sprite>();
   private light?: Phaser.GameObjects.Arc;
 
   constructor(
@@ -104,7 +121,7 @@ export class LevelView {
         this.blockers.push(makeBlocker(obstacle.x, obstacle.y, obstacle.w, obstacle.h));
       }
 
-      this.dressing.set(solid, this.dressObstacle(obstacle));
+      this.dressing.set(solid, this.dressObstacle(obstacle, solid));
       if (obstacle.kind === 'door' && obstacle.id) doors.set(obstacle.id, solid);
     });
 
@@ -112,7 +129,10 @@ export class LevelView {
   }
 
   /** Habillage pixel art d'un obstacle : ombre, matière, arêtes, incrustation. */
-  private dressObstacle(obstacle: ObstacleDef): Phaser.GameObjects.GameObject[] {
+  private dressObstacle(
+    obstacle: ObstacleDef,
+    solid: Phaser.GameObjects.Rectangle
+  ): Phaser.GameObjects.GameObject[] {
     const style = MATERIALS[obstacle.kind];
     const parts: Phaser.GameObjects.GameObject[] = [];
     const left = snap(obstacle.x - obstacle.w / 2);
@@ -157,9 +177,11 @@ export class LevelView {
     }
 
     if (obstacle.kind === 'door') {
-      parts.push(
-        this.scene.add.image(snap(obstacle.x), snap(obstacle.y), DOOR_TEXTURE).setDepth(DEPTH.obstacleDetail)
-      );
+      const panel = this.scene.add
+        .sprite(snap(obstacle.x), snap(obstacle.y), DOOR_TEXTURE)
+        .setDepth(DEPTH.obstacleDetail);
+      this.doorSprites.set(solid, panel);
+      parts.push(panel);
     }
 
     if (obstacle.label) {
@@ -218,6 +240,7 @@ export class LevelView {
         const sprite = this.scene.add
           .sprite(snap(trigger.zone.x), snap(trigger.zone.y - 50), TALKER_TEXTURE)
           .setDepth(DEPTH.npc);
+        playCharacter(sprite, TALKER_TEXTURE, 'idle', 0, 0);
         const name = makeText(this.scene, snap(trigger.zone.x), snap(trigger.zone.y - 80), dialogue.speaker, {
           size: 11,
           bold: true,
@@ -279,17 +302,40 @@ export class LevelView {
       const prop = decor.kind === 'plant' ? 'plant' : (decor.prop ?? 'plant');
       this.scene.add
         .image(snap(decor.x), snap(decor.y), PROP_TEXTURES[prop])
-        .setDepth(prop === 'exitSign' ? DEPTH.obstacleLabel : DEPTH.plant);
+        .setDepth(PROP_ELEVATION[prop] === 'wall' ? DEPTH.obstacleLabel : DEPTH.plant);
       return;
     }
 
-    // deskProps : écran, tasse, dossiers, chaise — la vie de bureau.
+    // deskProps : le poste de travail complet — écran, clavier, tasse,
+    // dossiers, post-it. C'est lui qui fait qu'un bureau paraît occupé.
     const side = decor.side ?? 1;
     const x = snap(decor.x);
     const y = snap(decor.y);
-    this.scene.add.image(x - side * 14, y - 10, DESK_PROPS.screen).setDepth(DEPTH.deskProps);
+    this.scene.add.image(x - side * 14, y - 14, DESK_PROPS.screen).setDepth(DEPTH.deskProps);
+    this.scene.add.image(x - side * 12, y + 18, DESK_PROPS.keyboard).setDepth(DEPTH.deskProps);
     this.scene.add.image(x + side * 22, y - 16, DESK_PROPS.mug).setDepth(DEPTH.deskProps);
     this.scene.add.image(x + side * 20, y + 18, DESK_PROPS.folder).setDepth(DEPTH.deskProps);
+    this.scene.add.image(x + side * 24, y + 2, DESK_PROPS.sticky).setDepth(DEPTH.deskProps);
+  }
+
+  /**
+   * Petit halo sur ce avec quoi on peut interagir : cachettes et portes
+   * verrouillées. Tout vient de la DONNÉE du niveau — aucune coordonnée écrite
+   * ici — et le halo reste volontairement pâle : un feedback n'est utile que
+   * s'il ne concurrence pas les cônes de vision.
+   */
+  drawInteractionHints() {
+    const points = [
+      ...this.level.hidingSpots.map((spot) => spot.door),
+      ...this.level.obstacles.filter((obstacle) => obstacle.kind === 'door' && obstacle.lock)
+    ];
+    points.forEach((point) => {
+      const hint = this.scene.add
+        .sprite(snap(point.x), snap(point.y), FX_TEXTURES.hint)
+        .setDepth(DEPTH.floorLabel)
+        .setAlpha(0.8);
+      hint.play(HINT_ANIM);
+    });
   }
 
   /** Voile de nuit + halo porté par le joueur. */
@@ -346,13 +392,12 @@ export class LevelView {
       .setOrigin(0, 0.5)
       .setDepth(DEPTH.detection + 1)
       .setVisible(false);
-    const gaugeLabel = makeText(this.scene, spawn.x, spawn.y - 58, '', {
-      size: 10,
-      bold: true,
-      color: '#5c382d'
-    })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.detection + 2)
+    // Au-dessus de la jauge, jamais dessus : la bulle REMPLACE l'étiquette
+    // texte de la V0.9.1 — une glyphe se lit plus vite qu'un mot, et se
+    // distingue par sa FORME, donc aussi en mode daltonien.
+    const emote = this.scene.add
+      .sprite(spawn.x, spawn.y - 62, FX_TEXTURES.emote)
+      .setDepth(DEPTH.detection + 3)
       .setVisible(false);
 
     return {
@@ -361,11 +406,12 @@ export class LevelView {
       sprite,
       body,
       nameText,
+      emote,
+      reactUntil: 0,
       vision: this.scene.add.graphics().setDepth(DEPTH.vision + index * 0.01),
       nose: this.scene.add.graphics().setDepth(DEPTH.npcDetail),
       gaugeBack,
       gaugeFill,
-      gaugeLabel,
       visionRange: def.visionRange ?? DEFAULT_VISION_RANGE,
       visionHalfAngle: ((def.visionHalfAngleDeg ?? DEFAULT_VISION_HALF_ANGLE_DEG) * Math.PI) / 180,
       facing: Math.PI / 2,
@@ -382,6 +428,7 @@ export class LevelView {
   updateNpc(npc: NpcVisual, facing: number, range: number) {
     npc.facing = facing;
     npc.nameText.setPosition(npc.sprite.x, npc.sprite.y - 34);
+    this.animateNpc(npc);
 
     const count = cullBlockers(npc.sprite, range, this.blockers, this.culled);
     const vertices = buildVisionPolygon(
@@ -429,6 +476,38 @@ export class LevelView {
     this.updateGauge(npc, color);
   }
 
+  /**
+   * Le personnage suit sa VITESSE, pas la direction de son cône : un vigile qui
+   * balaie du regard ne doit pas marcher de côté.
+   */
+  private animateNpc(npc: NpcVisual) {
+    const velocity = npc.body?.velocity;
+    const dx = velocity?.x ?? 0;
+    const dy = velocity?.y ?? 0;
+    const moving = Math.hypot(dx, dy) > 6;
+    const state: CharacterState =
+      this.scene.time.now < npc.reactUntil
+        ? 'react'
+        : moving
+          ? npc.controller.alerted
+            ? 'run'
+            : 'walk'
+          : 'idle';
+    playCharacter(npc.sprite, CHARACTER_TEXTURES[npc.def.archetype], state, dx, dy);
+
+    // Une bulle par état de détection : le joueur doit comprendre CE QUE fait
+    // le PNJ sans lire la jauge.
+    const emoteKey = npc.controller.alerted
+      ? EMOTES.alert
+      : npc.controller.isSearching
+        ? EMOTES.search
+        : npc.controller.detectionSeconds > 0.05
+          ? EMOTES.suspicion
+          : null;
+    npc.emote.setPosition(snap(npc.sprite.x), snap(npc.sprite.y - 62));
+    playLoop(npc.emote, emoteKey);
+  }
+
   private updateGauge(npc: NpcVisual, color: number) {
     const active = npc.controller.detectionSeconds > 0.02;
     npc.gaugeBack.setPosition(npc.sprite.x - 34, npc.sprite.y - 45).setVisible(active);
@@ -437,14 +516,19 @@ export class LevelView {
       .setDisplaySize(Math.max(2, snap(64 * npc.controller.detectionRatio)), 4)
       .setFillStyle(color, 1)
       .setVisible(active);
-    npc.gaugeLabel
-      .setPosition(npc.sprite.x, npc.sprite.y - 58)
-      .setText(npc.controller.alerted ? 'ALERTE !' : npc.controller.isSearching ? FR.hud.search : 'SUSPICION')
-      .setColor(npc.controller.alerted ? '#b03424' : '#7b5c22')
-      .setVisible(active);
   }
 
   removeSolid(rectangle: Phaser.GameObjects.Rectangle) {
+    const parts = this.dressing.get(rectangle) ?? [];
+    this.detachSolid(rectangle);
+    // L'habillage disparaît avec le corps : une porte ouverte ne doit pas
+    // laisser son battant peint sur le sol.
+    parts.forEach((part) => part.destroy());
+    rectangle.destroy();
+  }
+
+  /** Retire le corps du monde physique et de l'occlusion, sans rien détruire. */
+  private detachSolid(rectangle: Phaser.GameObjects.Rectangle) {
     const index = this.solids.indexOf(rectangle);
     if (index >= 0) this.solids.splice(index, 1);
 
@@ -453,15 +537,72 @@ export class LevelView {
     );
     if (blockerIndex >= 0) this.blockers.splice(blockerIndex, 1);
 
-    // L'habillage disparaît avec le corps : une porte ouverte ne doit pas
-    // laisser son battant peint sur le sol.
-    this.dressing.get(rectangle)?.forEach((part) => part.destroy());
     this.dressing.delete(rectangle);
+    this.doorSprites.delete(rectangle);
+  }
+
+  /**
+   * Ouverture d'une porte.
+   *
+   * La COLLISION disparaît immédiatement — le gameplay reste exactement celui
+   * de la V0.8 —, seul l'habillage prend le temps de s'ouvrir. Le battant joue
+   * son animation, le reste s'efface, puis tout est détruit.
+   */
+  openDoor(rectangle: Phaser.GameObjects.Rectangle) {
+    const panel = this.doorSprites.get(rectangle);
+    const parts = this.dressing.get(rectangle) ?? [];
+    this.detachSolid(rectangle);
     rectangle.destroy();
+
+    if (!panel) {
+      parts.forEach((part) => part.destroy());
+      return;
+    }
+
+    panel.play(DOOR_OPEN_ANIM);
+    this.scene.tweens.add({
+      targets: parts.filter((part) => part !== panel),
+      alpha: 0,
+      duration: DOOR_OPEN_MS,
+      onComplete: () => parts.forEach((part) => part.destroy())
+    });
+  }
+
+  /** Éclat de ramassage, puis vol de l'objet vers la poche du HUD. */
+  collectItem(sprite: Phaser.GameObjects.Sprite, pocket: { x: number; y: number }) {
+    const burst = this.scene.add
+      .sprite(snap(sprite.x), snap(sprite.y), FX_TEXTURES.pickup)
+      .setDepth(DEPTH.item + 1);
+    burst.play(PICKUP_ANIM);
+    burst.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => burst.destroy());
+
+    // Le flottement de l'objet tire sur la même propriété que le vol : sans
+    // cette coupure, les deux tweens se disputeraient la position.
+    this.scene.tweens.killTweensOf(sprite);
+    // On détache l'objet du monde pour l'accrocher à l'ÉCRAN : la caméra
+    // continue de défiler pendant le vol, et une cible en coordonnées de monde
+    // dériverait de plusieurs dizaines de pixels avant d'arriver.
+    const camera = this.scene.cameras.main;
+    sprite.setScrollFactor(0).setPosition(sprite.x - camera.scrollX, sprite.y - camera.scrollY);
+    this.scene.tweens.add({
+      targets: sprite,
+      x: pocket.x,
+      y: pocket.y,
+      scale: 0.45,
+      alpha: 0,
+      duration: 300,
+      ease: 'Cubic.In',
+      onComplete: () => sprite.setVisible(false).setActive(false)
+    });
+  }
+
+  /** Idle d'un objet posé au sol : reflet qui balaie le sprite. */
+  playItemIdle(sprite: Phaser.GameObjects.Sprite, texture: string) {
+    playLoop(sprite, itemAnimKey(texture));
   }
 
   showDistraction(x: number, y: number, durationMs: number) {
-    const marker = this.scene.add.image(snap(x), snap(y), 'item-report').setDepth(DEPTH.item);
+    const marker = this.scene.add.image(snap(x), snap(y), ITEM_TEXTURES.report).setDepth(DEPTH.item);
     const ring = this.scene.add
       .circle(snap(x), snap(y), 20, 0xffffff, 0)
       .setStrokeStyle(OUTLINE, PALETTE.gold, 0.8)

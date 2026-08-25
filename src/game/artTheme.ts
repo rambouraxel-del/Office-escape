@@ -7,6 +7,9 @@ import type { PaletteKey } from './palette';
  *
  * `LevelView` ne connaît donc aucun nom de fichier, et ajouter une matière ou
  * un rôle ne demande qu'une entrée ici.
+ *
+ * Le découpage des planches et les animations vivent à côté, dans
+ * `animations.ts`, qui importe ce fichier — jamais l'inverse.
  */
 
 /** Règle d'échelle du projet : 1 pixel d'art = 2 unités de monde. */
@@ -56,10 +59,28 @@ export const FLOOR_TILE = 'tile-floor';
 /** Diorama du menu, composé des mêmes motifs que le jeu. */
 export const MENU_BACKGROUND = 'menu-bg';
 
+// ──────────────────────────── personnages ───────────────────────────────
+
 /**
- * Textures de personnages. 64×64 IMPOSÉ : `Body.setCircle()` conserve
- * l'offset (0,0) du corps, donc la taille de la texture positionne le cercle
- * de collision. Changer ces dimensions déplacerait toutes les collisions.
+ * Planches de personnages. Frames de 64×64 IMPOSÉES : `Body.setCircle()`
+ * conserve l'offset (0,0) du corps, donc la taille de la FRAME positionne le
+ * cercle de collision. Changer ce gabarit déplacerait toutes les collisions.
+ */
+export const CHARACTER_SHEETS = [
+  'char-player',
+  'char-colleague',
+  'char-boss',
+  'char-intern',
+  'char-guard',
+  'char-talker'
+] as const;
+
+export type CharacterSheet = (typeof CHARACTER_SHEETS)[number];
+
+/**
+ * La caméra du niveau 2 est un PNJ sans jambes : elle pointe vers un accessoire
+ * fixe, pas vers une planche animée. L'animateur ignore proprement une texture
+ * sans animation déclarée.
  */
 export const CHARACTER_TEXTURES: Record<NpcArchetype, string> = {
   colleague: 'char-colleague',
@@ -69,9 +90,12 @@ export const CHARACTER_TEXTURES: Record<NpcArchetype, string> = {
   camera: 'prop-camera'
 };
 
-export const PLAYER_TEXTURE = 'char-player';
-export const TALKER_TEXTURE = 'char-talker';
+export const PLAYER_TEXTURE: CharacterSheet = 'char-player';
+export const TALKER_TEXTURE: CharacterSheet = 'char-talker';
 
+// ─────────────────────── objets, accessoires, effets ────────────────────
+
+/** Objets ramassables : chacun est une planche de quatre frames (reflet). */
 export const ITEM_TEXTURES: Record<ItemId, string> = {
   donut: 'item-donut',
   coffee: 'item-coffee',
@@ -82,21 +106,65 @@ export const ITEM_TEXTURES: Record<ItemId, string> = {
 /** Accessoires posés sur les bureaux, dans l'ordre de dessin. */
 export const DESK_PROPS = {
   screen: 'prop-screen',
+  keyboard: 'prop-keyboard',
   mug: 'prop-mug',
   folder: 'prop-folder',
-  chair: 'prop-chair'
+  sticky: 'prop-sticky'
 } as const;
 
 export const PROP_TEXTURES: Record<PropKind, string> = {
   plant: 'prop-plant',
+  cactus: 'prop-cactus',
   chair: 'prop-chair',
-  exitSign: 'prop-exit-sign'
+  exitSign: 'prop-exit-sign',
+  trash: 'prop-trash',
+  cooler: 'prop-cooler',
+  printer: 'prop-printer',
+  boxes: 'prop-boxes',
+  books: 'prop-books',
+  phone: 'prop-phone',
+  lamp: 'prop-lamp',
+  keyboard: 'prop-keyboard',
+  sticky: 'prop-sticky'
 };
 
+/**
+ * Plan de dessin d'un accessoire. Deux valeurs seulement : posé au sol, ou
+ * accroché en hauteur (panneau de sortie). Une table plutôt qu'un `if` dans la
+ * vue : ajouter un accessoire mural ne demandera pas de toucher au code.
+ */
+export const PROP_ELEVATION: Partial<Record<PropKind, 'wall'>> = {
+  exitSign: 'wall'
+};
+
+/** Porte : planche de quatre frames, du battant fermé à l'embrasure vide. */
 export const DOOR_TEXTURE = 'prop-door';
 
-/** Tous les assets à précharger, groupés par dossier. */
-export const ASSET_MANIFEST = {
+/** Effets animés, jamais déclarés ailleurs. */
+export const FX_TEXTURES = {
+  emote: 'fx-emote',
+  pickup: 'fx-pickup',
+  hint: 'fx-hint'
+} as const;
+
+/** Habillages d'interface, pour que les scènes n'écrivent aucun nom de fichier. */
+export const UI_TEXTURES = {
+  stickBase: 'ui-stick-base',
+  stickKnob: 'ui-stick-knob',
+  run: 'ui-btn-run',
+  runOn: 'ui-btn-run-on',
+  action: 'ui-btn-action',
+  pause: 'ui-btn-pause'
+} as const;
+
+// ──────────────────────────── préchargement ─────────────────────────────
+
+/**
+ * Images fixes à précharger, groupées par dossier.
+ * Les planches, elles, sont déclarées dans `animations.ts` (`SHEET_MANIFEST`) :
+ * elles ont besoin d'une taille de frame, pas seulement d'un chemin.
+ */
+export const IMAGE_MANIFEST = {
   tiles: [
     'tile-floor',
     'tile-floor-alt',
@@ -108,20 +176,24 @@ export const ASSET_MANIFEST = {
     'tile-metal',
     'tile-stone'
   ],
-  characters: ['char-player', 'char-colleague', 'char-boss', 'char-intern', 'char-guard', 'char-talker'],
   props: [
     'prop-screen',
+    'prop-keyboard',
     'prop-mug',
     'prop-folder',
+    'prop-sticky',
+    'prop-phone',
+    'prop-lamp',
     'prop-plant',
+    'prop-cactus',
     'prop-chair',
-    'prop-door',
+    'prop-trash',
+    'prop-cooler',
+    'prop-printer',
+    'prop-boxes',
+    'prop-books',
     'prop-camera',
-    'prop-exit-sign',
-    'item-donut',
-    'item-coffee',
-    'item-badge',
-    'item-report'
+    'prop-exit-sign'
   ],
   ui: [
     'ui-panel',

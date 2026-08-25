@@ -86,6 +86,32 @@ export class PixelCanvas {
     return this;
   }
 
+  /** Contour de cercle, en pixels carrés (algorithme du point milieu). */
+  circle(cx, cy, radius, color, alpha = 1) {
+    let x = radius;
+    let y = 0;
+    let error = 1 - radius;
+    while (x >= y) {
+      [
+        [x, y],
+        [y, x],
+        [-x, y],
+        [-y, x],
+        [-x, -y],
+        [-y, -x],
+        [x, -y],
+        [y, -x]
+      ].forEach(([dx, dy]) => this.set(cx + dx, cy + dy, color, alpha));
+      y += 1;
+      if (error < 0) error += 2 * y + 1;
+      else {
+        x -= 1;
+        error += 2 * (y - x) + 1;
+      }
+    }
+    return this;
+  }
+
   /**
    * Dessine un sprite ASCII.
    * @param {string[]} rows lignes de même longueur
@@ -101,6 +127,41 @@ export class PixelCanvas {
       });
     });
     return this;
+  }
+
+  /**
+   * Mélange une couleur dans un pixel DÉJÀ peint, en gardant son opacité.
+   * Sert aux reflets : un éclat doit éclaircir l'objet, pas le remplacer.
+   */
+  blend(x, y, color, alpha) {
+    const px = Math.round(x);
+    const py = Math.round(y);
+    if (px < 0 || py < 0 || px >= this.width || py >= this.height) return this;
+    const offset = (py * this.width + px) * 4;
+    if (this.data[offset + 3] === 0) return this;
+    const [r, g, b] = rgb(color);
+    this.data[offset] = Math.round(this.data[offset] * (1 - alpha) + r * alpha);
+    this.data[offset + 1] = Math.round(this.data[offset + 1] * (1 - alpha) + g * alpha);
+    this.data[offset + 2] = Math.round(this.data[offset + 2] * (1 - alpha) + b * alpha);
+    return this;
+  }
+
+  /** Bande diagonale de reflet qui balaie l'objet. Base des idles d'objets. */
+  sheen(offset, color, alpha, width = 2) {
+    for (let y = 0; y < this.height; y += 1) {
+      for (let x = 0; x < this.width; x += 1) {
+        const d = x + y - offset;
+        if (d >= 0 && d < width) this.blend(x, y, color, alpha);
+      }
+    }
+    return this;
+  }
+
+  /** Copie indépendante, pour dériver une frame sans abîmer l'originale. */
+  clone() {
+    const copy = new PixelCanvas(this.width, this.height);
+    copy.data.set(this.data);
+    return copy;
   }
 
   /** Recopie un autre canvas, en ignorant ses pixels transparents. */
@@ -165,6 +226,23 @@ export function padRows(rows, width) {
     }
     return line.padEnd(width, '.');
   });
+}
+
+/**
+ * Assemble des frames de même taille en une bande horizontale.
+ * C'est le format de planche du projet : une ligne de frames, lue par
+ * `load.spritesheet` côté jeu.
+ */
+export function strip(frames) {
+  const { width, height } = frames[0];
+  const sheet = new PixelCanvas(width * frames.length, height);
+  frames.forEach((frame, index) => {
+    if (frame.width !== width || frame.height !== height) {
+      throw new Error(`Frame ${index} de ${frame.width}×${frame.height} au lieu de ${width}×${height}.`);
+    }
+    sheet.blit(frame, index * width, 0);
+  });
+  return sheet;
 }
 
 /** Fabrique un canvas à partir d'un sprite ASCII, taillé à ses dimensions. */

@@ -22,6 +22,7 @@ src/
 │   ├── palette.json   LA palette — source de vérité unique des couleurs
 │   ├── palette.ts     accès typé à la palette
 │   ├── artTheme.ts    donnée de niveau → asset (matières, rôles, objets)
+│   ├── animations.ts  planches et animations — pur, sans Phaser
 │   ├── geometry.ts    raycast AABB, cônes de vision
 │   ├── validateLevel.ts  filet de sécurité du format data-driven
 │   └── session.ts     état partagé entre scènes
@@ -45,9 +46,10 @@ src/
 tools/art/          générateur de sprites, hors du bundle
 ├── canvas.mjs        canvas pixel + DSL de sprites en ASCII
 ├── png.mjs           encodeur PNG RGBA sans dépendance
-├── characters.mjs    les six rôles
+├── characters.mjs    les six rôles, en planches animées
 ├── tiles.mjs         motifs de matière raccordables
-├── props.mjs         accessoires et objets
+├── props.mjs         accessoires, objets ramassables, porte animée
+├── fx.mjs            bulles d'émotion, éclat de ramassage, halo d'interaction
 ├── ui.mjs            panneaux, boutons, chiffres d'horloge
 ├── menu.mjs          diorama du menu
 └── build-art.mjs     `npm run art` → public/assets/
@@ -58,21 +60,45 @@ Règle de dépendance : `core/` et `systems/` **n'importent jamais Phaser**. C'e
 ## La couche visuelle (V0.9)
 
 Le rendu est en **pixel art**, entièrement produit hors ligne par `npm run art`
-puis chargé comme de vrais assets. Trois règles portent tout le reste :
+puis chargé comme de vrais assets. Quatre règles portent tout le reste :
 
 1. **1 pixel d'art = 2 unités de monde**, agrandissement entier uniquement.
 2. **`palette.json` est la seule source de couleurs** — le jeu et le générateur
    lisent le même fichier.
 3. **`artTheme.ts` est le seul pont entre une donnée de niveau et un asset.**
    `LevelView` ne connaît aucun nom de fichier.
+4. **`animations.ts` est le seul endroit qui découpe une planche.** Taille de
+   frame, indices, cadence, boucle : tout s'y déclare, `BootScene` déroule les
+   tables, et aucune scène ne crée d'animation.
 
-Le détail (intention, palette, règles de lisibilité, limites) vit dans
-[`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
+Le détail (intention, palette, orientations, cycles de marche, retours visuels,
+limites) vit dans [`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
+
+### Animation des personnages (V0.9 étape 2)
+
+Une planche par rôle : **8 poses × 3 orientations**, frames de 64 × 64. La
+variante latérale n'est dessinée qu'une fois — la gauche est un `flipX`.
+
+Deux décisions qui expliquent la forme du code :
+
+- **L'état d'animation vit sur le sprite** (`setData`), pas dans une table de
+  la scène. Phaser réutilise l'instance de scène : un `Map` de sprites
+  survivrait d'une partie à l'autre et pointerait vers des objets détruits.
+- **On ne rejoue une animation que si sa clé change.** Appeler `play()` chaque
+  frame la redémarrerait indéfiniment sur sa première image.
+
+L'orientation se déduit de la **vitesse**, jamais de la direction du cône de
+vision — et elle est conservée à l'arrêt : un PNJ qui se retournerait tout seul
+vers le joueur donnerait une information de gameplay fausse.
 
 **Le rendu n'a pas le droit de toucher au gameplay.** Un obstacle crée
 toujours le rectangle de collision exact de la V0.8 ; il est simplement rendu
 invisible, et l'habillage est dessiné par-dessus. C'est ce qui garantit qu'une
 refonte visuelle ne déplace pas un mur d'un pixel.
+
+Corollaire pour les animations : **aucune règle n'attend la fin d'une
+animation.** Quand une porte s'ouvre, sa collision disparaît immédiatement ;
+seul le battant prend 320 ms à s'effacer.
 
 ## Le format `LevelDef`
 
@@ -109,9 +135,9 @@ Le format data-driven déplace les fautes de frappe du compilateur vers l'exécu
 
 **Le gabarit 64 × 64 des personnages est imposé par la physique.**
 `Body.setCircle()` conserve l'offset (0,0) du corps : le cercle de collision
-est positionné à partir des dimensions de la texture. Changer la taille d'une
-texture de personnage déplacerait toutes les collisions du jeu. Un test le
-verrouille.
+est positionné à partir des dimensions de la FRAME. Passer les personnages en
+planches d'animation n'a donc rien déplacé — les frames font toujours 64 × 64,
+et un test le verrouille.
 
 **Phaser réutilise l'instance de scène.** `create()` rejoue, mais **pas** les initialiseurs de champs de classe. Tout état par partie doit être remis à zéro explicitement en tête de `create()`. Ce piège a causé un crash réel (des `Text` détruits conservés dans un tableau), attrapé par `npm run smoke`.
 

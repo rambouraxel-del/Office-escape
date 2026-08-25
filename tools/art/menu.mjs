@@ -8,7 +8,7 @@
 import { PixelCanvas } from './canvas.mjs';
 import { TILES } from './tiles.mjs';
 import { PROPS } from './props.mjs';
-import { CHARACTERS, makeCharacterSource } from './characters.mjs';
+import { CHARACTERS, makeCharacterFrame } from './characters.mjs';
 
 const W = 195;
 const H = 422;
@@ -62,6 +62,7 @@ export function makeMenuBackground() {
     canvas.blit(PROPS['prop-screen'](), 145, y + 4);
     canvas.blit(PROPS['prop-mug'](), 44, y + 24);
     canvas.blit(PROPS['prop-folder'](), 160, y + 26);
+    canvas.blit(PROPS['prop-sticky'](), 12, y + 28);
     if (index % 2 === 0) {
       canvas.blit(PROPS['prop-chair'](), 22, y + 44);
       canvas.blit(PROPS['prop-chair'](), 153, y + 44);
@@ -70,6 +71,9 @@ export function makeMenuBackground() {
 
   // Plantes dans les angles.
   const plant = PROPS['prop-plant']();
+  canvas.blit(PROPS['prop-cooler'](), 174, 150);
+  canvas.blit(PROPS['prop-printer'](), 2, 150);
+  canvas.blit(PROPS['prop-boxes'](), 172, 244);
   [
     [2, 24],
     [178, 24],
@@ -78,8 +82,8 @@ export function makeMenuBackground() {
   ].forEach(([x, y]) => canvas.blit(plant, x, y));
 
   // Le couloir est habité : sans personnages, le menu ne raconte rien.
-  canvas.blit(makeCharacterSource(CHARACTERS['char-colleague']), 82, 96);
-  canvas.blit(makeCharacterSource(CHARACTERS['char-boss']), 80, 214);
-  canvas.blit(makeCharacterSource(CHARACTERS['char-player']), 84, 344);
+  canvas.blit(makeCharacterFrame(CHARACTERS['char-colleague'], 'side', 2), 82, 96);
+  canvas.blit(makeCharacterFrame(CHARACTERS['char-boss'], 'down', 0), 80, 214);
+  canvas.blit(makeCharacterFrame(CHARACTERS['char-player'], 'up', 4), 84, 344);
   return canvas;
 }

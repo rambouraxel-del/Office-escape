@@ -13,8 +13,10 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 - **Phaser réutilise l'instance de scène** : les initialiseurs de champs ne rejouent pas entre deux parties. Remettre l'état à zéro en tête de `create()`. Ce piège a déjà causé un crash.
 - Les objets renvoyés par `NpcController.update()` et `buildVisionPolygon()` sont **réutilisés d'une frame à l'autre** : les consommer immédiatement.
 - **Aucune couleur en dur** : tout passe par `src/game/palette.json`. Aucun nom d'asset dans une scène : tout passe par `src/game/artTheme.ts`.
+- **Aucune animation créée dans une scène** : planches, frames et cadences se déclarent dans `src/game/animations.ts`, que `BootScene` déroule. Ne jamais appeler `play()` à chaque frame — passer par `src/scenes/animate.ts`, qui ne rejoue que si la clé change.
+- **Aucune règle de jeu n'attend une animation** : une porte perd sa collision à l'instant où on l'ouvre ; seul son habillage prend le temps de s'effacer.
 - **1 pixel d'art = 2 unités de monde**, agrandissement entier uniquement. Les sprites se régénèrent avec `npm run art`.
-- **Les textures de personnage font 64 × 64, obligatoirement** : `Body.setCircle()` positionne le cercle de collision à partir des dimensions de la texture.
+- **Les FRAMES de personnage font 64 × 64, obligatoirement** : `Body.setCircle()` positionne le cercle de collision à partir des dimensions de la frame. Un test le verrouille.
 - **Le rendu ne touche jamais au gameplay** : un obstacle garde son rectangle de collision d'origine, rendu invisible, et l'habillage se dessine par-dessus.
 
 ## Vérifier

@@ -1,5 +1,63 @@
 # Journal des versions
 
+## V0.9.1 — Assets de production et animations (étape 2)
+
+Toujours **visuel uniquement** : aucune vitesse, aucun cône, aucun timing,
+aucune collision, aucun parcours de PNJ n'a changé. Les tests de gameplay
+passent à l'identique ; 205 tests au total.
+
+**Les personnages marchent**
+- Chaque rôle devient une **planche de 8 poses × 3 orientations**, frames de
+  64 × 64 (gabarit imposé par la physique, verrouillé par un test).
+- Quatre animations par orientation : repos (respiration), marche, course
+  (mêmes frames, plus vite) et sursaut lorsqu'un PNJ vient de repérer le
+  joueur.
+- Trois orientations : de face, **tournée** et de dos. Un seul côté est
+  dessiné — la gauche est un miroir. La variante tournée garde la masse de
+  tête de la vue de face, pour ne perdre ni les yeux ni les accessoires.
+- Cycle de marche construit sur trois principes : pieds au sol, jambe avancée
+  plus longue d'un pixel, main avancée sur deux lignes.
+- Le fantôme du record marche lui aussi, dans le sens de sa trajectoire.
+
+**Système d'animation centralisé**
+- `src/game/animations.ts` — pur, sans Phaser : planches, tailles de frame,
+  indices, cadences et boucles. `BootScene` déroule ces tables ; **aucune scène
+  ne crée d'animation** ni ne connaît un découpage.
+- `src/scenes/animate.ts` : l'état d'animation vit **sur le sprite**, et une
+  animation n'est rejouée que si sa clé change.
+- L'orientation se déduit de la **vitesse**, jamais de la direction du cône, et
+  reste figée à l'arrêt.
+- Les tests vérifient que chaque PNG contient exactement le nombre de frames
+  annoncé, qu'aucune animation ne pointe hors bornes et que chaque personnage
+  a bien ses quatre états dans ses trois orientations.
+
+**Retours visuels**
+- **Bulles d'émotion** au-dessus des PNJ : « ? » méfiance, « ! » alerte,
+  « … » fouille. Elles remplacent l'étiquette texte : une glyphe se lit plus
+  vite et se distingue par sa forme, donc aussi en mode daltonien.
+- **Objets ramassables** : reflet qui balaie le sprite, éclat au ramassage,
+  puis vol de l'objet jusqu'à la poche du HUD, qui encaisse le choc.
+  L'étiquette au sol part avec l'objet au lieu de rester orpheline.
+- **Portes** : quatre frames d'ouverture. La collision, elle, disparaît à
+  l'instant exact où le joueur ouvre — aucune règle n'attend une animation.
+- **Halo discret** sur les cachettes et les portes verrouillées, déduit de la
+  donnée du niveau.
+
+**Assets de production**
+- Onze nouveaux accessoires de bureau : cactus, imprimante, fontaine à eau,
+  poubelle, cartons, classeurs, téléphone, lampe, clavier, post-it.
+- Postes de travail complétés (écran, clavier, tasse, dossiers, post-it) et
+  seconde passe sur l'écran, la tasse, les dossiers, la chaise et les objets.
+- Niveau 1 : douze accessoires posés dans le couloir, purement cosmétiques.
+- `npm run art` produit 54 PNG (46 Ko au total), avec un dossier `fx/` pour
+  les effets.
+
+**Nettoyage**
+- Plus aucun nom d'asset écrit dans une scène : `UI_TEXTURES`, `PLAYER_TEXTURE`
+  et `PROP_ELEVATION` remplacent les dernières chaînes en dur.
+- Les positions des poches du HUD sont partagées entre la scène qui les dessine
+  et celle qui y envoie l'objet ramassé.
+
 ## V0.9 — Direction artistique pixel art (étape 1)
 
 Refonte **visuelle uniquement** : aucune règle de jeu, aucun timing, aucune

@@ -67,7 +67,21 @@ export const LEVEL_01: LevelDef = {
     { kind: 'plant', x: 55, y: 1040 },
     { kind: 'plant', x: 444, y: 350 },
     { kind: 'plant', x: 448, y: 1815 },
-    { kind: 'plant', x: 55, y: 690 }
+    { kind: 'plant', x: 55, y: 690 },
+    // Petits objets de bureau : purement cosmétiques, aucune collision. Ils
+    // ponctuent les longues portions de couloir sans encombrer le passage.
+    { kind: 'prop', x: 160, y: 1950, prop: 'trash' },
+    { kind: 'prop', x: 336, y: 1950, prop: 'boxes' },
+    { kind: 'prop', x: 62, y: 1740, prop: 'books' },
+    { kind: 'prop', x: 444, y: 1690, prop: 'cooler' },
+    { kind: 'prop', x: 444, y: 1560, prop: 'cactus' },
+    { kind: 'prop', x: 152, y: 1180, prop: 'lamp' },
+    { kind: 'prop', x: 66, y: 900, prop: 'printer' },
+    { kind: 'prop', x: 444, y: 1000, prop: 'cactus' },
+    { kind: 'prop', x: 250, y: 430, prop: 'books' },
+    { kind: 'prop', x: 444, y: 470, prop: 'cactus' },
+    { kind: 'prop', x: 84, y: 262, prop: 'boxes' },
+    { kind: 'prop', x: 420, y: 262, prop: 'trash' }
   ],
 
   npcs: [
