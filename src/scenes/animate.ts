@@ -1,4 +1,6 @@
 import type Phaser from 'phaser';
+import { SettingsStore } from '../core/settings';
+import { LIVING_SHEETS, livingAnimKey } from '../game/animations';
 import {
   FACING_FLIP,
   FACING_VIEW,
@@ -48,6 +50,20 @@ export function playCharacter(
   sprite.play(key);
 }
 
+/**
+ * Vie de fond d'un décor (écran allumé, diode, néon instable).
+ *
+ * Sans planche déclarée pour cette texture, le sprite reste tel quel : aucune
+ * condition à écrire côté scène. En mouvement réduit, on s'arrête sur la
+ * première frame — c'est exactement ce que le réglage promet.
+ */
+export function playLiving(sprite: Phaser.GameObjects.Sprite, texture: string): void {
+  if (!(texture in LIVING_SHEETS) || SettingsStore.get().reducedMotion) return;
+  const key = livingAnimKey(texture);
+  if (!sprite.anims.animationManager.exists(key)) return;
+  sprite.play(key);
+}
+
 /** Joue une animation en boucle, sans la redémarrer si elle tourne déjà. */
 export function playLoop(sprite: Phaser.GameObjects.Sprite, key: string | null): void {
   if (sprite.getData(ANIM_KEY) === key) return;
@@ -59,4 +75,9 @@ export function playLoop(sprite: Phaser.GameObjects.Sprite, key: string | null):
   }
   sprite.setVisible(true);
   sprite.play(key);
+  // Éclosion : une bulle qui surgit à taille réelle passe inaperçue, alors
+  // qu'elle annonce le seul danger du jeu.
+  if (SettingsStore.get().reducedMotion) return;
+  sprite.setScale(0.55);
+  sprite.scene.tweens.add({ targets: sprite, scale: 1, duration: 170, ease: 'Back.Out' });
 }

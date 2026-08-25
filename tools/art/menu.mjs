@@ -7,7 +7,7 @@
  */
 import { PixelCanvas } from './canvas.mjs';
 import { TILES } from './tiles.mjs';
-import { PROPS } from './props.mjs';
+import { PROPS, STILLS } from './props.mjs';
 import { CHARACTERS, makeCharacterFrame } from './characters.mjs';
 
 const W = 195;
@@ -58,8 +58,8 @@ export function makeMenuBackground() {
   desks.forEach((y, index) => {
     furniture(canvas, wood, 6, y, 52, 40, 'woodLight', 'woodDark');
     furniture(canvas, wood, 137, y, 52, 40, 'woodLight', 'woodDark');
-    canvas.blit(PROPS['prop-screen'](), 14, y + 4);
-    canvas.blit(PROPS['prop-screen'](), 145, y + 4);
+    canvas.blit(STILLS['prop-screen'](), 14, y + 4);
+    canvas.blit(STILLS['prop-screen'](), 145, y + 4);
     canvas.blit(PROPS['prop-mug'](), 44, y + 24);
     canvas.blit(PROPS['prop-folder'](), 160, y + 26);
     canvas.blit(PROPS['prop-sticky'](), 12, y + 28);
@@ -71,8 +71,8 @@ export function makeMenuBackground() {
 
   // Plantes dans les angles.
   const plant = PROPS['prop-plant']();
-  canvas.blit(PROPS['prop-cooler'](), 174, 150);
-  canvas.blit(PROPS['prop-printer'](), 2, 150);
+  canvas.blit(STILLS['prop-cooler'](), 174, 150);
+  canvas.blit(STILLS['prop-printer'](), 2, 150);
   canvas.blit(PROPS['prop-boxes'](), 172, 244);
   [
     [2, 24],

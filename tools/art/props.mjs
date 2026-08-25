@@ -53,11 +53,26 @@ const L = {
   v: 'plum',
   V: 'plumDark',
   h: 'carpetStart',
-  H: 'carpetStartDark'
+  H: 'carpetStartDark',
+  e: 'brass',
+  E: 'goldDark',
+  q: 'concreteLight',
+  Q: 'concreteMid',
+  x: 'concreteDark',
+  a: 'asphaltLight',
+  A: 'asphaltDark',
+  f: 'paintLine',
+  N: 'neonTube',
+  U: 'rubber',
+  j: 'marbleLight',
+  J: 'marbleMid'
 };
 
 /** Cadre commun des objets ramassables et des planches, en pixels d'art. */
 export const ITEM_FRAME = 16;
+
+/** Cadre commun des décors animés : plus large, pour le néon et l'imprimante. */
+export const LIVING_FRAME = 24;
 
 function sprite(width, rows) {
   return fromRows(padRows(rows, width), L);
@@ -253,7 +268,7 @@ const PRINTER = () =>
     'KMMwWWWWWWWWwMMMK',
     'KMMwwwwwwwwwwMMMK',
     'KMMMMMMMMMMMMMMMK',
-    'KMMnnnnnnnnnnMrMK',
+    'KMMnnnnnnnnnnMcMK',
     'KMMMMMMMMMMMMMMMK',
     'KMMMMMMMMMMMMMMMK',
     '.KMMMMMMMMMMMMMK',
@@ -312,6 +327,202 @@ const EXIT_SIGN = () =>
     'KlwwwLwwwwLwwwwLwwlK',
     'KllllllllllllllllllK',
     'KKKKKKKKKKKKKKKKKKKK'
+  ]);
+
+// ────────────────────── étage direction (niveau 2) ──────────────────────
+
+/** Fauteuil de direction : plus large et plus sombre qu'une chaise d'open space. */
+const ARMCHAIR = () =>
+  sprite(16, [
+    '.KKKKKKKKKKKK',
+    'KeVVVVVVVVVVeK',
+    'KeVvvvvvvvvVeK',
+    'KeVvvvvvvvvVeK',
+    'KeVvvvvvvvvVeK',
+    'KeVVVVVVVVVVeK',
+    '.KKKKKKKKKKKK',
+    '..KeeeeeeeeK',
+    '..KK.KeeK.KK',
+    '...K.KeeK.K',
+    '.....KKKK'
+  ]);
+
+/** Cadre accroché : le portrait obligatoire du fondateur. */
+const FRAME = () =>
+  sprite(16, [
+    'KKKKKKKKKKKKKK',
+    'KeeeeeeeeeeeeK',
+    'KeKKKKKKKKKKeK',
+    'KeKjjjjjjjjKeK',
+    'KeKjJJvvJJjKeK',
+    'KeKjJvvvvJjKeK',
+    'KeKjjjjjjjjKeK',
+    'KeKKKKKKKKKKeK',
+    'KeeeeeeeeeeeeK',
+    'KKKKKKKKKKKKKK'
+  ]);
+
+/** Trophée : la récompense d'un séminaire dont personne ne se souvient. */
+const AWARD = () =>
+  sprite(12, [
+    '.KeeeeeeK',
+    'KeEEEEEEeK',
+    'KeEeeeeEeK',
+    'KKeEEEEeKK',
+    '..KeeeeK',
+    '...KeeK',
+    '..KeeeeK',
+    '.KKKKKKKK',
+    '.KOOOOOOK',
+    '.KKKKKKKK'
+  ]);
+
+/** Vase design, posé sur rien de précis. */
+const VASE = () =>
+  sprite(12, [
+    '..K.KlK.K',
+    '.KlKKLKKlK',
+    'KlLKlLlKLlK',
+    '.KlLLLLLlK',
+    '..KKLLLKK',
+    '...KjjjK',
+    '..KjJJJjK',
+    '..KjJJJjK',
+    '..KjjjjjK',
+    '...KKKKK'
+  ]);
+
+/** Machine à café de couloir : le vrai centre névralgique de l'étage. */
+const COFFEE_MACHINE = () =>
+  sprite(14, [
+    '.KKKKKKKKKK',
+    'KnnnnnnnnnnK',
+    'KnMMMMMMMMnK',
+    'KnMssssssMnK',
+    'KnMsSSSSsMnK',
+    'KnMssssssMnK',
+    'KnMMMMMMMMnK',
+    'KnnKwwwwKnnK',
+    'KnnKwWWwKnnK',
+    'KnnnnnnnnnnK',
+    'KnnEnnnnnnnK',
+    '.KKKKKKKKKK'
+  ]);
+
+// ─────────────────────────── parking (niveau 3) ─────────────────────────
+
+/** Plot de chantier : le seul objet orange autorisé, et il est utile. */
+const CONE = () =>
+  sprite(12, [
+    '...KKK',
+    '...KcK',
+    '..KcCcK',
+    '..KcCcK',
+    '.KcCCCcK',
+    '.KcwwwcK',
+    'KcCCCCCcK',
+    'KcccccccK',
+    'KKKKKKKKK'
+  ]);
+
+/** Barrière de sécurité, vue de dessus. */
+const BARRIER = () =>
+  sprite(20, [
+    'KKKKKKKKKKKKKKKKKKKK',
+    'KqqqqqqqqqqqqqqqqqqK',
+    'KqfffQQfffQQfffQQffK',
+    'KqqqqqqqqqqqqqqqqqqK',
+    'KKKKKKKKKKKKKKKKKKKK',
+    '.KQK..........KQK',
+    '.KQK..........KQK',
+    'KKQKK........KKQKK'
+  ]);
+
+/** Extincteur mural : rouge, mais franchement plus sombre qu'une alerte. */
+const EXTINGUISHER = () =>
+  sprite(10, [
+    '..KKK',
+    '..KnK',
+    '.KKKKK',
+    'KCCCCCK',
+    'KCcccCK',
+    'KCcccCK',
+    'KCcccCK',
+    'KCCCCCK',
+    'KKKKKKK'
+  ]);
+
+/** Vélo attaché à un poteau depuis un temps certain. */
+const BIKE = () =>
+  sprite(18, [
+    '...KKK.....KKK',
+    '..KUUUK...KUUUK',
+    '.KUKKKUK.KUKKKUK',
+    'KUKQQQKUKUKQQQKUK',
+    'KUKQnQKUKUKQnQKUK',
+    'KUKKKKUKKUKKKKUK',
+    '.KUUUKKtKKUUUK',
+    '..KKK.KtK.KKK'
+  ]);
+
+/** Chariot de ménage abandonné en plein passage. */
+const CART = () =>
+  sprite(16, [
+    '.KKKKKKKKKKKK',
+    'KMMMMMMMMMMMMK',
+    'KMbbbbMMccccMK',
+    'KMbBBbMMcCCcMK',
+    'KMbbbbMMccccMK',
+    'KMMMMMMMMMMMMK',
+    'KKKKKKKKKKKKKK',
+    '.KnK......KnK',
+    '.KUK......KUK'
+  ]);
+
+/** Caisse en bois : le décor le plus universel du jeu vidéo. */
+const CRATE = () =>
+  sprite(14, [
+    'KKKKKKKKKKKKKK',
+    'KoOooooooooOoK',
+    'KOOKKKKKKKKOOK',
+    'KoKuuuuuuuuKoK',
+    'KoKuOOOOOOuKoK',
+    'KoKuuuuuuuuKoK',
+    'KOOKKKKKKKKOOK',
+    'KoOooooooooOoK',
+    'KKKKKKKKKKKKKK'
+  ]);
+
+/** Pile de pneus, oubliée près d'un pilier. */
+const TIRE = () =>
+  sprite(14, [
+    '..KKKKKKKK',
+    '.KUUUUUUUUK',
+    'KUUKKKKKKUUK',
+    'KUKQQQQQQKUK',
+    'KUKQxxxxQKUK',
+    'KUKQQQQQQKUK',
+    'KUUKKKKKKUUK',
+    '.KUUUUUUUUK',
+    '..KKKKKKKK'
+  ]);
+
+/** Panneau « P » et sa flèche : la signalétique du parking. */
+const PARKING_SIGN = () =>
+  sprite(14, [
+    'KKKKKKKKKKKK',
+    'KbbbbbbbbbbK',
+    'KbfffffffbbK',
+    'KbfKKKKfbbbK',
+    'KbfKffKfbbbK',
+    'KbfKKKKfbbbK',
+    'KbfKbbbbbbbK',
+    'KbfKbbbbbbbK',
+    'KbbbbbbbbbbK',
+    'KKKKKKKKKKKK',
+    '...KQQK',
+    '...KQQK',
+    '..KKQQKK'
   ]);
 
 // ───────────────────────────── objets ramassables ────────────────────────
@@ -436,8 +647,38 @@ function doorFrame(step) {
   return canvas;
 }
 
+/**
+ * Vie de fond : deux frames, une variation d'un ou deux pixels.
+ * Une lueur qui bouge suffit à faire croire qu'un bureau tourne encore ;
+ * au-delà, ça devient un clignotant et ça vole l'attention aux cônes.
+ */
+function livingSheet(make, animate) {
+  // Cadre commun : toutes les planches « vivantes » partagent une frame de
+  // 24×24, quelle que soit la silhouette. Sans ça, chaque décor animé
+  // imposerait sa propre taille de découpe côté jeu.
+  const drawn = make();
+  const base = new PixelCanvas(LIVING_FRAME, LIVING_FRAME).blit(
+    drawn,
+    Math.floor((LIVING_FRAME - drawn.width) / 2),
+    Math.floor((LIVING_FRAME - drawn.height) / 2)
+  );
+  const lit = base.clone();
+  animate(lit);
+  return strip([base, lit]);
+}
+
+/** Néon de parking : un tube au plafond, jamais tout à fait stable. */
+const NEON = () =>
+  sprite(24, [
+    'KKKKKKKKKKKKKKKKKKKKKKKK',
+    'KQQQQQQQQQQQQQQQQQQQQQQK',
+    'KQNNNNNNNNNNNNNNNNNNNNQK',
+    'KQNNNNNNNNNNNNNNNNNNNNQK',
+    'KQQQQQQQQQQQQQQQQQQQQQQK',
+    'KKKKKKKKKKKKKKKKKKKKKKKK'
+  ]);
+
 export const PROPS = {
-  'prop-screen': SCREEN,
   'prop-keyboard': KEYBOARD,
   'prop-mug': MUG,
   'prop-folder': FOLDER,
@@ -445,19 +686,52 @@ export const PROPS = {
   'prop-phone': PHONE,
   'prop-lamp': LAMP,
   'prop-plant': PLANT,
+  'prop-armchair': ARMCHAIR,
+  'prop-frame': FRAME,
+  'prop-award': AWARD,
+  'prop-vase': VASE,
+  'prop-cone': CONE,
+  'prop-barrier': BARRIER,
+  'prop-extinguisher': EXTINGUISHER,
+  'prop-bike': BIKE,
+  'prop-cart': CART,
+  'prop-crate': CRATE,
+  'prop-tire': TIRE,
+  'prop-parking-sign': PARKING_SIGN,
   'prop-cactus': CACTUS,
   'prop-chair': CHAIR,
   'prop-trash': TRASH,
-  'prop-cooler': COOLER,
-  'prop-printer': PRINTER,
   'prop-boxes': BOXES,
   'prop-books': BOOKS,
-  'prop-camera': CAMERA,
   'prop-exit-sign': EXIT_SIGN
+};
+
+/**
+ * Image fixe des décors animés : le menu et les vignettes composent des PNG
+ * statiques, ils ne peuvent pas blitter une planche.
+ */
+export const STILLS = {
+  'prop-screen': SCREEN,
+  'prop-printer': PRINTER,
+  'prop-cooler': COOLER,
+  'prop-camera': CAMERA,
+  'prop-neon': NEON,
+  'prop-machine': COFFEE_MACHINE
 };
 
 export const PROP_SHEETS = {
   'prop-door': () => strip([0, 1, 2, 3].map(doorFrame)),
+  // Écran : la lueur interne monte d'un cran, rien de plus.
+  'prop-screen': () => livingSheet(SCREEN, (c) => c.rect(9, 8, 6, 4, 'screenGlow', 0.85)),
+  // Imprimante : la diode passe du rouge au vert, comme toute imprimante ment.
+  'prop-printer': () => livingSheet(PRINTER, (c) => c.rect(17, 13, 2, 1, 'leaf')),
+  // Fontaine : une bulle remonte dans la bonbonne.
+  'prop-cooler': () => livingSheet(COOLER, (c) => c.rect(11, 9, 2, 2, 'glass')),
+  // Caméra : sa diode d'enregistrement bat lentement.
+  'prop-camera': () => livingSheet(CAMERA, (c) => c.rect(7, 13, 2, 1, 'alert', 0.3)),
+  // Néon : une frange s'éteint. C'est ce qui rend un parking inquiétant.
+  'prop-neon': () => livingSheet(NEON, (c) => c.rect(2, 11, 12, 2, 'neonDim')),
+  'prop-machine': () => livingSheet(COFFEE_MACHINE, (c) => c.rect(9, 9, 6, 3, 'screenGlow', 0.6)),
   'item-donut': () => shineSheet(DONUT),
   'item-coffee': () => shineSheet(COFFEE),
   'item-badge': () => shineSheet(BADGE),

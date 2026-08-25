@@ -19,8 +19,34 @@ import { CHARACTER_SHEETS, DOOR_TEXTURE, FX_TEXTURES, ITEM_TEXTURES } from './ar
  */
 export const CHARACTER_FRAME = 64;
 
-/** Frame de tout le reste : objets, portes, effets. 16 pixels d'art × 2. */
+/** Frame des objets, portes et effets. 16 pixels d'art × 2. */
 export const SHEET_FRAME = 32;
+
+/**
+ * Frame des décors qui respirent (écran, imprimante, néon…). Plus large que
+ * les objets : un tube de néon ne tient pas dans 16 pixels d'art.
+ */
+export const LIVING_FRAME = 48;
+
+/**
+ * Décors animés : deux frames, une variation d'un ou deux pixels, très lente.
+ *
+ * C'est ce qui fait qu'un bureau paraît encore allumé. La cadence est
+ * volontairement basse — un clignotement rapide volerait l'attention aux
+ * cônes de vision, qui sont, eux, de l'information de gameplay.
+ */
+export const LIVING_SHEETS: Record<string, number> = {
+  'prop-screen': 1.6,
+  'prop-printer': 0.8,
+  'prop-cooler': 0.5,
+  'prop-camera': 1.2,
+  'prop-neon': 2.4,
+  'prop-machine': 0.7
+};
+
+export function livingAnimKey(texture: string): string {
+  return `${texture}-live`;
+}
 
 /** Colonnes d'une planche de personnage : repos ×2, marche ×4, sursaut ×2. */
 export const CHARACTER_COLUMNS = 8;
@@ -118,6 +144,13 @@ export const SHEET_MANIFEST: SheetDef[] = [
   ...CHARACTER_SHEET_DEFS,
   ...Object.values(ITEM_TEXTURES).map((key) => square(key, 'props', 4)),
   square(DOOR_TEXTURE, 'props', 4),
+  ...Object.keys(LIVING_SHEETS).map((key) => ({
+    key,
+    group: 'props' as const,
+    frameWidth: LIVING_FRAME,
+    frameHeight: LIVING_FRAME,
+    frames: 2
+  })),
   square(FX_TEXTURES.emote, 'fx', 8),
   square(FX_TEXTURES.pickup, 'fx', 4),
   square(FX_TEXTURES.hint, 'fx', 4)
@@ -189,5 +222,12 @@ export const ANIMATIONS: AnimationDef[] = [
   { key: EMOTES.alert, sheet: FX_TEXTURES.emote, frames: [2, 3], frameRate: 7, repeat: -1 },
   { key: EMOTES.search, sheet: FX_TEXTURES.emote, frames: [4, 5, 6], frameRate: 4, repeat: -1 },
   { key: PICKUP_ANIM, sheet: FX_TEXTURES.pickup, frames: [0, 1, 2, 3], frameRate: 16, repeat: 0 },
-  { key: HINT_ANIM, sheet: FX_TEXTURES.hint, frames: [0, 1, 2, 3], frameRate: 4, repeat: -1 }
+  { key: HINT_ANIM, sheet: FX_TEXTURES.hint, frames: [0, 1, 2, 3], frameRate: 4, repeat: -1 },
+  ...Object.entries(LIVING_SHEETS).map(([sheet, frameRate]) => ({
+    key: livingAnimKey(sheet),
+    sheet,
+    frames: [0, 1],
+    frameRate,
+    repeat: -1
+  }))
 ];

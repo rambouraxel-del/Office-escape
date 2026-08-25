@@ -1,7 +1,9 @@
 # Direction artistique — V0.9
 
 > Étape 1 : identité visuelle et niveau 1 vitrine.
-> **Étape 2 : assets de production, animations et retours visuels** (§ 6 bis, 7 bis, 8 bis).
+> Étape 2 : assets de production, animations et retours visuels (§ 6 bis, 7 bis, 8 bis).
+> **Étape 3 : trois identités de niveau, éclairage, interface définitive**
+> (§ 4 bis, 7 ter, 8 ter).
 
 Document court et exploitable. Il fixe ce qui est **non négociable** pour que
 tout ce qui sera ajouté au jeu reste cohérent avec le niveau 1.
@@ -101,6 +103,31 @@ Source de vérité unique : **`src/game/palette.json`**, lue à la fois par le j
 **Règle de réserve** : `gold` et `alert` appartiennent au système de détection.
 Un décor doré attirerait l'œil sur une fausse alerte.
 
+La seule exception assumée est la **caméra de surveillance** : sa diode
+d'enregistrement est rouge parce qu'elle EST un détecteur. Un extincteur, lui,
+est peint en `coral` — le rouge du décor n'est jamais celui du danger.
+
+## 4 bis. Familles ajoutées à l'étape 3
+
+| Famille | Clés | Où |
+| --- | --- | --- |
+| Marbre | `marbleLight/Mid/Seam` | Sol et piliers de l'étage direction |
+| Moquette de cadres | `carpetExec`, `carpetExecDark` | Tapis de couloir du niveau 2 |
+| Laiton | `brass` | Arêtes, cadres, trophées, étoiles de score |
+| Béton | `concreteLight/Mid/Dark` | Murs et piliers du parking |
+| Bitume | `asphaltLight/Mid/Dark/Seam` | Sol du parking, places |
+| Marquage | `paintLine` | Places de parking. **Le rectangle peint EST la signalétique.** |
+| Lumière | `lampGlow`, `neonTube`, `neonDim` | Halos et néons du niveau 3 |
+| Caoutchouc | `rubber` | Pneus, roues |
+| Tons d'interface | `hudMuted`, `inkFaint`, `stateOk`, `stateIdle`, `alertSoft`, `success`, `info`, `headingWarm` | Hiérarchie de lecture des panneaux |
+
+**Le laiton n'est pas de l'or.** `brass` est plus sombre et moins saturé que
+`gold` : il habille sans jamais se faire passer pour une alerte.
+
+**Aucune scène n'écrit une couleur.** Elle choisit un RÔLE dans `TEXT`,
+`STATE_TEXT` ou `WORLD_TEXT` (`artTheme.ts`). Un test relit les sources de
+`src/scenes/` et `src/ui/` et refuse la moindre valeur hexadécimale.
+
 ## 5. Lisibilité mobile
 
 1. **Silhouette d'abord.** Un rôle doit se reconnaître en noir sur blanc. Le
@@ -192,10 +219,41 @@ qu'on ne voit pas à 24 pixels de haut.
   5. incrustation centrale pour les armoires et piliers ;
   6. accessoires posés dessus (écran, tasse, dossiers).
 - Le sol de base est un seul `TileSprite` couvrant le niveau. Les **zones**
-  (départ, sortie, alcôve) sont des tapis déclarés **dans la donnée du
-  niveau** (`material`), jamais une couleur codée en dur.
+  (départ, sortie, alcôve, moquette de direction, place de parking) sont des
+  tapis déclarés **dans la donnée du niveau** (`material`), jamais une couleur
+  codée en dur.
 - Le décor doit être **habité** : chaises dépareillées, tasses, plantes. Un
   bureau vide n'est pas drôle.
+
+## 7 ter. Une identité par niveau
+
+Un `LevelDef` déclare un `theme`. Ce seul mot choisit le sol, les matières de
+chaque type d'obstacle et la vignette du menu. **Aucun niveau ne cite un nom de
+fichier.**
+
+| Thème | Sol | Murs & piliers | Meubles | Ce qu'on doit ressentir |
+| --- | --- | --- | --- | --- |
+| `office` | moquette crème | cloisons bleues | bois | chaleureux, vivant, un peu bordélique |
+| `exec` | marbre à dalles | marbre et métal | bois à arête de laiton | propre, organisé, légèrement premium |
+| `parking` | bitume | béton brut | **les armoires deviennent des voitures** | sombre, minéral, nocturne |
+
+Le reste — personnages, objets, portes, cônes, bulles, HUD — est **identique
+partout**. C'est ce qui fait qu'on reconnaît le jeu d'un étage à l'autre, et
+qu'un système interactif ne se réapprend jamais.
+
+## 7 quater. Lumière (niveau 3)
+
+- Un **voile** de nuit sur tout le niveau (`ambient.darkness`).
+- Des **halos additifs** aux points déclarés dans `ambient.lights`, plus un
+  halo porté par le joueur. Un seul sprite de dégradé, redimensionné : aucune
+  texture fabriquée à l'exécution, aucun shader.
+- Chaque lampe a son **néon visible** au plafond, au même endroit : on doit
+  voir d'où vient la lumière.
+
+> ⚠️ **La lumière ne dit rien sur le gameplay.** `NpcController`, les cônes de
+> vision et la détection ne consultent JAMAIS `ambient.lights`. Une zone plus
+> claire n'est pas plus dangereuse. C'est du rendu ; en faire une mécanique
+> demanderait une décision de game design, pas une passe graphique.
 
 ## 7 bis. Objets interactifs et retours visuels
 
@@ -239,6 +297,24 @@ jamais d'une durée d'animation.
   fonte pixel complète avec accents français serait illisible à petite taille
   et coûterait cher pour un gain douteux. Voir les limites (§10).
 
+## 8 ter. L'interface, version définitive
+
+- **Un seul bandeau** en haut : titre, niveau, horloge, état, pause et les deux
+  poches. L'étape 2 en avait trois, qui flottaient séparément et mangeaient le
+  haut du terrain.
+- **L'horloge occupe le coin le plus stable de l'écran** et rien ne vient
+  jamais s'y superposer. Sur l'écran de fin, elle passe en ×2 et devient
+  l'élément dominant : c'est la phrase que le joueur racontera.
+- Les commandes restent dans les deux coins bas — joystick d'un côté, course et
+  interaction de l'autre, côté réglable. Aucun élément d'information n'y
+  descend.
+- Les messages contextuels apparaissent **au-dessus des commandes**, jamais au
+  milieu du terrain.
+- Panneaux modaux : bandeau de titre en incrustation, puce de conséquence sous
+  chaque choix, arrivée en fondu de 160 ms.
+- **Transitions** : 190 ms à l'entrée d'une scène, 150 ms à la sortie. Plus
+  long, sur mobile, se ressent comme une latence.
+
 ## 8 bis. Conventions de planche
 
 - Une planche est une **bande ou une grille de frames CARRÉES** de taille
@@ -267,10 +343,12 @@ jamais d'une durée d'animation.
 9. **`gold` et `alert` restent réservés** — y compris pour les bulles, qui
    font justement partie du système de détection.
 
-## 10. Limites assumées de l'étape 2
+## 10. Limites assumées de l'étape 3
 
-- **Pas d'animation de caméra de surveillance.** La caméra du niveau 2 reste un
-  accessoire fixe : elle n'a pas de planche, et l'animateur l'ignore proprement.
+- **Pas d'occlusion lumineuse.** Un halo traverse les piliers : la lumière est
+  un dégradé posé par-dessus, pas un calcul de visibilité. Faire mieux
+  coûterait un masque par frame, pour un gain que la nuit du parking ne rend
+  pas visible.
 - **Pas d'animation d'attente ni de dialogue.** Un PNJ arrêté respire, mais ne
   regarde pas sa montre ; l'interlocuteur ne gesticule pas quand il parle.
 - **Pas de transition entre orientations.** Le personnage change de ligne d'un
@@ -278,15 +356,15 @@ jamais d'une durée d'animation.
 - **La silhouette tournée reste proche de la vue de face** : les deux vues se
   distinguent par la coiffure et les accessoires, pas par une vraie rotation
   des épaules. Assumé — c'est le prix de la lisibilité du visage.
+- **Les voitures du parking sont des rectangles habillés**, pas des sprites de
+  voiture : ce sont des obstacles de taille arbitraire, donc une matière et un
+  toit vitré, jamais une silhouette dessinée.
 - **Police système pour tout sauf l'horloge** (voir §8).
-- **Un PNG par planche, pas d'atlas** : 54 fichiers, 46 Ko au total (dont
+- **Un PNG par planche, pas d'atlas** : 78 fichiers, 56 Ko au total (dont
   19 Ko pour le seul diorama du menu). Le regroupement en atlas n'a de sens
   qu'à partir de quelques centaines d'assets.
-- **Niveaux 2 et 3 non recomposés.** Ils héritent automatiquement des nouveaux
-  personnages, matières, animations et retours visuels — donc rien n'est cassé
-  — mais leur décor n'a pas encore été composé accessoire par accessoire.
-- **Éclairage sommaire** au niveau 3 : un voile sombre et un halo additif, pas
-  de vraie occlusion lumineuse.
+- **Les seuils d'étoiles des niveaux 2 et 3 restent des estimations.** Ce n'est
+  pas du graphisme, mais ça se voit sur l'écran de fin.
 
 ## 11. Comment produire un asset
 

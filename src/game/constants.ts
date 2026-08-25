@@ -53,11 +53,25 @@ export const INVENTORY_SLOTS = 2;
  * seraient désynchronisées au premier ajustement de maquette.
  */
 export const POCKET_SLOT_X = 44;
-export const POCKET_SLOT_Y = 136;
+export const POCKET_SLOT_Y = 82;
 export const POCKET_SLOT_STEP = 44;
+
+/** Bandeau unique du HUD : centre vertical et hauteur. */
+export const HUD_Y = 58;
+export const HUD_HEIGHT = 112;
+
+/** Message contextuel : au-dessus des commandes, jamais au milieu du terrain. */
+export const TOAST_Y = 620;
 
 /** Durée du sursaut d'un PNJ qui vient de repérer le joueur. */
 export const REACT_MS = 520;
+
+/**
+ * Temps laissé à l'effet de fin AVANT de basculer sur l'écran de résultat.
+ * Purement visuel : l'horloge est déjà figée quand ces délais démarrent.
+ */
+export const EXIT_FLOURISH_MS = 560;
+export const INTERCEPT_FLOURISH_MS = 320;
 
 /** Pénalité anti-exploit : la pause manuelle gèle l'horloge mais se paie. */
 export const MANUAL_PAUSE_PENALTY_MINUTES = 1;
@@ -69,47 +83,20 @@ export const GHOST_MAX_SAMPLES = 3000;
 export const VISION_SEGMENTS = 30;
 
 /**
- * Couleurs utilisées par le code de jeu, toutes tirées de `palette.json`.
- * Aucune valeur hexadécimale ne doit apparaître ailleurs que dans la palette.
+ * Les rares couleurs que le CODE DE JEU manipule directement — le fond de
+ * caméra, les cônes de vision, le fantôme. Tout le reste de l'habillage passe
+ * par `artTheme.ts` ; ce qui figure ici n'est pas de la décoration, c'est de
+ * l'information de gameplay.
  */
 export const COLORS = {
   background: PALETTE.floorDark,
-  floor: PALETTE.floorMid,
-  floorAlt: PALETTE.floorDark,
-  floorLine: PALETTE.floorSeam,
-  wall: PALETTE.wallMid,
-  wallTrim: PALETTE.wallTop,
-  desk: PALETTE.woodMid,
-  cabinet: PALETTE.metalMid,
-  pillar: PALETTE.stoneMid,
-  partition: PALETTE.navyLight,
-  doorLocked: PALETTE.gold,
-  player: PALETTE.teal,
-  colleague: PALETTE.coral,
-  boss: PALETTE.plum,
-  intern: PALETTE.blue,
-  guard: PALETTE.navy,
-  camera: PALETTE.metalMid,
+  /** Vigilance, fouille, poursuite : les trois états d'un cône. */
   coneCalm: PALETTE.gold,
-  coneAlert: PALETTE.alert,
   coneSearch: PALETTE.goldDark,
-  hud: PALETTE.hudPanel,
-  restroom: PALETTE.glassDim,
-  door: PALETTE.teal,
-  green: PALETTE.carpetExit,
-  ink: PALETTE.ink,
-  sage: PALETTE.leaf,
-  coral: PALETTE.coral,
+  coneAlert: PALETTE.alert,
+  /** Record précédent rejoué, volontairement fantomatique. */
   ghost: PALETTE.tealLight
 } as const;
-
-export const ARCHETYPE_COLORS: Record<string, number> = {
-  colleague: COLORS.colleague,
-  boss: COLORS.boss,
-  intern: COLORS.intern,
-  guard: COLORS.guard,
-  camera: COLORS.camera
-};
 
 export const DEPTH = {
   floor: 0,

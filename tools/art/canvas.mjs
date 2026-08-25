@@ -146,6 +146,18 @@ export class PixelCanvas {
     return this;
   }
 
+  /**
+   * Assombrit (ou réchauffe) tout ce qui est déjà peint, sans toucher au vide.
+   * `fill` remplacerait les pixels : c'est ce qui transforme un diorama en
+   * rectangle uni.
+   */
+  tintAll(color, alpha) {
+    for (let y = 0; y < this.height; y += 1) {
+      for (let x = 0; x < this.width; x += 1) this.blend(x, y, color, alpha);
+    }
+    return this;
+  }
+
   /** Bande diagonale de reflet qui balaie l'objet. Base des idles d'objets. */
   sheen(offset, color, alpha, width = 2) {
     for (let y = 0; y < this.height; y += 1) {

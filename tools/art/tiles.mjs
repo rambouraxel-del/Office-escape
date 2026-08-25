@@ -92,6 +92,63 @@ function stone() {
   return canvas;
 }
 
+/** Marbre de l'étage direction : froid, clair, veiné très discrètement. */
+function marble() {
+  const canvas = new PixelCanvas(S, S).fill('marbleMid');
+  for (let y = 0; y < S; y += 1) {
+    for (let x = 0; x < S; x += 1) {
+      const n = noise(x, y, 71);
+      if (n > 0.88) canvas.set(x, y, 'marbleLight', 0.9);
+      else if (n < 0.04) canvas.set(x, y, 'marbleSeam', 0.22);
+    }
+  }
+  // Dalles franches : c'est le joint net qui fait « hall de direction »,
+  // là où la moquette du niveau 1 n'a qu'un grain.
+  canvas.hLine(0, 0, S, 'marbleSeam', 0.85);
+  canvas.vLine(0, 0, S, 'marbleSeam', 0.85);
+  canvas.hLine(0, 1, S, 'marbleLight', 0.5);
+  return canvas;
+}
+
+/** Bitume du parking : sombre, granuleux, sans chaleur. */
+function asphalt(base, speck, seed) {
+  const canvas = new PixelCanvas(S, S).fill(base);
+  for (let y = 0; y < S; y += 1) {
+    for (let x = 0; x < S; x += 1) {
+      const n = noise(x, y, seed);
+      if (n > 0.86) canvas.set(x, y, speck, 0.55);
+      else if (n < 0.14) canvas.set(x, y, 'asphaltDark', 0.5);
+    }
+  }
+  return canvas;
+}
+
+/** Béton brut : piliers et murs du parking. */
+function concrete() {
+  const canvas = new PixelCanvas(S, S).fill('concreteMid');
+  for (let y = 0; y < S; y += 1) {
+    for (let x = 0; x < S; x += 1) {
+      const n = noise(x, y, 89);
+      if (n > 0.9) canvas.set(x, y, 'concreteLight', 0.55);
+      else if (n < 0.1) canvas.set(x, y, 'concreteDark', 0.5);
+    }
+  }
+  // Trace de coffrage : une ligne horizontale tous les huit pixels.
+  for (let y = 0; y < S; y += 8) canvas.hLine(0, y, S, 'concreteDark', 0.35);
+  return canvas;
+}
+
+/** Carrosserie : les « voitures » du parking sont des obstacles rectangulaires. */
+function carPaint() {
+  const canvas = new PixelCanvas(S, S).fill('navy');
+  for (let y = 0; y < S; y += 1) {
+    const tone = noise(0, y, 97);
+    if (tone > 0.72) canvas.hLine(0, y, S, 'navyLight', 0.4);
+    else if (tone < 0.2) canvas.hLine(0, y, S, 'navyDark', 0.45);
+  }
+  return canvas;
+}
+
 export const TILES = {
   'tile-floor': () => carpet('floorMid', 'floorLight', 'floorSeam', 11),
   'tile-floor-alt': () => carpet('floorDark', 'floorMid', 'floorSeam', 23),
@@ -101,5 +158,11 @@ export const TILES = {
   'tile-wall': () => wallPanel(),
   'tile-wood': () => wood(17),
   'tile-metal': () => metal(),
-  'tile-stone': () => stone()
+  'tile-stone': () => stone(),
+  'tile-marble': () => marble(),
+  'tile-carpet-exec': () => carpet('carpetExec', 'carpetExecDark', 'carpetExecDark', 67),
+  'tile-asphalt': () => asphalt('asphaltMid', 'asphaltLight', 73),
+  'tile-bay': () => asphalt('asphaltLight', 'asphaltSeam', 79),
+  'tile-concrete': () => concrete(),
+  'tile-carpaint': () => carPaint()
 };

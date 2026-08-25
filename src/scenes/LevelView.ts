@@ -16,17 +16,20 @@ import {
   itemAnimKey,
   type CharacterState
 } from '../game/animations';
-import { playCharacter, playLoop } from './animate';
+import { playCharacter, playLiving, playLoop } from './animate';
 import {
   ART_SCALE,
   CHARACTER_TEXTURES,
   DESK_PROPS,
   DOOR_TEXTURE,
-  FLOOR_TILE,
+  FLOOR_TILES,
   FX_TEXTURES,
   ITEM_TEXTURES,
   PROP_ELEVATION,
   MATERIALS,
+  TEXT,
+  TEXT_TONES,
+  WORLD_TEXT,
   NINE_SLICE_CORNER,
   OUTLINE,
   PROP_TEXTURES,
@@ -35,7 +38,7 @@ import {
   ZONE_TILES,
   type MaterialStyle
 } from '../game/artTheme';
-import { PALETTE, type PaletteKey } from '../game/palette';
+import { PALETTE, hex, type PaletteKey } from '../game/palette';
 import { SettingsStore } from '../core/settings';
 import { FR } from '../core/strings';
 import {
@@ -72,6 +75,9 @@ export interface NpcVisual {
   polygon: Phaser.Math.Vector2[];
 }
 
+/** Rayon du halo que le joueur porte dans le noir, en unités de monde. */
+const PLAYER_LIGHT_RADIUS = 175;
+
 /** Aligne une coordonnée sur la grille du pixel d'art. */
 function snap(value: number): number {
   return Math.round(value / ART_SCALE) * ART_SCALE;
@@ -94,16 +100,24 @@ export class LevelView {
   private talkers = new Map<string, { sprite: Phaser.GameObjects.Sprite; name: Phaser.GameObjects.Text }>();
   private dressing = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.GameObject[]>();
   private doorSprites = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.Sprite>();
-  private light?: Phaser.GameObjects.Arc;
+  private light?: Phaser.GameObjects.Image;
+
+  /** Jeu de matières du niveau : c'est lui qui donne son identité à l'étage. */
+  private readonly materials: Record<string, MaterialStyle>;
+  private readonly floorTile: string;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly level: LevelDef
-  ) {}
+  ) {
+    const theme = level.theme ?? 'office';
+    this.materials = MATERIALS[theme];
+    this.floorTile = FLOOR_TILES[theme];
+  }
 
   drawFloor() {
     const { w, h } = this.level.size;
-    this.scene.add.tileSprite(0, 0, w, h, FLOOR_TILE).setOrigin(0, 0).setDepth(DEPTH.floor);
+    this.scene.add.tileSprite(0, 0, w, h, this.floorTile).setOrigin(0, 0).setDepth(DEPTH.floor);
   }
 
   /** Dessine les obstacles et renvoie les portes verrouillables, par identifiant. */
@@ -133,7 +147,7 @@ export class LevelView {
     obstacle: ObstacleDef,
     solid: Phaser.GameObjects.Rectangle
   ): Phaser.GameObjects.GameObject[] {
-    const style = MATERIALS[obstacle.kind];
+    const style = this.materials[obstacle.kind];
     const parts: Phaser.GameObjects.GameObject[] = [];
     const left = snap(obstacle.x - obstacle.w / 2);
     const top = snap(obstacle.y - obstacle.h / 2);
@@ -189,7 +203,7 @@ export class LevelView {
         makeText(this.scene, snap(obstacle.x), snap(obstacle.y), obstacle.label, {
           size: 13,
           bold: true,
-          color: '#fff6e6'
+          color: WORLD_TEXT.furniture
         })
           .setOrigin(0.5)
           .setDepth(DEPTH.obstacleLabel)
@@ -244,7 +258,7 @@ export class LevelView {
         const name = makeText(this.scene, snap(trigger.zone.x), snap(trigger.zone.y - 80), dialogue.speaker, {
           size: 11,
           bold: true,
-          color: '#7a3f30'
+          color: TEXT.heading
         })
           .setOrigin(0.5)
           .setDepth(DEPTH.npcDetail);
@@ -279,7 +293,7 @@ export class LevelView {
         makeText(this.scene, snap(decor.x), snap(decor.y), decor.text, {
           size: 15,
           bold: true,
-          color: '#3a2f24'
+          color: WORLD_TEXT.floor
         })
           .setOrigin(0.5)
           .setDepth(DEPTH.floorLabel);
@@ -291,7 +305,7 @@ export class LevelView {
       makeText(this.scene, snap(decor.x), snap(decor.y), decor.text ?? '', {
         size: decor.size ?? 12,
         bold: true,
-        color: `#${(decor.color ?? PALETTE.shadow).toString(16).padStart(6, '0')}`
+        color: hex(TEXT_TONES[decor.tone ?? 'zone'])
       })
         .setOrigin(0.5)
         .setDepth(DEPTH.floorLabel);
@@ -300,9 +314,12 @@ export class LevelView {
 
     if (decor.kind === 'plant' || decor.kind === 'prop') {
       const prop = decor.kind === 'plant' ? 'plant' : (decor.prop ?? 'plant');
-      this.scene.add
-        .image(snap(decor.x), snap(decor.y), PROP_TEXTURES[prop])
-        .setDepth(PROP_ELEVATION[prop] === 'wall' ? DEPTH.obstacleLabel : DEPTH.plant);
+      this.addProp(
+        snap(decor.x),
+        snap(decor.y),
+        PROP_TEXTURES[prop],
+        PROP_ELEVATION[prop] === 'wall' ? DEPTH.obstacleLabel : DEPTH.plant
+      );
       return;
     }
 
@@ -311,11 +328,22 @@ export class LevelView {
     const side = decor.side ?? 1;
     const x = snap(decor.x);
     const y = snap(decor.y);
-    this.scene.add.image(x - side * 14, y - 14, DESK_PROPS.screen).setDepth(DEPTH.deskProps);
-    this.scene.add.image(x - side * 12, y + 18, DESK_PROPS.keyboard).setDepth(DEPTH.deskProps);
-    this.scene.add.image(x + side * 22, y - 16, DESK_PROPS.mug).setDepth(DEPTH.deskProps);
-    this.scene.add.image(x + side * 20, y + 18, DESK_PROPS.folder).setDepth(DEPTH.deskProps);
-    this.scene.add.image(x + side * 24, y + 2, DESK_PROPS.sticky).setDepth(DEPTH.deskProps);
+    this.addProp(x - side * 14, y - 14, DESK_PROPS.screen, DEPTH.deskProps);
+    this.addProp(x - side * 12, y + 18, DESK_PROPS.keyboard, DEPTH.deskProps);
+    this.addProp(x + side * 22, y - 16, DESK_PROPS.mug, DEPTH.deskProps);
+    this.addProp(x + side * 20, y + 18, DESK_PROPS.folder, DEPTH.deskProps);
+    this.addProp(x + side * 24, y + 2, DESK_PROPS.sticky, DEPTH.deskProps);
+  }
+
+  /**
+   * Un accessoire de décor. Les quelques-uns qui ont une planche « vivante »
+   * (écran, imprimante, fontaine, néon) se mettent à respirer tout seuls :
+   * aucune condition à écrire ici ni dans la donnée du niveau.
+   */
+  private addProp(x: number, y: number, texture: string, depth: number) {
+    const sprite = this.scene.add.sprite(x, y, texture).setDepth(depth);
+    playLiving(sprite, texture);
+    return sprite;
   }
 
   /**
@@ -338,7 +366,14 @@ export class LevelView {
     });
   }
 
-  /** Voile de nuit + halo porté par le joueur. */
+  /**
+   * Nuit du parking : un voile dense, percé par des halos additifs.
+   *
+   * Un seul sprite de dégradé, réutilisé et redimensionné — aucune texture
+   * fabriquée à l'exécution, aucun shader, rien qui coûte sur un téléphone.
+   * Et surtout : ces lampes ne sont QUE du rendu. `NpcController` et les cônes
+   * de vision ne les consultent jamais.
+   */
   drawAmbient() {
     const darkness = this.level.ambient?.darkness ?? 0;
     if (darkness <= 0) return;
@@ -349,10 +384,22 @@ export class LevelView {
       .fillStyle(PALETTE.hudInset, darkness)
       .fillRect(0, 0, this.level.size.w, this.level.size.h);
 
+    (this.level.ambient?.lights ?? []).forEach((lamp) => {
+      const halo = this.scene.add
+        .image(snap(lamp.x), snap(lamp.y), FX_TEXTURES.light)
+        .setDepth(DEPTH.light)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(lamp.intensity ?? 0.72);
+      // Le sprite fait 64 unités de côté : on le met à l'échelle du rayon voulu.
+      halo.setDisplaySize(lamp.radius * 2, lamp.radius * 2);
+    });
+
     this.light = this.scene.add
-      .circle(this.level.spawn.x, this.level.spawn.y, 150, PALETTE.gold, 0.13)
-      .setDepth(DEPTH.light)
-      .setBlendMode(Phaser.BlendModes.ADD);
+      .image(this.level.spawn.x, this.level.spawn.y, FX_TEXTURES.light)
+      .setDepth(DEPTH.light + 1)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setAlpha(0.62);
+    this.light.setDisplaySize(PLAYER_LIGHT_RADIUS * 2, PLAYER_LIGHT_RADIUS * 2);
   }
 
   updateLight(x: number, y: number) {
@@ -377,7 +424,7 @@ export class LevelView {
     const nameText = makeText(this.scene, spawn.x, spawn.y - 34, def.label, {
       size: 11,
       bold: true,
-      color: '#3a2f3a'
+      color: WORLD_TEXT.floor
     })
       .setOrigin(0.5)
       .setDepth(DEPTH.npcDetail);
@@ -604,7 +651,7 @@ export class LevelView {
   showDistraction(x: number, y: number, durationMs: number) {
     const marker = this.scene.add.image(snap(x), snap(y), ITEM_TEXTURES.report).setDepth(DEPTH.item);
     const ring = this.scene.add
-      .circle(snap(x), snap(y), 20, 0xffffff, 0)
+      .circle(snap(x), snap(y), 20, PALETTE.paper, 0)
       .setStrokeStyle(OUTLINE, PALETTE.gold, 0.8)
       .setDepth(DEPTH.item);
     this.scene.tweens.add({
@@ -629,38 +676,84 @@ export class LevelView {
   }
 
   createTutorialBubble(tutorial: TutorialDef, onDismiss: () => void): Phaser.GameObjects.Container {
+    const width = 264;
+    const height = 88;
     const panel = this.scene.add.nineslice(
       0,
       0,
       'ui-panel-dark',
       undefined,
-      252,
-      76,
+      width,
+      height,
       NINE_SLICE_CORNER,
       NINE_SLICE_CORNER,
       NINE_SLICE_CORNER,
       NINE_SLICE_CORNER
     );
-    const text = makeText(this.scene, 0, -10, tutorial.text, {
+    // Liseré supérieur : la bulle se distingue d'un panneau de menu, et le
+    // regard sait tout de suite que c'est une consigne, pas un choix.
+    const rule = this.scene.add
+      .rectangle(0, -height / 2 + OUTLINE * 3, width - OUTLINE * 8, OUTLINE, PALETTE.gold, 0.85)
+      .setOrigin(0.5);
+    const text = makeText(this.scene, 0, -6, tutorial.text, {
       size: 14,
       bold: true,
-      color: '#fff6e6',
+      color: TEXT.onDark,
       align: 'center',
-      wrap: 216
+      wrap: 220
     }).setOrigin(0.5);
-    const hint = makeText(this.scene, 0, 24, FR.tutorial.close, { size: 10, color: '#a99cc4' }).setOrigin(
-      0.5
-    );
+    const hint = makeText(this.scene, 0, 30, FR.tutorial.close, {
+      size: 10,
+      color: TEXT.onDarkMuted
+    }).setOrigin(0.5);
 
     const anchor = tutorial.anchor === 'player' ? { x: 0, y: 0 } : tutorial.anchor;
     const container = this.scene.add
-      .container(snap(anchor.x), snap(anchor.y), [panel, text, hint])
-      .setSize(252, 76)
+      .container(snap(anchor.x), snap(anchor.y), [panel, rule, text, hint])
+      .setSize(width, height)
       .setDepth(DEPTH.tutorial)
-      .setInteractive(new Phaser.Geom.Rectangle(-126, -38, 252, 76), Phaser.Geom.Rectangle.Contains);
+      .setInteractive(
+        new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
+        Phaser.Geom.Rectangle.Contains
+      );
     container.setData('anchor', tutorial.anchor);
     container.setData('id', tutorial.id);
     container.on('pointerdown', onDismiss);
+
+    // Arrivée en douceur : une consigne qui apparaît d'un coup se lit comme
+    // une erreur d'affichage.
+    if (!SettingsStore.get().reducedMotion) {
+      container.setScale(0.86).setAlpha(0);
+      this.scene.tweens.add({
+        targets: container,
+        scale: 1,
+        alpha: 1,
+        duration: 180,
+        ease: 'Back.Out'
+      });
+    }
     return container;
+  }
+
+  /**
+   * Récompense visuelle de la sortie : le sol s'illumine et un halo s'ouvre.
+   * Aucune règle n'attend cette animation — la partie est déjà gagnée.
+   */
+  celebrateExit(x: number, y: number) {
+    if (SettingsStore.get().reducedMotion) return;
+    const burst = this.scene.add
+      .image(snap(x), snap(y), FX_TEXTURES.light)
+      .setDepth(DEPTH.detection)
+      .setTint(PALETTE.carpetExit)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1);
+    this.scene.tweens.add({
+      targets: burst,
+      scale: 7,
+      alpha: 0,
+      duration: 520,
+      ease: 'Cubic.Out',
+      onComplete: () => burst.destroy()
+    });
   }
 }

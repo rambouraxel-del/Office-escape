@@ -67,7 +67,3 @@ export function scoreRun(stats: RunStats, level: LevelDef): ScoreBreakdown {
     }
   };
 }
-
-export function starDisplay(stars: number): string {
-  return `${'★'.repeat(stars)}${'☆'.repeat(Math.max(0, 3 - stars))}`;
-}

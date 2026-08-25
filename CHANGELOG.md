@@ -1,5 +1,79 @@
 # Journal des versions
 
+## V0.9.2 — Polish final et généralisation (étape 3)
+
+Fin de la refonte graphique. Toujours **visuel uniquement** : aucune vitesse,
+aucun cône, aucun timing, aucune collision, aucune probabilité, aucun parcours
+de PNJ n'a changé. 241 tests.
+
+**Une identité par niveau**
+- Un `LevelDef` déclare un `theme` : `office`, `exec` ou `parking`. Ce seul mot
+  choisit le sol, les matières de chaque type d'obstacle et la vignette du
+  menu. Aucun niveau ne cite un nom de fichier.
+- **Niveau 2, l'étage direction** : marbre à dalles, tapis de couloir en
+  moquette de cadres, arêtes de laiton. Fauteuils au lieu de chaises, cadres au
+  mur, trophées, vases, machine à café, imprimante, fontaine.
+- **Niveau 3, le parking** : bitume, béton brut, et les « armoires » du niveau
+  deviennent des voitures à toit vitré. Places matérialisées au marquage
+  (le rectangle peint EST la signalétique), places numérotées, néons, plots,
+  barrières, extincteurs, vélo, chariot, caisses, pneus, panneaux.
+- Le joueur, les PNJ, les objets, les portes, les cônes et le HUD restent
+  identiques partout : c'est ce qui fait qu'on reconnaît le jeu d'un étage à
+  l'autre.
+
+**Éclairage du parking**
+- Voile de nuit plus dense, percé par des halos additifs aux points déclarés
+  dans `ambient.lights`, plus le halo porté par le joueur. Chaque lampe a son
+  néon visible au plafond, au même endroit.
+- Un seul sprite de dégradé, redimensionné : aucune texture fabriquée à
+  l'exécution, aucun shader.
+- **La lumière ne dit rien sur le gameplay** : la détection ne lit jamais
+  l'éclairage. Une zone claire n'est pas plus dangereuse.
+
+**Interface définitive**
+- **Un seul bandeau** en haut au lieu de trois panneaux flottants : titre,
+  niveau, horloge, état, pause et les deux poches. Le terrain reprend 40
+  pixels et le HUD se lit d'un coup d'œil.
+- Messages contextuels remontés au-dessus des commandes, joystick plus
+  contrasté (invisible sur le bitume du parking en V0.9.1).
+- Dialogues : bandeau de titre en incrustation, puce de conséquence sous chaque
+  choix, et **le prix payé affiché en clair** après le tirage.
+- Bulles de tutoriel avec liseré et éclosion.
+- Menus : le joueur devient le logo, la remise à zéro de la progression
+  descend dans les réglages, filets de séparation, et **une vignette pixel art
+  par niveau** — bureaux, direction, parking se reconnaissent avant le titre.
+
+**Écran de fin**
+- **L'heure de départ domine la page** : chiffres dessinés en double taille.
+  C'est la phrase que le joueur racontera.
+- Étoiles qui tombent une par une, compteurs de score qui montent, pulsation
+  sur un nouveau record. Tout est coupé en mouvement réduit.
+
+**Game feel**
+- Bulle de détection qui éclôt, flash et micro-secousse au repérage, impact
+  franc à l'interception, halo vert et fondu à la sortie.
+- Transitions de scène : 190 ms à l'entrée, 150 ms à la sortie.
+- **Aucune règle n'attend un effet** : l'état passe à « terminé » — donc
+  l'horloge se fige et le score est calculé — avant que le moindre effet ne
+  démarre.
+
+**Décors vivants**
+- Écran, imprimante, fontaine, caméra, néon et machine à café respirent : deux
+  frames, une variation d'un ou deux pixels, très lente. Coupé en mouvement
+  réduit.
+
+**Nettoyage**
+- 26 clés de palette ajoutées (marbre, laiton, béton, bitume, marquage,
+  lumière, tons d'interface), zéro doublon.
+- Plus **aucune couleur écrite en dur** dans `src/scenes/` ni `src/ui/` : une
+  scène choisit un rôle de lecture, jamais une valeur.
+- Champs morts supprimés du format de niveau (`ambient.floor`, `decor.color`,
+  `decor.scale`, `DialogueChoiceDef.color`), ainsi que `makeButton`,
+  `starDisplay` et la moitié inutilisée de `COLORS`.
+- Trois tests d'hygiène : aucune couleur en dur, aucun nom d'asset dans une
+  scène, aucun PNG orphelin. Le test de fumée échoue désormais aussi sur un
+  avertissement de texture ou d'animation manquante.
+
 ## V0.9.1 — Assets de production et animations (étape 2)
 
 Toujours **visuel uniquement** : aucune vitesse, aucun cône, aucun timing,

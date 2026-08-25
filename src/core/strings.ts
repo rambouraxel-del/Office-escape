@@ -23,7 +23,8 @@ export const FR = {
     noRecord: 'Aucun record',
     dailySeed: 'Seed du jour',
     dailyDone: 'Défi du jour terminé',
-    starTargets: 'Objectifs'
+    starTargets: 'Objectifs',
+    pitch: 'Trois niveaux. Une seule envie : partir.'
   },
   settings: {
     title: 'RÉGLAGES',
@@ -41,7 +42,7 @@ export const FR = {
     hintMotion: 'Supprime flashs et secousses de caméra.'
   },
   hud: {
-    pockets: 'POCHES',
+    pause: 'II',
     empty: '—',
     discreet: 'DISCRET',
     scanning: 'REPÉRAGE…',
@@ -110,5 +111,17 @@ export const FR = {
   },
   tutorial: {
     close: 'Touchez la bulle pour fermer'
+  },
+  dialogue: {
+    freeze: 'Le temps est arrêté pendant le dialogue.',
+    win: 'ÇA PASSE !',
+    lose: 'AÏE…',
+    continue: 'CONTINUER',
+    /** Le choix exige un objet que le joueur n'a pas. */
+    requires: (item: string) => `${item} requis`,
+    /** Conséquence lisible d'un choix, une fois joué. */
+    gain: (minutes: number) => `−${Math.abs(minutes)} min`,
+    cost: (minutes: number) => `+${minutes} min`,
+    neutral: 'Aucune minute perdue'
   }
 } as const;

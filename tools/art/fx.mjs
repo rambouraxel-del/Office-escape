@@ -121,6 +121,31 @@ function hint(step) {
 }
 
 /**
+ * Halo lumineux : un disque à dégradé, utilisé en fondu additif.
+ *
+ * C'est LA brique d'éclairage du parking. Un seul sprite, réutilisé et
+ * redimensionné : aucune texture générée à l'exécution, aucun shader, rien qui
+ * coûte quoi que ce soit sur un téléphone.
+ */
+export function makeLight() {
+  // 64 pixels d'art : agrandi à 400 unités de monde, un disque de 32 montrait
+  // ses marches d'escalier.
+  const size = 64;
+  const centre = (size - 1) / 2;
+  const canvas = new PixelCanvas(size, size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const distance = Math.hypot(x - centre, y - centre) / centre;
+      if (distance >= 1) continue;
+      // Décroissance au carré : un halo linéaire fait un disque plat et faux.
+      const falloff = (1 - distance) * (1 - distance);
+      canvas.set(x, y, distance < 0.35 ? 'lampGlow' : 'neonTube', falloff);
+    }
+  }
+  return canvas;
+}
+
+/**
  * Planches d'effets. Chaque entrée est une bande horizontale de frames de
  * 16×16 (32×32 une fois cuite), déclarée côté jeu dans `animations.ts`.
  */

@@ -32,7 +32,9 @@ src/
 │   ├── TutorialDirector.ts table de conditions
 │   └── GhostRecorder.ts   enregistrement et relecture du record
 ├── levels/          level01.ts, level02.ts, level03.ts — du contenu
-├── ui/theme.ts      textes, panneaux 9 tranches, boutons, horloge pixel
+├── ui/
+│   ├── theme.ts       textes, panneaux 9 tranches, boutons, horloge pixel
+│   └── transition.ts  fondus d'entrée et de sortie de scène
 └── scenes/
     ├── BootScene.ts    chargement des assets, une seule fois
     ├── MenuScene.ts    accueil, niveaux, réglages
@@ -52,6 +54,7 @@ tools/art/          générateur de sprites, hors du bundle
 ├── fx.mjs            bulles d'émotion, éclat de ramassage, halo d'interaction
 ├── ui.mjs            panneaux, boutons, chiffres d'horloge
 ├── menu.mjs          diorama du menu
+├── thumbs.mjs        vignettes des trois niveaux
 └── build-art.mjs     `npm run art` → public/assets/
 ```
 
@@ -91,6 +94,24 @@ L'orientation se déduit de la **vitesse**, jamais de la direction du cône de
 vision — et elle est conservée à l'arrêt : un PNJ qui se retournerait tout seul
 vers le joueur donnerait une information de gameplay fausse.
 
+### Un thème par niveau (V0.9 étape 3)
+
+Un `LevelDef` déclare `theme: 'office' | 'exec' | 'parking'`. Ce seul mot
+choisit, dans `artTheme.ts`, le sol, les matières de chaque type d'obstacle et
+la vignette du menu. Aucun niveau ne cite un nom de fichier, et donner une
+identité à un quatrième étage ne demandera qu'une entrée de plus.
+
+### Éclairage du parking
+
+Un voile de nuit, puis des **halos additifs** aux points déclarés dans
+`ambient.lights`. Un seul sprite de dégradé, redimensionné à la volée : aucune
+texture fabriquée à l'exécution, aucun shader, rien qui coûte sur un téléphone.
+
+**Ces lampes ne disent rien sur le gameplay.** `NpcController`, `geometry.ts`
+et la détection ne lisent jamais `ambient.lights` : une zone plus claire n'est
+pas plus dangereuse. En faire une mécanique serait une décision de game design,
+pas une passe graphique.
+
 **Le rendu n'a pas le droit de toucher au gameplay.** Un obstacle crée
 toujours le rectangle de collision exact de la V0.8 ; il est simplement rendu
 invisible, et l'habillage est dessiné par-dessus. C'est ce qui garantit qu'une
@@ -98,7 +119,14 @@ refonte visuelle ne déplace pas un mur d'un pixel.
 
 Corollaire pour les animations : **aucune règle n'attend la fin d'une
 animation.** Quand une porte s'ouvre, sa collision disparaît immédiatement ;
-seul le battant prend 320 ms à s'effacer.
+seul le battant prend 320 ms à s'effacer. Même chose pour la célébration de
+sortie : l'état passe à « terminé » — donc l'horloge se fige et le score est
+calculé — AVANT que le moindre effet ne démarre. Le délai ne retarde que le
+changement d'écran.
+
+**Trois tests d'hygiène** gardent la couche visuelle propre (`tests/art.test.ts`) :
+aucune couleur écrite en dur dans `src/scenes/` ou `src/ui/`, aucun nom d'asset
+cité dans une scène, aucun PNG orphelin dans `public/assets/`.
 
 ## Le format `LevelDef`
 

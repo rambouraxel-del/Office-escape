@@ -12,7 +12,7 @@ export const LEVEL_02: LevelDef = {
   briefing:
     'Réunion interminable au 4e étage.\nUn badge traîne. Une porte le réclame.\n\nCaméras · Badge · Ne cours pas',
   size: { w: 500, h: 2000 },
-  ambient: { floor: 0xe9eef2, floorAlt: 0xdde5ea },
+  theme: 'exec',
   spawn: { x: 250, y: 1900 },
 
   obstacles: [
@@ -46,20 +46,57 @@ export const LEVEL_02: LevelDef = {
     { kind: 'zone', x: 250, y: 1915, w: 316, h: 110, material: 'start', text: 'ASCENSEUR' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'ESCALIER  ↑' },
     { kind: 'zone', x: 425, y: 1180, w: 100, h: 120, material: 'alcove' },
-    { kind: 'text', x: 425, y: 1250, text: 'VESTIAIRE', size: 11, color: 0x7c6d88 },
-    { kind: 'text', x: 250, y: 1640, text: 'OPEN SPACE', size: 13, color: 0x8b9aa5 },
-    { kind: 'text', x: 250, y: 880, text: 'ZONE SURVEILLÉE', size: 14, color: 0x806f83 },
-    { kind: 'text', x: 250, y: 700, text: 'ACCÈS DIRECTION', size: 12, color: 0x9b6b55 },
-    { kind: 'text', x: 250, y: 330, text: 'COULOIR DES CADRES', size: 12, color: 0x8b9aa5 },
+    // Tapis de couloir : c'est lui qui dit « on est passé côté direction ».
+    // Il commence exactement à la porte à badge et monte jusqu'à l'escalier.
+    { kind: 'zone', x: 250, y: 440, w: 150, h: 560, material: 'exec' },
+    { kind: 'zone', x: 250, y: 1290, w: 130, h: 380, material: 'exec' },
+    { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
+
+    { kind: 'text', x: 425, y: 1250, text: 'VESTIAIRE', size: 11, tone: 'quiet' },
+    { kind: 'text', x: 250, y: 1640, text: 'OPEN SPACE', size: 13, tone: 'quiet' },
+    { kind: 'text', x: 250, y: 880, text: 'ZONE SURVEILLÉE', size: 14, tone: 'warm' },
+    { kind: 'text', x: 250, y: 700, text: 'ACCÈS DIRECTION', size: 12, tone: 'warm' },
+    { kind: 'text', x: 250, y: 330, text: 'COULOIR DES CADRES', size: 12, tone: 'quiet' },
+
     { kind: 'deskProps', x: 85, y: 1880, side: -1 },
     { kind: 'deskProps', x: 415, y: 1880, side: 1 },
     { kind: 'deskProps', x: 420, y: 1380, side: 1 },
     { kind: 'deskProps', x: 80, y: 1180, side: -1 },
     { kind: 'deskProps', x: 77, y: 520, side: -1 },
     { kind: 'deskProps', x: 423, y: 520, side: 1 },
-    { kind: 'plant', x: 52, y: 1620, scale: 0.8 },
-    { kind: 'plant', x: 448, y: 900, scale: 0.75 },
-    { kind: 'plant', x: 55, y: 340, scale: 0.78 }
+
+    // Fauteuils plutôt que chaises : la carrure du mobilier suffit à faire
+    // comprendre qu'on a changé d'étage.
+    { kind: 'prop', x: 152, y: 1880, prop: 'armchair' },
+    { kind: 'prop', x: 348, y: 1880, prop: 'armchair' },
+    { kind: 'prop', x: 352, y: 1380, prop: 'armchair' },
+    { kind: 'prop', x: 150, y: 1180, prop: 'armchair' },
+    { kind: 'prop', x: 145, y: 520, prop: 'armchair' },
+    { kind: 'prop', x: 355, y: 520, prop: 'armchair' },
+
+    // Cadres accrochés au mur : le portrait du fondateur, en trois exemplaires.
+    { kind: 'prop', x: 95, y: 166, prop: 'frame' },
+    { kind: 'prop', x: 405, y: 166, prop: 'frame' },
+    { kind: 'prop', x: 140, y: 760, prop: 'frame' },
+    { kind: 'prop', x: 360, y: 760, prop: 'frame' },
+
+    { kind: 'prop', x: 58, y: 1640, prop: 'award' },
+    { kind: 'prop', x: 444, y: 1640, prop: 'award' },
+    { kind: 'prop', x: 58, y: 330, prop: 'vase' },
+    { kind: 'prop', x: 446, y: 330, prop: 'vase' },
+    { kind: 'prop', x: 444, y: 1520, prop: 'machine' },
+    { kind: 'prop', x: 62, y: 980, prop: 'printer' },
+    { kind: 'prop', x: 444, y: 980, prop: 'cooler' },
+    { kind: 'prop', x: 60, y: 1830, prop: 'books' },
+    { kind: 'prop', x: 444, y: 1830, prop: 'books' },
+    { kind: 'prop', x: 160, y: 1640, prop: 'trash' },
+    { kind: 'prop', x: 340, y: 1640, prop: 'trash' },
+    { kind: 'prop', x: 60, y: 620, prop: 'phone' },
+
+    { kind: 'plant', x: 52, y: 1450 },
+    { kind: 'plant', x: 448, y: 900 },
+    { kind: 'plant', x: 55, y: 420 },
+    { kind: 'plant', x: 448, y: 200 }
   ],
 
   npcs: [
@@ -137,7 +174,6 @@ export const LEVEL_02: LevelDef = {
           id: 'coffee',
           title: '☕  Lui offrir ton café',
           detail: '100 % · aucune pénalité',
-          color: 0x7a5a44,
           requiresItem: 'coffee',
           successChance: 1,
           penaltyMinutes: 0,
@@ -149,7 +185,6 @@ export const LEVEL_02: LevelDef = {
           id: 'calendar',
           title: '« Je te mets ça dans l’agenda »',
           detail: '75 % · échec : +12 min',
-          color: 0x4f7f96,
           successChance: 0.75,
           penaltyMinutes: 12,
           rewardMinutes: 0,
@@ -160,7 +195,6 @@ export const LEVEL_02: LevelDef = {
           id: 'stairs',
           title: 'Prendre l’escalier sans répondre',
           detail: '45 % · réussite : −4 min · échec : +18 min',
-          color: 0x8a5949,
           successChance: 0.45,
           penaltyMinutes: 18,
           rewardMinutes: -4,

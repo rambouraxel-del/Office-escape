@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { DIGITS, NINE_SLICE_CORNER, OUTLINE } from '../game/artTheme';
+import { DIGITS, NINE_SLICE_CORNER, OUTLINE, TEXT } from '../game/artTheme';
 import { SettingsStore } from '../core/settings';
+import { PALETTE } from '../game/palette';
 
 export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 
@@ -33,7 +34,7 @@ export function makeText(
   const style: Phaser.Types.GameObjects.Text.TextStyle = {
     fontFamily: FONT,
     fontSize: `${Math.round((options.size ?? 14) * scale)}px`,
-    color: options.color ?? '#172238',
+    color: options.color ?? TEXT.onLight,
     align: options.align ?? 'left'
   };
   if (options.bold) style.fontStyle = 'bold';
@@ -46,59 +47,9 @@ export function makeText(
   return scene.add.text(x, y, content, style);
 }
 
-export interface ButtonOptions {
-  width: number;
-  height: number;
-  color: number;
-  textColor?: string;
-  size?: number;
-  enabled?: boolean;
-}
-
-export interface Button {
-  background: Phaser.GameObjects.Rectangle;
-  label: Phaser.GameObjects.Text;
-  objects: Phaser.GameObjects.GameObject[];
-  setEnabled(enabled: boolean): void;
-}
-
-/** Bouton rectangulaire : la seule forme de bouton du jeu. */
-export function makeButton(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  label: string,
-  options: ButtonOptions,
-  onPress: () => void
-): Button {
-  const enabled = options.enabled ?? true;
-  const background = scene.add
-    .rectangle(x, y, options.width, options.height, options.color, enabled ? 1 : 0.5)
-    .setStrokeStyle(2, 0xffffff, 0.45);
-  const text = makeText(scene, x, y, label, {
-    size: options.size ?? 15,
-    bold: true,
-    color: options.textColor ?? '#ffffff',
-    align: 'center',
-    wrap: options.width - 24
-  }).setOrigin(0.5);
-
-  const setEnabled = (next: boolean) => {
-    background.setFillStyle(options.color, next ? 1 : 0.45);
-    text.setAlpha(next ? 1 : 0.6);
-    if (next) background.setInteractive({ useHandCursor: true });
-    else background.disableInteractive();
-  };
-
-  background.on('pointerdown', onPress);
-  setEnabled(enabled);
-
-  return { background, label: text, objects: [background, text], setEnabled };
-}
-
 /** Bandeau modal semi-opaque couvrant toute la vue. */
 export function makeShade(scene: Phaser.Scene, width: number, height: number, alpha = 0.82) {
-  return scene.add.rectangle(width / 2, height / 2, width, height, 0x081017, alpha);
+  return scene.add.rectangle(width / 2, height / 2, width, height, PALETTE.hudInset, alpha);
 }
 
 // ───────────────────────── habillage pixel art (V0.9) ─────────────────────
@@ -143,8 +94,8 @@ export interface PixelButton {
 }
 
 /**
- * Bouton pixel art. Remplace progressivement `makeButton` : même contrat,
- * habillage en 9 tranches et enfoncement au toucher.
+ * Bouton pixel art : habillage en 9 tranches et enfoncement au toucher.
+ * C'est la SEULE forme de bouton du jeu depuis la V0.9.
  */
 export function makePixelButton(
   scene: Phaser.Scene,
@@ -166,7 +117,7 @@ export function makePixelButton(
   const text = makeText(scene, x, y, label, {
     size: options.size ?? 15,
     bold: true,
-    color: options.color ?? '#fff6e6',
+    color: options.color ?? TEXT.onDark,
     align: 'center',
     wrap: options.width - 20
   }).setOrigin(0.5);
@@ -203,6 +154,13 @@ function glyphAdvance(char: string): number {
   return char === ':' ? DIGITS.frameWidth - 6 : DIGITS.frameWidth + 1;
 }
 
+export interface ClockOptions {
+  /** Agrandissement entier. L'écran de fin s'en sert pour dominer la page. */
+  scale?: number;
+  /** `right` cale la dernière glyphe sur `anchor`, `center` centre dessus. */
+  align?: 'right' | 'center';
+}
+
 /**
  * Horloge en chiffres dessinés.
  *
@@ -212,19 +170,30 @@ function glyphAdvance(char: string): number {
  */
 export class PixelClock {
   private readonly glyphs: Phaser.GameObjects.Image[] = [];
+  private readonly scale: number;
+  private readonly align: 'right' | 'center';
   private last = '';
 
   constructor(
     scene: Phaser.Scene,
-    private readonly right: number,
+    private readonly anchor: number,
     private readonly top: number,
     depth: number,
-    tint: number
+    tint: number,
+    options: ClockOptions = {}
   ) {
+    this.scale = options.scale ?? 1;
+    this.align = options.align ?? 'right';
     // « HH:MM » : cinq glyphes, jamais réalloués.
     for (let index = 0; index < 5; index += 1) {
       this.glyphs.push(
-        scene.add.image(0, top, DIGITS.key, 0).setOrigin(0, 0).setDepth(depth).setTint(tint).setVisible(false)
+        scene.add
+          .image(0, top, DIGITS.key, 0)
+          .setOrigin(0, 0)
+          .setScale(this.scale)
+          .setDepth(depth)
+          .setTint(tint)
+          .setVisible(false)
       );
     }
   }
@@ -234,15 +203,15 @@ export class PixelClock {
     this.last = value;
 
     const chars = [...value].slice(0, 5);
-    const total = chars.reduce((sum, char) => sum + glyphAdvance(char), 0);
+    const total = chars.reduce((sum, char) => sum + glyphAdvance(char), 0) * this.scale;
 
-    let x = this.right - total;
+    let x = this.align === 'center' ? this.anchor - total / 2 : this.anchor - total;
     chars.forEach((char, index) => {
       const glyph = this.glyphs[index];
       const frame = char === ':' ? DIGITS.colonFrame : Number(char);
       glyph.setFrame(Number.isNaN(frame) ? DIGITS.colonFrame : frame);
       glyph.setPosition(x, this.top).setVisible(true);
-      x += glyphAdvance(char);
+      x += glyphAdvance(char) * this.scale;
     });
     for (let index = chars.length; index < this.glyphs.length; index += 1) {
       this.glyphs[index].setVisible(false);
@@ -251,5 +220,10 @@ export class PixelClock {
 
   setTint(tint: number): void {
     this.glyphs.forEach((glyph) => glyph.setTint(tint));
+  }
+
+  /** Les glyphes, pour animer leur arrivée. */
+  get objects(): readonly Phaser.GameObjects.Image[] {
+    return this.glyphs;
   }
 }

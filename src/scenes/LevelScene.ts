@@ -18,7 +18,9 @@ import {
   REACT_MS,
   RUN_SPEED,
   RUN_VISION_MULTIPLIER,
-  WALK_SPEED
+  WALK_SPEED,
+  EXIT_FLOURISH_MS,
+  INTERCEPT_FLOURISH_MS
 } from '../game/constants';
 import { Audio, vibrate } from '../core/audio';
 import { GameClock } from '../core/clock';
@@ -32,13 +34,14 @@ import { NpcController } from '../systems/NpcController';
 import { TutorialDirector } from '../systems/TutorialDirector';
 import { REGISTRY_KEYS, type InputState, type RunRequest, type RunResult } from '../game/session';
 import { getLevel } from '../levels';
-import { ITEM_TEXTURES, PLAYER_TEXTURE } from '../game/artTheme';
+import { ITEM_TEXTURES, PLAYER_TEXTURE, WORLD_TEXT } from '../game/artTheme';
 import type { CharacterState } from '../game/animations';
 import { playCharacter } from './animate';
 import { LevelView, type NpcVisual } from './LevelView';
 import { rectContains } from '../game/geometry';
 import type { ItemId, LevelDef, ObstacleDef, TriggerDef } from '../game/types';
 import { makeText } from '../ui/theme';
+import { enterScene } from '../ui/transition';
 
 export type LevelState = 'playing' | 'paused' | 'dialogue' | 'finished';
 
@@ -135,6 +138,7 @@ export class LevelScene extends Phaser.Scene {
     this.tutorials = new TutorialDirector(this.level.tutorials, Save.areTutorialsDone(this.level.id));
     this.scene.launch('Ui');
     Audio.startAmbient();
+    enterScene(this);
   }
 
   private resetRunState() {
@@ -197,7 +201,12 @@ export class LevelScene extends Phaser.Scene {
         this.view.solids.forEach((solid) => this.physics.add.collider(visual.sprite, solid));
         this.physics.add.overlap(this.player, visual.sprite, () => {
           if (this.hiddenIn === null && this.state === 'playing') {
-            this.finish('intercepted', FR.result.caughtByContact(def.label, this.clock.format()));
+            this.punchIntercept();
+            this.finish(
+              'intercepted',
+              FR.result.caughtByContact(def.label, this.clock.format()),
+              INTERCEPT_FLOURISH_MS
+            );
           }
         });
       }
@@ -221,7 +230,7 @@ export class LevelScene extends Phaser.Scene {
       const label = makeText(this, spawn.at.x, spawn.at.y + 30, FR.items[spawn.id].name.toUpperCase(), {
         size: 10,
         bold: true,
-        color: '#74513a'
+        color: WORLD_TEXT.floor
       })
         .setOrigin(0.5)
         .setDepth(DEPTH.item);
@@ -408,7 +417,12 @@ export class LevelScene extends Phaser.Scene {
       this.trackSuspicion(npc, justAlerted);
 
       if (npc.controller.shouldIntercept) {
-        this.finish('intercepted', FR.result.caughtByVision(npc.def.label, this.clock.format()));
+        this.punchIntercept();
+        this.finish(
+          'intercepted',
+          FR.result.caughtByVision(npc.def.label, this.clock.format()),
+          INTERCEPT_FLOURISH_MS
+        );
         return;
       }
 
@@ -457,7 +471,10 @@ export class LevelScene extends Phaser.Scene {
       Audio.play('alert');
       vibrate(45);
       if (!SettingsStore.get().reducedMotion) {
-        this.cameras.main.flash(90, 239, 106, 91, false);
+        // Flash court + secousse minuscule : l'impact doit se voir sans gêner
+        // la lecture du terrain une demi-seconde plus tard.
+        this.cameras.main.flash(110, 232, 84, 63, false);
+        this.cameras.main.shake(140, 0.004);
         this.tweens.add({ targets: npc.sprite, scale: 1.28, duration: 120, yoyo: true, repeat: 1 });
       }
     }
@@ -690,7 +707,9 @@ export class LevelScene extends Phaser.Scene {
       }
 
       this.firedTriggers.add(trigger.id);
-      this.finish('escaped');
+      this.view.celebrateExit(this.player.x, this.player.y);
+      if (!SettingsStore.get().reducedMotion) this.cameras.main.flash(220, 122, 196, 79, false);
+      this.finish('escaped', undefined, EXIT_FLOURISH_MS);
       return;
     }
   }
@@ -755,7 +774,14 @@ export class LevelScene extends Phaser.Scene {
     this.inputState.runHeld = false;
   }
 
-  private finish(outcome: RunResult['outcome'], reason?: string) {
+  /**
+   * Fin de partie.
+   *
+   * `flourishMs` ne retarde QUE le changement d'écran. L'état passe à
+   * « finished » tout de suite, donc `update()` s'arrête et l'horloge se fige :
+   * le score est calculé avant le moindre effet, jamais après.
+   */
+  private finish(outcome: RunResult['outcome'], reason?: string, flourishMs = 0) {
     if (this.state === 'finished') return;
     this.state = 'finished';
     this.stopActors();
@@ -782,7 +808,9 @@ export class LevelScene extends Phaser.Scene {
     this.registry.set(REGISTRY_KEYS.result, result);
     // `Ui` est arrêtée par le SHUTDOWN ci-dessous, jamais ici : un double arrêt
     // suivi d'un `launch` immédiat détruisait des objets encore mis à jour.
-    this.scene.start('Result');
+    const reduced = SettingsStore.get().reducedMotion;
+    if (flourishMs > 0 && !reduced) this.time.delayedCall(flourishMs, () => this.scene.start('Result'));
+    else this.scene.start('Result');
   }
 
   private persistRun(result: RunResult) {
@@ -805,6 +833,13 @@ export class LevelScene extends Phaser.Scene {
       Save.setRecord(this.level.id, record);
       Save.setGhost(this.level.id, this.recorder.track);
     }
+  }
+
+  /** Impact d'interception : franc, très court, et coupé en mouvement réduit. */
+  private punchIntercept() {
+    if (SettingsStore.get().reducedMotion) return;
+    this.cameras.main.flash(180, 176, 52, 36, false);
+    this.cameras.main.shake(220, 0.011);
   }
 
   private toast(message: string) {

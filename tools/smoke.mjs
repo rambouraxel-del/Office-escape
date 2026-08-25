@@ -44,7 +44,13 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   page.on('pageerror', (error) => failures.push(`pageerror: ${error.stack ?? error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') failures.push(`console: ${message.text()}`);
+    const text = message.text();
+    if (message.type() === 'error') failures.push(`console: ${text}`);
+    // Une texture ou une animation manquante ne lève qu'un AVERTISSEMENT dans
+    // Phaser : sans cette ligne, un asset absent passerait le test de fumée.
+    if (message.type() === 'warning' && /texture|animation|frame/i.test(text)) {
+      failures.push(`asset manquant : ${text}`);
+    }
   });
 
   const click = async (x, y, wait = 700) => {
@@ -71,12 +77,12 @@ try {
 
   // Chaque niveau : entrée, déplacement, pause, reprise, abandon, retour menu.
   for (const [index, y] of [
-    [1, 210],
-    [2, 368],
-    [3, 526]
+    [1, 219],
+    [2, 409],
+    [3, 599]
   ]) {
-    await click(195, 452);
-    await click(195, y, 1500);
+    await click(195, 386);
+    await click(195, y, 1600);
     await hold('ArrowUp', 900);
     await click(276, 46);
     await click(195, 476);
@@ -87,9 +93,14 @@ try {
     console.log(`  niveau ${index} : parcouru`);
   }
 
+  // Sélection des niveaux : c'est là que vivent les vignettes de chaque étage.
+  await click(195, 464, 900);
+  await click(195, 730, 900);
+  console.log('  sélection des niveaux : ouverte');
+
   // Réglages : chaque bascule, y compris la taille de texte qui relance la scène.
-  await click(195, 606);
-  for (let row = 0; row < 6; row += 1) await click(305, 200 + row * 78, 500);
+  await click(195, 626);
+  for (let row = 0; row < 6; row += 1) await click(305, 178 + row * 74, 500);
   console.log('  réglages : 6 bascules');
 } catch (error) {
   failures.push(String(error));

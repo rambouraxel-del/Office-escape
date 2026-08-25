@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import {
   CONTROL_MARGIN_X,
+  HUD_HEIGHT,
+  HUD_Y,
   INVENTORY_SLOTS,
+  TOAST_Y,
   POCKET_SLOT_STEP,
   POCKET_SLOT_X,
   POCKET_SLOT_Y,
@@ -18,8 +21,9 @@ import { FR } from '../core/strings';
 import { REGISTRY_KEYS, type InputState } from '../game/session';
 import type { DialogueDef, ItemId } from '../game/types';
 import { PixelClock, makePanel, makePixelButton, makeShade, makeText } from '../ui/theme';
+import { enterScene } from '../ui/transition';
 import { PALETTE } from '../game/palette';
-import { OUTLINE, PLAYER_TEXTURE, UI_TEXTURES } from '../game/artTheme';
+import { OUTLINE, PLAYER_TEXTURE, STATE_TEXT, TEXT, UI_TEXTURES } from '../game/artTheme';
 import type { LevelScene } from './LevelScene';
 
 interface DialogueOutcome {
@@ -86,6 +90,9 @@ export class UiScene extends Phaser.Scene {
     this.buildHud();
     this.buildControls();
     this.live = true;
+    // Le HUD arrive avec le terrain : sans ce fondu, il apparaît net sur un
+    // niveau encore noir.
+    enterScene(this);
 
     this.level.events.on('toast', this.showToast, this);
     this.level.events.on('paused', this.showPausePanel, this);
@@ -134,13 +141,13 @@ export class UiScene extends Phaser.Scene {
     const snapshot = this.level.hudSnapshot;
     this.clock.setText(snapshot.time);
 
-    if (snapshot.hidden) this.stateText.setText(FR.hud.hidden).setColor('#9dd6ef');
-    else if (this.level.state === 'paused') this.stateText.setText(FR.hud.paused).setColor('#cbd5db');
-    else if (this.level.state === 'dialogue') this.stateText.setText(FR.hud.dialogue).setColor('#ffd270');
-    else if (snapshot.alerted) this.stateText.setText(FR.hud.chase).setColor('#ff8a78');
-    else if (snapshot.searching) this.stateText.setText(FR.hud.search).setColor('#ffbe70');
-    else if (snapshot.seen) this.stateText.setText(FR.hud.scanning).setColor('#ffd270');
-    else this.stateText.setText(FR.hud.discreet).setColor('#9fd4ad');
+    if (snapshot.hidden) this.stateText.setText(FR.hud.hidden).setColor(STATE_TEXT.hidden);
+    else if (this.level.state === 'paused') this.stateText.setText(FR.hud.paused).setColor(STATE_TEXT.idle);
+    else if (this.level.state === 'dialogue') this.stateText.setText(FR.hud.dialogue).setColor(STATE_TEXT.seen);
+    else if (snapshot.alerted) this.stateText.setText(FR.hud.chase).setColor(STATE_TEXT.chase);
+    else if (snapshot.searching) this.stateText.setText(FR.hud.search).setColor(STATE_TEXT.searching);
+    else if (snapshot.seen) this.stateText.setText(FR.hud.scanning).setColor(STATE_TEXT.seen);
+    else this.stateText.setText(FR.hud.discreet).setColor(STATE_TEXT.calm);
 
     UiScene.setBadgeVisible(this.hiddenText, snapshot.hidden);
     this.boostText.setText(`☕ ${Math.ceil(snapshot.coffeeRemaining / 1000)} s`);
@@ -150,7 +157,7 @@ export class UiScene extends Phaser.Scene {
       const icon = this.slotIcons[index];
       if (!icon) return;
       icon.setText(item ? FR.items[item as ItemId].icon : FR.hud.empty);
-      icon.setColor(item ? '#ffffff' : '#91a0aa');
+      icon.setColor(item ? TEXT.onDark : TEXT.onDarkMuted);
     });
 
     const label = snapshot.interaction;
@@ -167,81 +174,80 @@ export class UiScene extends Phaser.Scene {
   // ───────────────────────────────── HUD ──────────────────────────────────
 
   private buildHud() {
-    // Bandeau en 9 tranches : plus de rectangle arrondi lissé, un vrai cadre
-    // pixel art qui s'étire sans déformer ses coins.
-    makePanel(this, VIEW_WIDTH / 2, 50, 372, 84, 'ui-panel-dark').setDepth(300);
+    // UN SEUL bandeau. En V0.9.1 il y en avait trois — titre, poches, badges —
+    // qui flottaient séparément et mangeaient tout le haut du terrain. Un bloc
+    // unique se lit plus vite et rend 40 pixels de jeu.
+    makePanel(this, VIEW_WIDTH / 2, HUD_Y, 372, HUD_HEIGHT, 'ui-panel-dark').setDepth(300);
 
-    this.add.image(34, 38, PLAYER_TEXTURE).setScale(0.5).setDepth(302);
-    makeText(this, 56, 24, FR.app.title, { size: 13, bold: true, color: '#fff6e6' }).setDepth(301);
-    makeText(this, 56, 44, this.level.hudSnapshot.levelName, {
+    this.add.image(34, 32, PLAYER_TEXTURE).setScale(0.5).setDepth(302);
+    makeText(this, 56, 19, FR.app.title, { size: 13, bold: true, color: TEXT.onDark }).setDepth(301);
+    makeText(this, 56, 37, this.level.hudSnapshot.levelName, {
       size: 9,
       bold: true,
-      color: '#a99cc4',
+      color: TEXT.onDarkMuted,
       letterSpacing: 0.5
     }).setDepth(301);
 
-    this.clock = new PixelClock(this, 370, 26, 301, PALETTE.paper);
-    this.stateText = makeText(this, 370, 58, '', { size: 10, bold: true, color: '#9fd4ad' })
+    // L'heure est l'information la plus regardée du jeu : elle occupe le coin
+    // le plus stable de l'écran et rien ne vient jamais s'y superposer.
+    this.clock = new PixelClock(this, 370, 16, 301, PALETTE.paper);
+    this.stateText = makeText(this, 370, 48, '', { size: 10, bold: true, color: STATE_TEXT.calm })
       .setOrigin(1, 0)
       .setDepth(301);
 
     const pause = this.add
-      .image(248, 46, UI_TEXTURES.pause)
+      .image(250, 34, UI_TEXTURES.pause)
       .setDepth(305)
       .setInteractive({ useHandCursor: true });
-    makeText(this, 248, 46, 'II', { size: 13, bold: true, color: '#fff6e6' }).setOrigin(0.5).setDepth(306);
+    makeText(this, 250, 34, FR.hud.pause, { size: 13, bold: true, color: TEXT.onDark })
+      .setOrigin(0.5)
+      .setDepth(306);
     pause.on('pointerdown', () => {
       this.inputState.pausePressed = true;
     });
 
-    this.hiddenText = makeText(this, VIEW_WIDTH / 2, 112, FR.hud.hidden, {
+    this.buildPockets();
+
+    // Badges d'état : sous le bandeau, jamais empilés l'un sur l'autre.
+    this.hiddenText = makeText(this, VIEW_WIDTH / 2, 128, FR.hud.hidden, {
       size: 13,
       bold: true,
-      color: '#fff6e6'
+      color: TEXT.onDark
     })
       .setOrigin(0.5)
       .setDepth(311)
       .setVisible(false);
-    const hiddenPanel = makePanel(this, VIEW_WIDTH / 2, 112, 210, 34, 'ui-panel-inset').setDepth(310);
+    const hiddenPanel = makePanel(this, VIEW_WIDTH / 2, 128, 210, 32, 'ui-panel-inset').setDepth(310);
     this.hiddenText.setData('panel', hiddenPanel);
     hiddenPanel.setVisible(false);
 
-    this.boostText = makeText(this, VIEW_WIDTH / 2, 150, '', {
-      size: 12,
-      bold: true,
-      color: '#3b2a1c'
-    })
+    this.boostText = makeText(this, 300, 82, '', { size: 11, bold: true, color: TEXT.onLight })
       .setOrigin(0.5)
       .setDepth(311)
       .setVisible(false);
-    const boostPanel = makePanel(this, VIEW_WIDTH / 2, 150, 108, 30, 'ui-button-warm').setDepth(310);
+    const boostPanel = makePanel(this, 300, 82, 96, 26, 'ui-button-warm').setDepth(310);
     this.boostText.setData('panel', boostPanel);
     boostPanel.setVisible(false);
 
-    this.toastText = makeText(this, VIEW_WIDTH / 2, 600, '', {
+    // Message contextuel : bas de l'écran, au-dessus des commandes, jamais au
+    // milieu du terrain.
+    this.toastText = makeText(this, VIEW_WIDTH / 2, TOAST_Y, '', {
       size: 13,
       bold: true,
-      color: '#fff6e6',
+      color: TEXT.onDark,
       align: 'center',
       wrap: 290
     })
       .setOrigin(0.5)
       .setDepth(351)
       .setVisible(false);
-    const toastPanel = makePanel(this, VIEW_WIDTH / 2, 600, 320, 48, 'ui-panel-dark').setDepth(350);
+    const toastPanel = makePanel(this, VIEW_WIDTH / 2, TOAST_Y, 320, 46, 'ui-panel-dark').setDepth(350);
     this.toastText.setData('panel', toastPanel);
     toastPanel.setVisible(false);
+  }
 
-    makePanel(this, 66, 128, 116, 82, 'ui-panel-dark').setDepth(300);
-    makeText(this, 66, 100, FR.hud.pockets, {
-      size: 9,
-      bold: true,
-      color: '#a99cc4',
-      letterSpacing: 1
-    })
-      .setOrigin(0.5)
-      .setDepth(301);
-
+  /** Les deux poches, dans le bandeau : une cible tactile, pas un panneau. */
+  private buildPockets() {
     for (let index = 0; index < INVENTORY_SLOTS; index += 1) {
       const x = POCKET_SLOT_X + index * POCKET_SLOT_STEP;
       const frame = makePanel(this, x, POCKET_SLOT_Y, 40, 40, 'ui-panel-inset')
@@ -253,7 +259,7 @@ export class UiScene extends Phaser.Scene {
       });
       this.slotFrames.push(frame);
       this.slotIcons.push(
-        makeText(this, x, POCKET_SLOT_Y, FR.hud.empty, { size: 18, bold: true, color: '#6c5f88' })
+        makeText(this, x, POCKET_SLOT_Y, FR.hud.empty, { size: 18, bold: true, color: TEXT.onDarkMuted })
           .setOrigin(0.5)
           .setDepth(303)
       );
@@ -268,12 +274,12 @@ export class UiScene extends Phaser.Scene {
     const actionX = onLeft ? VIEW_WIDTH - CONTROL_MARGIN_X : CONTROL_MARGIN_X;
     this.joystickOrigin.set(joystickX, JOYSTICK_Y);
 
-    this.joystickBase = this.add.image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickBase).setDepth(320).setAlpha(0.35);
+    this.joystickBase = this.add.image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickBase).setDepth(320).setAlpha(0.5);
     this.joystickRing = this.add
       .image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickBase)
       .setDepth(321)
       .setScale(0.6)
-      .setAlpha(0.3);
+      .setAlpha(0.42);
     this.joystickKnob = this.add.image(joystickX, JOYSTICK_Y, UI_TEXTURES.stickKnob).setDepth(322).setAlpha(0.9);
 
     this.joystickZone = this.add.zone(joystickX, JOYSTICK_Y, 175, 175).setDepth(323).setInteractive();
@@ -287,7 +293,7 @@ export class UiScene extends Phaser.Scene {
     this.runLabel = makeText(this, actionX, RUN_BUTTON_Y, FR.controls.run, {
       size: 11,
       bold: true,
-      color: '#ffffff',
+      color: TEXT.onDark,
       align: 'center',
       lineSpacing: -3
     })
@@ -307,7 +313,7 @@ export class UiScene extends Phaser.Scene {
     this.interactionLabel = makeText(this, actionX, RUN_BUTTON_Y - 112, '', {
       size: 12,
       bold: true,
-      color: '#241a24',
+      color: TEXT.onLight,
       align: 'center'
     })
       .setOrigin(0.5)
@@ -391,6 +397,20 @@ export class UiScene extends Phaser.Scene {
     this.overlay = [];
   }
 
+  /**
+   * Arrivée d'un panneau modal. Un voile qui apparaît d'un coup se lit comme
+   * un bug d'affichage ; 160 ms suffisent à dire « on change de contexte ».
+   */
+  private revealOverlay(depth: number) {
+    this.overlay.forEach((object) => (object as Phaser.GameObjects.Image).setDepth?.(depth));
+    if (SettingsStore.get().reducedMotion) return;
+    const movable = this.overlay.filter(
+      (object): object is Phaser.GameObjects.Image => 'setAlpha' in object
+    );
+    movable.forEach((object) => object.setAlpha(0));
+    this.tweens.add({ targets: movable, alpha: 1, duration: 160, ease: 'Quad.Out' });
+  }
+
   private showPausePanel(automatic: boolean) {
     this.clearOverlay();
     const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT);
@@ -398,14 +418,14 @@ export class UiScene extends Phaser.Scene {
     const heading = makeText(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 92, FR.pause.title, {
       size: 30,
       bold: true,
-      color: '#35596b'
+      color: TEXT.heading
     }).setOrigin(0.5);
     const body = makeText(
       this,
       VIEW_WIDTH / 2,
       VIEW_HEIGHT / 2 - 26,
       automatic ? FR.pause.autoBody : FR.pause.body,
-      { size: 13, color: '#46545d', align: 'center', wrap: 260, lineSpacing: 4 }
+      { size: 13, color: TEXT.onLightBody, align: 'center', wrap: 260, lineSpacing: 4 }
     ).setOrigin(0.5);
 
     const resume = makePixelButton(
@@ -432,33 +452,49 @@ export class UiScene extends Phaser.Scene {
     );
 
     this.overlay = [shade, panel, heading, body, ...resume.objects, ...quit.objects];
-    this.overlay.forEach((object) => (object as Phaser.GameObjects.Image).setDepth?.(700));
+    this.revealOverlay(700);
     if (!automatic) this.showToast(FR.toasts.pausePenalty);
   }
 
+  /**
+   * Panneau de dialogue.
+   *
+   * Trois choix, trois habillages, et sous chacun une PUCE de conséquence :
+   * le joueur doit pouvoir arbitrer sans relire la phrase. Le contenu et les
+   * probabilités viennent entièrement du niveau — ici, rien que de la mise en
+   * page.
+   */
   private showDialogue(dialogue: DialogueDef, resolve: ChoiceResolver) {
     this.clearOverlay();
-    const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.84);
-    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 354, 650);
-    const heading = makeText(this, VIEW_WIDTH / 2, 130, dialogue.heading, {
-      size: 24,
+    const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.86);
+    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 354, 656);
+    // Bandeau de titre : il sépare « qui parle » de « que fais-tu ».
+    const band = makePanel(this, VIEW_WIDTH / 2, 148, 322, 108, 'ui-panel-inset');
+    const speaker = makeText(this, VIEW_WIDTH / 2, 112, dialogue.speaker, {
+      size: 11,
       bold: true,
-      color: '#783f33',
-      align: 'center',
-      wrap: 300
+      color: TEXT.onDarkMuted,
+      letterSpacing: 1
     }).setOrigin(0.5);
-    const body = makeText(this, VIEW_WIDTH / 2, 182, dialogue.body, {
+    const heading = makeText(this, VIEW_WIDTH / 2, 146, dialogue.heading, {
+      size: 22,
+      bold: true,
+      color: TEXT.onDark,
+      align: 'center',
+      wrap: 292
+    }).setOrigin(0.5);
+    const body = makeText(this, VIEW_WIDTH / 2, 226, dialogue.body, {
       size: 14,
-      color: '#33414b',
+      color: TEXT.onLightBody,
       align: 'center',
       lineSpacing: 5
     }).setOrigin(0.5);
 
-    this.overlay = [shade, panel, heading, body];
+    this.overlay = [shade, panel, band, speaker, heading, body];
 
     const snapshot = this.level.hudSnapshot;
     dialogue.choices.forEach((choice, index) => {
-      const y = 290 + index * 122;
+      const y = 320 + index * 118;
       const available = !choice.requiresItem || snapshot.inventory.includes(choice.requiresItem);
       const button = makePixelButton(
         this,
@@ -467,7 +503,7 @@ export class UiScene extends Phaser.Scene {
         choice.title,
         {
           width: 312,
-          height: 92,
+          height: 88,
           skin: index === 0 ? 'ui-button-warm' : index === 1 ? 'ui-button' : 'ui-button-muted',
           enabled: available,
           size: 15
@@ -481,47 +517,61 @@ export class UiScene extends Phaser.Scene {
       const detail = makeText(
         this,
         VIEW_WIDTH / 2,
-        y + 22,
-        available ? choice.detail : `${FR.items[choice.requiresItem as ItemId].name} requis`,
-        { size: 11, color: '#edf5f8', align: 'center' }
+        y + 20,
+        available ? choice.detail : FR.dialogue.requires(FR.items[choice.requiresItem as ItemId].name),
+        { size: 11, color: TEXT.onDark, align: 'center' }
       ).setOrigin(0.5);
-      button.label.setY(y - 14);
+      button.label.setY(y - 16);
       this.overlay.push(...button.objects, detail);
     });
 
-    const freeze = makeText(this, VIEW_WIDTH / 2, 620, 'Le temps est arrêté pendant le dialogue.', {
+    const freeze = makeText(this, VIEW_WIDTH / 2, 664, FR.dialogue.freeze, {
       size: 11,
       bold: true,
-      color: '#6a747a'
+      color: TEXT.onLightMuted
     }).setOrigin(0.5);
     this.overlay.push(freeze);
-    this.overlay.forEach((object) => (object as Phaser.GameObjects.Image).setDepth?.(600));
+    this.revealOverlay(600);
   }
 
   private showDialogueOutcome(outcome: DialogueOutcome) {
     this.clearOverlay();
-    const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.84);
-    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 330, 310);
+    const shade = makeShade(this, VIEW_WIDTH, VIEW_HEIGHT, 0.86);
+    const panel = makePanel(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2, 330, 330);
     const heading = makeText(
       this,
       VIEW_WIDTH / 2,
-      VIEW_HEIGHT / 2 - 85,
-      outcome.success ? 'ÇA PASSE !' : 'AÏE…',
-      { size: 28, bold: true, color: outcome.success ? '#3f7550' : '#a03d34' }
+      VIEW_HEIGHT / 2 - 95,
+      outcome.success ? FR.dialogue.win : FR.dialogue.lose,
+      { size: 28, bold: true, color: outcome.success ? TEXT.success : TEXT.heading }
     ).setOrigin(0.5);
-    const body = makeText(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 15, outcome.text, {
+    const body = makeText(this, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 28, outcome.text, {
       size: 15,
-      color: '#33414b',
+      color: TEXT.onLightBody,
       align: 'center',
       wrap: 270,
       lineSpacing: 5
     }).setOrigin(0.5);
 
+    // Le prix payé, en clair : sans ce chiffre, le joueur ne sait pas ce que
+    // son pari lui a coûté avant de relire l'horloge.
+    const cost = makeText(
+      this,
+      VIEW_WIDTH / 2,
+      VIEW_HEIGHT / 2 + 34,
+      outcome.minutes === 0
+        ? FR.dialogue.neutral
+        : outcome.minutes < 0
+          ? FR.dialogue.gain(outcome.minutes)
+          : FR.dialogue.cost(outcome.minutes),
+      { size: 20, bold: true, color: outcome.minutes > 0 ? TEXT.heading : TEXT.success }
+    ).setOrigin(0.5);
+
     const button = makePixelButton(
       this,
       VIEW_WIDTH / 2,
-      VIEW_HEIGHT / 2 + 92,
-      'CONTINUER',
+      VIEW_HEIGHT / 2 + 105,
+      FR.dialogue.continue,
       { width: 210, height: 54, skin: outcome.success ? 'ui-button' : 'ui-button-warm' },
       () => {
         this.clearOverlay();
@@ -529,7 +579,7 @@ export class UiScene extends Phaser.Scene {
       }
     );
 
-    this.overlay = [shade, panel, heading, body, ...button.objects];
-    this.overlay.forEach((object) => (object as Phaser.GameObjects.Image).setDepth?.(600));
+    this.overlay = [shade, panel, heading, body, cost, ...button.objects];
+    this.revealOverlay(600);
   }
 }

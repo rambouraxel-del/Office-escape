@@ -18,7 +18,8 @@ import { fileURLToPath } from 'node:url';
 import { CHARACTERS, makeCharacterSheet } from './characters.mjs';
 import { TILES } from './tiles.mjs';
 import { PROPS, PROP_SHEETS } from './props.mjs';
-import { FX_SHEETS } from './fx.mjs';
+import { FX_SHEETS, makeLight } from './fx.mjs';
+import { THUMBS } from './thumbs.mjs';
 import { UI } from './ui.mjs';
 import { makeMenuBackground } from './menu.mjs';
 
@@ -35,8 +36,9 @@ const GROUPS = [
   { dir: 'characters', entries: characterSheets },
   { dir: 'tiles', entries: Object.entries(TILES) },
   { dir: 'props', entries: [...Object.entries(PROPS), ...Object.entries(PROP_SHEETS)] },
-  { dir: 'fx', entries: Object.entries(FX_SHEETS) },
-  { dir: 'ui', entries: Object.entries(UI) },
+  { dir: 'fx', entries: [...Object.entries(FX_SHEETS), ['fx-light', makeLight]] },
+  { dir: 'ui', entries: Object.entries(THUMBS) },
+  { dir: 'ui', entries: Object.entries(UI), keep: true },
   { dir: 'tiles', entries: [['menu-bg', makeMenuBackground]], keep: true }
 ];
 

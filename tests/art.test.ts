@@ -1,9 +1,14 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   ART_SCALE,
   CHARACTER_SHEETS,
+  FLOOR_TILES,
+  LEVEL_THUMBS,
+  STATE_TEXT,
+  TEXT,
+  TEXT_TONES,
   CHARACTER_TEXTURES,
   DESK_PROPS,
   DIGITS,
@@ -23,6 +28,8 @@ import {
 import {
   ANIMATIONS,
   CHARACTER_FRAME,
+  LIVING_SHEETS,
+  livingAnimKey,
   CHARACTER_STATES,
   CHARACTER_VIEWS,
   FACING_FLIP,
@@ -122,9 +129,23 @@ describe('motifs de matière', () => {
 });
 
 describe('couverture du thème', () => {
-  it('chaque matière d’obstacle pointe vers un motif livré', () => {
-    Object.values(MATERIALS).forEach((material) => {
-      expect(declared.has(material.tile), material.tile).toBe(true);
+  it('chaque matière d’obstacle de chaque thème pointe vers un motif livré', () => {
+    Object.values(MATERIALS).forEach((theme) => {
+      Object.values(theme).forEach((material) => {
+        expect(declared.has(material.tile), material.tile).toBe(true);
+      });
+    });
+  });
+
+  it('chaque thème de niveau a son sol et sa vignette', () => {
+    Object.values(FLOOR_TILES).forEach((tile) => expect(declared.has(tile), tile).toBe(true));
+    Object.values(LEVEL_THUMBS).forEach((thumb) => expect(declared.has(thumb), thumb).toBe(true));
+  });
+
+  it('chaque thème utilisé par un niveau livré est déclaré', () => {
+    LEVELS.forEach((level) => {
+      const theme = level.theme ?? 'office';
+      expect(Object.keys(MATERIALS), level.id).toContain(theme);
     });
   });
 
@@ -151,12 +172,23 @@ describe('couverture du thème', () => {
   });
 
   it('toutes les couleurs du thème existent dans la palette', () => {
-    Object.values(MATERIALS).forEach((material) => {
-      expect(PALETTE[material.edge]).toBeDefined();
-      expect(PALETTE[material.crest]).toBeDefined();
-      expect(PALETTE[material.base]).toBeDefined();
+    Object.values(MATERIALS).forEach((theme) => {
+      Object.values(theme).forEach((material) => {
+        expect(PALETTE[material.edge]).toBeDefined();
+        expect(PALETTE[material.crest]).toBeDefined();
+        expect(PALETTE[material.base]).toBeDefined();
+      });
     });
     Object.values(ZONE_EDGES).forEach((key) => expect(PALETTE[key]).toBeDefined());
+    Object.values(TEXT_TONES).forEach((key) => expect(PALETTE[key]).toBeDefined());
+  });
+
+  it('les tons de texte sont tous des couleurs CSS valides et distinctes', () => {
+    const tones = [...Object.values(TEXT), ...Object.values(STATE_TEXT)];
+    tones.forEach((tone) => expect(tone).toMatch(/^#[0-9a-f]{6}$/));
+    // Deux rôles qui tomberaient sur la même teinte ne seraient pas une
+    // hiérarchie : ce serait deux noms pour un seul niveau de lecture.
+    expect(new Set(Object.values(TEXT)).size).toBe(Object.values(TEXT).length);
   });
 });
 
@@ -192,6 +224,15 @@ describe('animations déclarées', () => {
     });
   });
 
+  it('chaque décor vivant a sa planche et son animation', () => {
+    const keys = new Set(ANIMATIONS.map((animation) => animation.key));
+    const sheets = new Set(SHEET_MANIFEST.map((sheet) => sheet.key));
+    Object.keys(LIVING_SHEETS).forEach((texture) => {
+      expect(sheets.has(texture), texture).toBe(true);
+      expect(keys.has(livingAnimKey(texture)), texture).toBe(true);
+    });
+  });
+
   it('chaque objet ramassable a son animation de repos', () => {
     const keys = new Set(ANIMATIONS.map((animation) => animation.key));
     Object.values(ITEM_TEXTURES).forEach((texture) => {
@@ -222,6 +263,55 @@ describe('orientations', () => {
     expect(FACING_FLIP.right).toBe(false);
     expect(FACING_FLIP.down).toBe(false);
     expect(FACING_FLIP.up).toBe(false);
+  });
+});
+
+/** Sources d'un dossier de `src/`, lues telles quelles. */
+function sourcesOf(dir: string) {
+  return readdirSync(join(process.cwd(), 'src', dir))
+    .filter((file) => file.endsWith('.ts'))
+    .map((file) => [`${dir}/${file}`, readFileSync(join(process.cwd(), 'src', dir, file), 'utf8')] as const);
+}
+
+describe('hygiène du rendu', () => {
+  const rendering = [...sourcesOf('scenes'), ...sourcesOf('ui')];
+
+  it('aucune couleur en dur dans une scène ni dans l’interface', () => {
+    // Tout passe par `palette.json`, via `PALETTE` ou les tons d'`artTheme`.
+    // Une valeur écrite ici échapperait à tout changement de palette.
+    rendering.forEach(([name, code]) => {
+      const stripped = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+      expect(stripped.match(/'#[0-9a-fA-F]{3,8}'/g) ?? [], name).toEqual([]);
+      expect(stripped.match(/0x[0-9a-fA-F]{6}\b/g) ?? [], name).toEqual([]);
+    });
+  });
+
+  it('aucun nom d’asset écrit dans une scène', () => {
+    // On compare aux clés RÉELLEMENT livrées, pas à un motif : « item-collected »
+    // est un nom d'événement, pas une texture. Seuls les habillages `ui-*` sont
+    // tolérés — ce sont des valeurs du type `PanelSkin`, donc vérifiées par le
+    // compilateur.
+    const forbidden = [...declared, MENU_BACKGROUND, DIGITS.key].filter((key) => !key.startsWith('ui-'));
+    rendering.forEach(([name, code]) => {
+      forbidden.forEach((key) => {
+        expect(code.includes(`'${key}'`), `${name} cite ${key}`).toBe(false);
+      });
+    });
+  });
+
+  it('aucun PNG orphelin dans public/assets', () => {
+    const known = new Set([...declared, MENU_BACKGROUND, DIGITS.key]);
+    const groups = readdirSync(ASSETS);
+    const orphans: string[] = [];
+    groups.forEach((group) => {
+      readdirSync(join(ASSETS, group))
+        .filter((file) => file.endsWith('.png'))
+        .forEach((file) => {
+          const key = file.replace(/\.png$/, '');
+          if (!known.has(key)) orphans.push(`${group}/${file}`);
+        });
+    });
+    expect(orphans).toEqual([]);
   });
 });
 

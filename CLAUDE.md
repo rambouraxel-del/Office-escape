@@ -12,7 +12,9 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 - **Aucun accès direct à `localStorage`** : passer par `Save`.
 - **Phaser réutilise l'instance de scène** : les initialiseurs de champs ne rejouent pas entre deux parties. Remettre l'état à zéro en tête de `create()`. Ce piège a déjà causé un crash.
 - Les objets renvoyés par `NpcController.update()` et `buildVisionPolygon()` sont **réutilisés d'une frame à l'autre** : les consommer immédiatement.
-- **Aucune couleur en dur** : tout passe par `src/game/palette.json`. Aucun nom d'asset dans une scène : tout passe par `src/game/artTheme.ts`.
+- **Aucune couleur en dur** : tout passe par `src/game/palette.json`. Une scène choisit un RÔLE (`TEXT`, `STATE_TEXT`, `WORLD_TEXT` dans `artTheme.ts`), jamais une valeur. Aucun nom d'asset dans une scène : tout passe par `src/game/artTheme.ts`. Trois tests le vérifient.
+- **L'identité d'un niveau est une donnée** : `theme: 'office' | 'exec' | 'parking'` choisit sol et matières. Ne jamais coder une matière dans une scène.
+- **La lumière ne dit rien sur le gameplay** : `ambient.lights` n'est lu que par le rendu. La détection ne consulte jamais l'éclairage.
 - **Aucune animation créée dans une scène** : planches, frames et cadences se déclarent dans `src/game/animations.ts`, que `BootScene` déroule. Ne jamais appeler `play()` à chaque frame — passer par `src/scenes/animate.ts`, qui ne rejoue que si la clé change.
 - **Aucune règle de jeu n'attend une animation** : une porte perd sa collision à l'instant où on l'ouvre ; seul son habillage prend le temps de s'effacer.
 - **1 pixel d'art = 2 unités de monde**, agrandissement entier uniquement. Les sprites se régénèrent avec `npm run art`.

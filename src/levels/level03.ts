@@ -12,7 +12,23 @@ export const LEVEL_03: LevelDef = {
   briefing:
     'Ta voiture est au fond du niveau −2.\nUn vigile fait sa ronde à la lampe.\n\nObscurité · Diversion · Ne traîne pas',
   size: { w: 500, h: 2200 },
-  ambient: { darkness: 0.66, floor: 0x3a3f4a, floorAlt: 0x333844 },
+  theme: 'parking',
+  // Éclairage : un voile de nuit plus dense qu'en V0.9.1, percé par des néons
+  // FIXES. Ces lampes sont PUREMENT visuelles — la détection ne les consulte
+  // jamais, sinon ce serait une mécanique, pas un rendu.
+  ambient: {
+    darkness: 0.76,
+    lights: [
+      { x: 250, y: 2010, radius: 210 },
+      { x: 250, y: 1450, radius: 230 },
+      { x: 250, y: 950, radius: 230 },
+      { x: 250, y: 450, radius: 210 },
+      { x: 90, y: 1720, radius: 150, intensity: 0.5 },
+      { x: 430, y: 1180, radius: 150, intensity: 0.5 },
+      { x: 90, y: 620, radius: 150, intensity: 0.5 },
+      { x: 250, y: 120, radius: 240, intensity: 0.9 }
+    ]
+  },
   spawn: { x: 250, y: 2060 },
 
   obstacles: [
@@ -42,11 +58,59 @@ export const LEVEL_03: LevelDef = {
   decor: [
     { kind: 'zone', x: 250, y: 2075, w: 300, h: 110, material: 'neutral', text: 'ASCENSEUR' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'TA VOITURE  ↑' },
-    { kind: 'text', x: 250, y: 1560, text: 'NIVEAU −1', size: 13, color: 0x8a93a3 },
-    { kind: 'text', x: 250, y: 960, text: 'NIVEAU −2', size: 13, color: 0x8a93a3 },
-    { kind: 'text', x: 250, y: 400, text: 'RAMPE DE SORTIE', size: 12, color: 0x9b8b78 },
-    { kind: 'plant', x: 55, y: 1600, scale: 0.7 },
-    { kind: 'plant', x: 448, y: 700, scale: 0.7 }
+
+    // Places matérialisées : le rectangle peint EST la signalétique. Occupées
+    // là où le niveau pose déjà une voiture, vides ailleurs.
+    { kind: 'zone', x: 95, y: 1900, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 405, y: 1900, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 420, y: 1450, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 90, y: 820, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 410, y: 820, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 405, y: 1250, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 95, y: 1600, w: 136, h: 92, material: 'bay' },
+    { kind: 'zone', x: 405, y: 600, w: 136, h: 92, material: 'bay' },
+
+    { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
+    { kind: 'text', x: 250, y: 1490, text: 'NIVEAU −1', size: 13, tone: 'cool' },
+    { kind: 'text', x: 250, y: 960, text: 'NIVEAU −2', size: 13, tone: 'cool' },
+    { kind: 'text', x: 250, y: 400, text: 'RAMPE DE SORTIE', size: 12, tone: 'cool' },
+    { kind: 'text', x: 95, y: 1962, text: 'A-04', size: 10, tone: 'quiet' },
+    { kind: 'text', x: 405, y: 1962, text: 'A-05', size: 10, tone: 'quiet' },
+    { kind: 'text', x: 95, y: 1662, text: 'A-11', size: 10, tone: 'quiet' },
+    { kind: 'text', x: 405, y: 1312, text: 'B-02', size: 10, tone: 'quiet' },
+    { kind: 'text', x: 405, y: 662, text: 'C-07', size: 10, tone: 'quiet' },
+
+    // Néons du plafond : ils marquent les mêmes points que les lampes de
+    // `ambient.lights`, pour qu'on VOIE d'où vient la lumière.
+    { kind: 'prop', x: 250, y: 2010, prop: 'neon' },
+    { kind: 'prop', x: 250, y: 1450, prop: 'neon' },
+    { kind: 'prop', x: 250, y: 950, prop: 'neon' },
+    { kind: 'prop', x: 250, y: 450, prop: 'neon' },
+
+    { kind: 'prop', x: 95, y: 166, prop: 'parkingSign' },
+    { kind: 'prop', x: 405, y: 166, prop: 'parkingSign' },
+    { kind: 'prop', x: 250, y: 1610, prop: 'extinguisher' },
+    { kind: 'prop', x: 120, y: 990, prop: 'extinguisher' },
+    { kind: 'prop', x: 380, y: 990, prop: 'extinguisher' },
+
+    { kind: 'prop', x: 196, y: 1520, prop: 'cone' },
+    { kind: 'prop', x: 304, y: 1210, prop: 'cone' },
+    { kind: 'prop', x: 196, y: 320, prop: 'cone' },
+    { kind: 'prop', x: 56, y: 2054, prop: 'barrier' },
+    { kind: 'prop', x: 444, y: 2054, prop: 'barrier' },
+    { kind: 'prop', x: 444, y: 1780, prop: 'bike' },
+    { kind: 'prop', x: 56, y: 1010, prop: 'cart' },
+    { kind: 'prop', x: 56, y: 1740, prop: 'crate' },
+    { kind: 'prop', x: 444, y: 1150, prop: 'crate' },
+    { kind: 'prop', x: 56, y: 600, prop: 'tire' },
+    { kind: 'prop', x: 444, y: 880, prop: 'tire' },
+    { kind: 'prop', x: 56, y: 300, prop: 'trash' },
+    { kind: 'prop', x: 444, y: 420, prop: 'boxes' },
+
+    // Deux plantes oubliées près de l'ascenseur : le seul geste chaleureux du
+    // niveau, et il est raté.
+    { kind: 'prop', x: 55, y: 1880, prop: 'cactus' },
+    { kind: 'prop', x: 444, y: 1620, prop: 'cactus' }
   ],
 
   npcs: [
@@ -120,7 +184,6 @@ export const LEVEL_03: LevelDef = {
           id: 'coffee',
           title: '☕  Lui tendre le café',
           detail: '100 % · aucune pénalité',
-          color: 0x7a5a44,
           requiresItem: 'coffee',
           successChance: 1,
           penaltyMinutes: 0,
@@ -132,7 +195,6 @@ export const LEVEL_03: LevelDef = {
           id: 'sign',
           title: 'Signer le carnet sans discuter',
           detail: '80 % · échec : +9 min',
-          color: 0x4f7f96,
           successChance: 0.8,
           penaltyMinutes: 9,
           rewardMinutes: 0,
@@ -143,7 +205,6 @@ export const LEVEL_03: LevelDef = {
           id: 'bluff',
           title: '« Je suis déjà parti à 18 h »',
           detail: '40 % · réussite : −5 min · échec : +20 min',
-          color: 0x8a5949,
           successChance: 0.4,
           penaltyMinutes: 20,
           rewardMinutes: -5,

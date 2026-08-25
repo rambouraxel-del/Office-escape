@@ -70,7 +70,13 @@ ils marchent, courent et sursautent quand ils te repèrent. Les sprites sont
 graphiste peut remplacer n'importe quel fichier de `public/assets/` sans
 toucher au code, tant qu'il respecte les tailles de frame.
 
-Règles, palette et limites : [`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
+Chaque niveau a son identité, déclarée en une ligne de donnée (`theme`) :
+bureaux chaleureux, étage de direction en marbre et laiton, parking nocturne
+en béton et bitume. Le joueur et les systèmes interactifs, eux, sont
+identiques partout.
+
+Règles, palette, animations et limites :
+[`docs/art-direction-v0.9.md`](docs/art-direction-v0.9.md).
 
 Détails du format et de l'architecture : [`ARCHITECTURE.md`](ARCHITECTURE.md).
 Comment contribuer : [`CONTRIBUTING.md`](CONTRIBUTING.md).

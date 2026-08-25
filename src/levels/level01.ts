@@ -1,4 +1,3 @@
-import { COLORS } from '../game/constants';
 import type { LevelDef } from '../game/types';
 
 /**
@@ -14,7 +13,7 @@ export const LEVEL_01: LevelDef = {
     'Échappe-toi du bureau sans te faire\nretenir par tes collègues.\n\nObserve · Cache-toi · Choisis vite',
   size: { w: 500, h: 2200 },
   spawn: { x: 250, y: 2050 },
-  ambient: { floor: COLORS.floor, floorAlt: COLORS.floorAlt },
+  theme: 'office',
 
   obstacles: [
     { x: 21, y: 1100, w: 42, h: 2200, kind: 'wall' },
@@ -45,11 +44,11 @@ export const LEVEL_01: LevelDef = {
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'SORTIE  ↑' },
     { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'alcove' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
-    { kind: 'text', x: 92, y: 525, text: 'ALCÔVE', size: 11, color: 0x8a6a4c },
-    { kind: 'text', x: 250, y: 1862, text: 'OBJECTIF  •  RENTRER CHEZ TOI', size: 12, color: 0x8a6a4c },
-    { kind: 'text', x: 250, y: 1780, text: 'COULOIR PRINCIPAL', size: 12, color: 0x9c8874 },
-    { kind: 'text', x: 250, y: 1160, text: 'ZONE DU BOSS', size: 13, color: 0x6e5a72 },
-    { kind: 'text', x: 250, y: 340, text: 'DERNIER OBSTACLE', size: 12, color: 0x8a5a45 },
+    { kind: 'text', x: 92, y: 525, text: 'ALCÔVE', size: 11, tone: 'quiet' },
+    { kind: 'text', x: 250, y: 1862, text: 'OBJECTIF  •  RENTRER CHEZ TOI', size: 12, tone: 'zone' },
+    { kind: 'text', x: 250, y: 1780, text: 'COULOIR PRINCIPAL', size: 12, tone: 'quiet' },
+    { kind: 'text', x: 250, y: 1160, text: 'ZONE DU BOSS', size: 13, tone: 'warm' },
+    { kind: 'text', x: 250, y: 340, text: 'DERNIER OBSTACLE', size: 12, tone: 'warm' },
     { kind: 'deskProps', x: 85, y: 2030, side: -1 },
     { kind: 'deskProps', x: 415, y: 2030, side: 1 },
     { kind: 'deskProps', x: 420, y: 1500, side: 1 },
@@ -132,7 +131,6 @@ export const LEVEL_01: LevelDef = {
           id: 'donut',
           title: '🍩  Lui donner le donut',
           detail: '100 % · aucune pénalité',
-          color: 0xb96876,
           requiresItem: 'donut',
           successChance: 1,
           penaltyMinutes: 0,
@@ -144,7 +142,6 @@ export const LEVEL_01: LevelDef = {
           id: 'polite',
           title: '« Désolé, je suis pressé »',
           detail: '70 % · échec : +10 min',
-          color: 0x4f7f96,
           successChance: 0.7,
           penaltyMinutes: 10,
           rewardMinutes: 0,
@@ -155,7 +152,6 @@ export const LEVEL_01: LevelDef = {
           id: 'ignore',
           title: 'Filer sans un mot',
           detail: '50 % · réussite : −3 min · échec : +15 min',
-          color: 0x8a5949,
           successChance: 0.5,
           penaltyMinutes: 15,
           // Le seul choix qui peut FAIRE GAGNER du temps : un pari assumé,

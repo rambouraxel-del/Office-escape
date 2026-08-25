@@ -32,7 +32,16 @@ export interface ObstacleDef extends RectDef {
 }
 
 /** Matières de sol nommées, pour les zones de décor. */
-export type ZoneMaterial = 'start' | 'exit' | 'alcove' | 'neutral';
+export type ZoneMaterial = 'start' | 'exit' | 'alcove' | 'neutral' | 'exec' | 'bay';
+
+/**
+ * Identité visuelle d'un niveau. Elle choisit le jeu de matières et le sol,
+ * sans qu'aucun niveau n'ait à citer un nom de fichier.
+ */
+export type LevelTheme = 'office' | 'exec' | 'parking';
+
+/** Tons disponibles pour une étiquette posée dans un niveau. */
+export type TextTone = 'zone' | 'quiet' | 'warm' | 'cool';
 
 /** Accessoires posés librement dans le niveau. */
 export type PropKind =
@@ -48,7 +57,22 @@ export type PropKind =
   | 'phone'
   | 'lamp'
   | 'keyboard'
-  | 'sticky';
+  | 'sticky'
+  | 'screen'
+  | 'armchair'
+  | 'frame'
+  | 'award'
+  | 'vase'
+  | 'machine'
+  | 'cone'
+  | 'barrier'
+  | 'extinguisher'
+  | 'bike'
+  | 'cart'
+  | 'crate'
+  | 'tire'
+  | 'parkingSign'
+  | 'neon';
 
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {
@@ -62,9 +86,9 @@ export interface DecorDef {
   material?: ZoneMaterial;
   /** `prop` : quel accessoire poser. */
   prop?: PropKind;
-  color?: number;
+  /** `text` : ton de lecture. Jamais une valeur hexadécimale. */
+  tone?: TextTone;
   size?: number;
-  scale?: number;
   side?: -1 | 1;
 }
 
@@ -118,7 +142,6 @@ export interface DialogueChoiceDef {
   id: string;
   title: string;
   detail: string;
-  color: number;
   /** Objet consommé et exigé pour activer le choix. */
   requiresItem?: ItemId;
   successChance: number;
@@ -151,12 +174,24 @@ export interface TriggerDef {
   requiresDialoguesResolved?: boolean;
 }
 
+/** Source lumineuse fixe, purement décorative. */
+export interface LightDef {
+  x: number;
+  y: number;
+  /** Rayon éclairé, en unités de monde. */
+  radius: number;
+  /** 0…1. Au-delà de 0,5 la lumière écrase le décor. */
+  intensity?: number;
+}
+
 export interface AmbientDef {
   /** 0 = plein jour, 1 = nuit noire. Le joueur porte alors une source de lumière. */
   darkness?: number;
-  floor?: number;
-  floorAlt?: number;
-  tint?: number;
+  /**
+   * Lampes fixes. Purement visuelles : la détection ne les consulte JAMAIS.
+   * Une lumière qui changerait la visibilité serait une mécanique, pas un rendu.
+   */
+  lights?: LightDef[];
 }
 
 export interface LevelDef {
@@ -166,6 +201,8 @@ export interface LevelDef {
   briefing: string;
   size: { w: number; h: number };
   spawn: Vec2;
+  /** Identité visuelle. À défaut, le bureau classique du niveau 1. */
+  theme?: LevelTheme;
   ambient?: AmbientDef;
   obstacles: ObstacleDef[];
   decor: DecorDef[];

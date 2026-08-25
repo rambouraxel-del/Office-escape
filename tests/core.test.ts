@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Prng, dailyKey, dailySeed, hashString } from '../src/core/prng';
 import { GameClock, formatMinutes } from '../src/core/clock';
-import { COLLECTION_BONUS, MAX_TIME_POINTS, STEALTH_BONUS, scoreRun, starDisplay, starsFor } from '../src/core/scoring';
+import { COLLECTION_BONUS, MAX_TIME_POINTS, STEALTH_BONUS, scoreRun, starsFor } from '../src/core/scoring';
 import { LEVEL_01 } from '../src/levels/level01';
 
 describe('Prng', () => {
@@ -145,11 +145,6 @@ describe('scoring', () => {
     expect(starsFor(21, [20, 30, 45])).toBe(2);
     expect(starsFor(31, [20, 30, 45])).toBe(1);
     expect(starsFor(46, [20, 30, 45])).toBe(0);
-  });
-
-  it('affiche les étoiles pleines et vides', () => {
-    expect(starDisplay(2)).toBe('★★☆');
-    expect(starDisplay(0)).toBe('☆☆☆');
   });
 
   it('donne le maximum sur une partie parfaite', () => {
