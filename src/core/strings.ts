@@ -12,7 +12,7 @@ export const FR = {
   },
   menu: {
     play: 'QUITTER LE BUREAU  →',
-    daily: '📅  DÉFI DU JOUR',
+    daily: 'DÉFI DU JOUR',
     levels: 'NIVEAUX',
     settings: 'RÉGLAGES',
     back: '← RETOUR',
@@ -24,7 +24,7 @@ export const FR = {
     dailySeed: 'Seed du jour',
     dailyDone: 'Défi du jour terminé',
     starTargets: 'Objectifs',
-    pitch: 'Trois niveaux. Une seule envie : partir.'
+    unlocked: 'niveaux ouverts'
   },
   settings: {
     title: 'RÉGLAGES',
@@ -40,6 +40,8 @@ export const FR = {
     hintGhost: 'Rejoue ton meilleur parcours.',
     on: 'ACTIVÉ',
     off: 'COUPÉ',
+    /** Glyphe de la bascule : deux flèches opposées, lisibles sans légende. */
+    toggle: '⇄',
     left: 'GAUCHE',
     right: 'DROITE',
     hintColorBlind: 'Hachures sur les cônes en alerte.',

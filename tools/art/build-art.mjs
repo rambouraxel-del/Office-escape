@@ -21,7 +21,7 @@ import { PROPS, PROP_SHEETS } from './props.mjs';
 import { FX_SHEETS, makeLight } from './fx.mjs';
 import { THUMBS } from './thumbs.mjs';
 import { UI } from './ui.mjs';
-import { makeMenuBackground } from './menu.mjs';
+import { MENU_SHEETS, MENU_STILLS } from './menu.mjs';
 
 const ART_SCALE = 2;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -39,7 +39,8 @@ const GROUPS = [
   { dir: 'fx', entries: [...Object.entries(FX_SHEETS), ['fx-light', makeLight]] },
   { dir: 'ui', entries: Object.entries(THUMBS) },
   { dir: 'ui', entries: Object.entries(UI), keep: true },
-  { dir: 'tiles', entries: [['menu-bg', makeMenuBackground]], keep: true }
+  // L'accueil vit dans `ui/` : c'est de l'habillage, pas une matière de niveau.
+  { dir: 'ui', entries: [...Object.entries(MENU_STILLS), ...Object.entries(MENU_SHEETS)], keep: true }
 ];
 
 let written = 0;

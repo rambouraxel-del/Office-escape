@@ -39,6 +39,7 @@ src/
 └── scenes/
     ├── BootScene.ts    chargement des assets, une seule fois
     ├── MenuScene.ts    accueil, niveaux, réglages
+    ├── MenuStage.ts    le décor VIVANT de l'accueil (élévation, animé)
     ├── LevelScene.ts   orchestration et règles
     ├── LevelView.ts    tout le dessin d'un niveau (pixel art)
     ├── UiScene.ts      HUD et contrôles, en surimpression
@@ -101,6 +102,39 @@ Un `LevelDef` déclare `theme: 'office' | 'exec' | 'parking'`. Ce seul mot
 choisit, dans `artTheme.ts`, le sol, les matières de chaque type d'obstacle et
 la vignette du menu. Aucun niveau ne cite un nom de fichier, et donner une
 identité à un quatrième étage ne demandera qu'une entrée de plus.
+
+## L'accueil (V0.10.2)
+
+L'écran d'accueil est le seul endroit du projet dessiné **en élévation**, et
+c'est délibéré : le jeu se joue de dessus, mais une vue de dessus donne un
+plan, et un menu doit donner envie avant d'informer. La bible graphique
+autorise au menu un cadrage plus cinématographique ; elle ne l'autorise pas à
+changer de palette, et il n'y en a qu'une.
+
+Le partage suit celui d'un niveau : `MenuStage` est le `LevelView` de
+l'accueil. D'un côté ce qui se dessine, de l'autre ce qui se décide. La scène
+ne sait pas qu'il y a une machine à café ; elle sait qu'il y a une pièce, et
+lui demande de vivre.
+
+- **Le décor est UNE image** (`menu-room`, 390 × 844, 6 Ko), cuite hors ligne.
+  Ce qui bouge est découpé en petites planches posées par-dessus.
+- **La composition est une donnée** : `MENU_STAGE` dans `artTheme.ts` déclare
+  où se pose chaque habitant, l'horloge, les néons, la vapeur et la flaque de
+  lumière. `MenuStage` déroule cette table, il n'invente aucune coordonnée —
+  même règle que pour un niveau.
+- **Les habitants sont les personnages du jeu**, recadrés au buste au-dessus
+  du plateau : le menu doit montrer les gens qu'on va croiser.
+- **L'horloge murale donne l'heure réelle**, à la seconde. C'est le détail qui
+  fait regarder deux fois.
+- **L'interface a sa propre profondeur** (`DEPTH.menuUi`). Sans elle, un
+  collègue qui tape à la machine passe devant le panneau des réglages.
+
+Ouverture : le décor apparaît, vit seul le temps qu'on le remarque
+(`MENU_INTRO_HOLD_MS`), puis l'interface monte par vagues. En mouvement
+réduit, tout est là d'emblée, et l'on coupe le vacillement des néons, les
+poussières, la vapeur et la pulsation de lumière ; les personnages, eux,
+continuent de respirer à 1,4 à 5 images par seconde — le réglage promet la fin
+des flashs, pas un menu mort.
 
 ## La navigation des PNJ (V0.10.1)
 

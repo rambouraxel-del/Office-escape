@@ -253,6 +253,31 @@ La règle générale : **une étiquette de décor doit disparaître dès qu'un m
 peut dire la même chose.** Ne restent au sol que les inscriptions qui portent
 une information de jeu — la sortie, l'ascenseur, un numéro de place.
 
+## 7 quinquies. L'accueil, une exception assumée (V0.10.2)
+
+Tout le jeu est vu **de dessus**. L'accueil, lui, est vu **de face** : un open
+space au crépuscule, baie vitrée, ville allumée, néons, crédence, deux rangées
+de bureaux habités. C'est la seule dérogation de la bible, et elle est
+volontaire — une vue de dessus donne un plan, et un menu doit donner envie
+avant d'informer.
+
+Ce qui NE change pas :
+
+- **la palette**, à neuf couleurs près, toutes de ciel et de ville
+  (`duskHigh`, `duskMid`, `duskLow`, `duskGlow`, `cityFar`, `cityNear`,
+  `cityLit`, `menuWall`, `menuWallLit`) ;
+- **l'échelle** : 1 pixel d'art = 2 unités, agrandissement entier, NEAREST ;
+- **les personnages** : ce sont ceux du jeu, recadrés au buste. On doit
+  reconnaître au menu les gens qu'on va croiser.
+
+Ce qui vit, et pourquoi c'est sobre : quelqu'un tape (5 img/s), quelqu'un boit
+son café (1,4), quelqu'un raconte sa journée (2,6), deux écrans défilent
+(2,2), l'horloge murale donne l'heure réelle à la seconde, les néons vacillent
+lentement, la vapeur monte de la machine, les poussières flottent dans la
+lumière de la baie. **Aucune de ces cadences ne dépasse six images par
+seconde** — un test le vérifie. Au-delà, une boucle de repos devient un
+clignotement, et un menu agité n'est pas un menu vivant.
+
 ## 7 quater. Lumière (niveau 3)
 
 - Un **voile** de nuit sur tout le niveau (`ambient.darkness`).

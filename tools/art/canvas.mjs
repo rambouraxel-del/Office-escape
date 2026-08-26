@@ -86,6 +86,18 @@ export class PixelCanvas {
     return this;
   }
 
+  /**
+   * Disque PLEIN. `circle` ne trace qu'un contour : demander un aplat à
+   * `circle` donne un anneau, et un cadran d'horloge troué.
+   */
+  disc(cx, cy, radius, color, alpha = 1) {
+    for (let dy = -radius; dy <= radius; dy += 1) {
+      const half = Math.floor(Math.sqrt(radius * radius - dy * dy));
+      for (let dx = -half; dx <= half; dx += 1) this.set(cx + dx, cy + dy, color, alpha);
+    }
+    return this;
+  }
+
   /** Contour de cercle, en pixels carrés (algorithme du point milieu). */
   circle(cx, cy, radius, color, alpha = 1) {
     let x = radius;
@@ -143,6 +155,20 @@ export class PixelCanvas {
     this.data[offset] = Math.round(this.data[offset] * (1 - alpha) + r * alpha);
     this.data[offset + 1] = Math.round(this.data[offset + 1] * (1 - alpha) + g * alpha);
     this.data[offset + 2] = Math.round(this.data[offset + 2] * (1 - alpha) + b * alpha);
+    return this;
+  }
+
+  /**
+   * Mélange une couleur dans un RECTANGLE déjà peint.
+   *
+   * À ne pas confondre avec `rect(..., alpha)`, qui REMPLACE les pixels par
+   * une couleur semi-transparente : c'est bon pour une ombre posée sur du
+   * vide, catastrophique pour assombrir un décor — le décor disparaît.
+   */
+  shade(x, y, w, h, color, alpha) {
+    for (let dy = 0; dy < h; dy += 1) {
+      for (let dx = 0; dx < w; dx += 1) this.blend(x + dx, y + dy, color, alpha);
+    }
     return this;
   }
 

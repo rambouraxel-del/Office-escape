@@ -124,6 +124,17 @@ export const TUTORIAL_MOVE_DISMISS = 110;
  */
 export const CONE_NIGHT_FLOOR = 0.45;
 
+/**
+ * Ouverture de l'accueil (V0.10.2).
+ *
+ * On laisse la pièce vivre seule le temps de la remarquer, puis l'interface
+ * monte par vagues. Court : au-delà d'une seconde, une introduction cesse
+ * d'être une intention et devient une latence — surtout au deuxième lancement.
+ */
+export const MENU_INTRO_HOLD_MS = 700;
+export const MENU_INTRO_STEP_MS = 110;
+export const MENU_INTRO_FADE_MS = 320;
+
 /** Durée du sursaut d'un PNJ qui vient de repérer le joueur. */
 export const REACT_MS = 520;
 
@@ -186,5 +197,10 @@ export const DEPTH = {
   npcDetail: 27,
   player: 30,
   detection: 40,
+  /**
+   * Interface de l'accueil. Au-dessus du décor vivant : sans ça, un collègue
+   * qui tape à la machine passe devant le panneau des réglages.
+   */
+  menuUi: 60,
   tutorial: 250
 } as const;

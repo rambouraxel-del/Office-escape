@@ -1,4 +1,4 @@
-import { CHARACTER_SHEETS, DOOR_TEXTURE, FX_TEXTURES, ITEM_TEXTURES } from './artTheme';
+import { CHARACTER_SHEETS, DOOR_TEXTURE, FX_TEXTURES, ITEM_TEXTURES, MENU_SHEETS } from './artTheme';
 
 /**
  * Déclaration CENTRALE des planches et des animations.
@@ -46,6 +46,26 @@ export const LIVING_SHEETS: Record<string, number> = {
 
 export function livingAnimKey(texture: string): string {
   return `${texture}-live`;
+}
+
+/**
+ * Habitants de l'accueil (V0.10.2).
+ *
+ * Cadences volontairement basses : un menu doit être VIVANT, pas agité. Le
+ * buste fait 64 × 44 (32 × 22 pixels d'art) — la tête et le torse d'un
+ * personnage du jeu, recadrés au-dessus du plateau ; l'écran est plus petit.
+ */
+export const MENU_FRAMES = 4;
+
+export const MENU_ANIMATED = [
+  { key: MENU_SHEETS.typist, frameWidth: 64, frameHeight: 44, frameRate: 5 },
+  { key: MENU_SHEETS.sipper, frameWidth: 64, frameHeight: 44, frameRate: 1.4 },
+  { key: MENU_SHEETS.talker, frameWidth: 64, frameHeight: 44, frameRate: 2.6 },
+  { key: MENU_SHEETS.screen, frameWidth: 52, frameHeight: 40, frameRate: 2.2 }
+] as const;
+
+export function menuAnimKey(sheet: string): string {
+  return `${sheet}-live`;
 }
 
 /** Colonnes d'une planche de personnage : repos ×2, marche ×4, sursaut ×2. */
@@ -117,7 +137,7 @@ export function characterAnimKey(texture: string, state: CharacterState, view: C
 export interface SheetDef {
   key: string;
   /** Sous-dossier de `public/assets/`. */
-  group: 'characters' | 'props' | 'fx';
+  group: 'characters' | 'props' | 'fx' | 'ui';
   frameWidth: number;
   frameHeight: number;
   /** Nombre total de frames de la planche. Vérifié par les tests. */
@@ -153,7 +173,14 @@ export const SHEET_MANIFEST: SheetDef[] = [
   })),
   square(FX_TEXTURES.emote, 'fx', 8),
   square(FX_TEXTURES.pickup, 'fx', 4),
-  square(FX_TEXTURES.hint, 'fx', 4)
+  square(FX_TEXTURES.hint, 'fx', 4),
+  ...MENU_ANIMATED.map(({ key, frameWidth, frameHeight }) => ({
+    key,
+    group: 'ui' as const,
+    frameWidth,
+    frameHeight,
+    frames: MENU_FRAMES
+  }))
 ];
 
 // ───────────────────────────── animations ───────────────────────────────
@@ -227,6 +254,13 @@ export const ANIMATIONS: AnimationDef[] = [
     key: livingAnimKey(sheet),
     sheet,
     frames: [0, 1],
+    frameRate,
+    repeat: -1
+  })),
+  ...MENU_ANIMATED.map(({ key, frameRate }) => ({
+    key: menuAnimKey(key),
+    sheet: key,
+    frames: [0, 1, 2, 3],
     frameRate,
     repeat: -1
   }))

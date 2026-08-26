@@ -70,18 +70,22 @@ try {
     )
   );
   await page.reload({ waitUntil: 'networkidle' });
-  await page.waitForTimeout(1500);
+  // L'accueil laisse vivre son décor avant de faire monter l'interface : tant
+  // que l'introduction dure, les clics sont refusés. On l'attend.
+  await page.waitForTimeout(2200);
 
   const canvas = await page.$('canvas');
   if (!canvas) throw new Error('Aucun canvas : le jeu ne démarre pas.');
 
-  // Chaque niveau : entrée, déplacement, pause, reprise, abandon, retour menu.
+  // Chaque niveau : sélection, entrée, déplacement, pause, reprise, abandon,
+  // retour au menu. On passe VRAIMENT par l'écran des niveaux — la boucle
+  // d'avant cliquait « jouer » et rejouait trois fois le niveau 1.
   for (const [index, y] of [
-    [1, 219],
-    [2, 409],
-    [3, 599]
+    [1, 246],
+    [2, 428],
+    [3, 610]
   ]) {
-    await click(195, 386);
+    await click(120, 614);
     await click(195, y, 1600);
     await hold('ArrowUp', 900);
     await click(276, 46);
@@ -89,17 +93,19 @@ try {
     await hold('ArrowLeft', 500);
     await click(276, 46);
     await click(195, 540, 1400);
-    await click(195, 596, 1200);
+    await click(195, 596, 2200);
     console.log(`  niveau ${index} : parcouru`);
   }
 
-  // Sélection des niveaux : c'est là que vivent les vignettes de chaque étage.
-  await click(195, 464, 900);
-  await click(195, 730, 900);
-  console.log('  sélection des niveaux : ouverte');
+  // Défi du jour : même départ, mais graine du jour et pas de fantôme.
+  await click(270, 614, 1600);
+  await click(276, 46);
+  await click(195, 540, 1400);
+  await click(195, 596, 2200);
+  console.log('  défi du jour : lancé');
 
   // Réglages : chaque bascule, y compris la taille de texte qui relance la scène.
-  await click(195, 626);
+  await click(195, 742);
   for (let row = 0; row < 8; row += 1) await click(305, 170 + row * 62, 420);
   console.log('  réglages : 8 bascules');
 } catch (error) {

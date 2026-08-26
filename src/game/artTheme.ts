@@ -107,8 +107,65 @@ export const ZONE_EDGES: Record<ZoneMaterial, PaletteKey> = {
   bay: 'paintLine'
 };
 
-/** Diorama du menu, composé des mêmes motifs que le jeu. */
-export const MENU_BACKGROUND = 'menu-bg';
+/**
+ * Décor de l'accueil (V0.10.2) : un open space en ÉLÉVATION, au crépuscule.
+ *
+ * C'est la seule image du projet qui n'est pas vue de dessus. Un menu doit
+ * donner envie avant d'informer, et une vue de dessus donne un plan. La
+ * palette, elle, reste la même : le menu peut changer de cadrage, pas de jeu.
+ */
+export const MENU_ROOM = 'menu-room';
+
+/** Planches animées de l'accueil, posées par-dessus le décor cuit. */
+export const MENU_SHEETS = {
+  typist: 'menu-typist',
+  sipper: 'menu-sipper',
+  talker: 'menu-talker',
+  screen: 'menu-screen'
+} as const;
+
+export type MenuSheet = (typeof MENU_SHEETS)[keyof typeof MENU_SHEETS];
+
+/** Un habitant de l'accueil, posé par sa BASE : `y` est sa ligne d'appui. */
+export interface MenuActor {
+  sheet: MenuSheet;
+  x: number;
+  y: number;
+  /** Décalage de départ, en frames : sans lui, tout le bureau respire ensemble. */
+  offset: number;
+}
+
+/**
+ * Composition de l'accueil, en unités d'écran (390 × 844).
+ *
+ * Elle vit ici et pas dans la scène pour la même raison qu'un niveau est une
+ * donnée : `MenuStage` déroule cette table, il ne décide de rien. Déplacer un
+ * personnage, c'est changer un nombre — pas relire du code de rendu.
+ */
+export const MENU_STAGE = {
+  /** Ligne d'appui des bureaux du premier plan. */
+  deskLine: 428,
+  /** Cadran de l'horloge murale. Les aiguilles sont dessinées par la scène. */
+  clock: { x: 48, y: 244, hourHand: 8, minuteHand: 12, secondHand: 13 },
+  /** Tubes de la rampe de néons, qui vacillent. */
+  neons: [
+    { x: 104, y: 11, w: 112, h: 6 },
+    { x: 288, y: 11, w: 112, h: 6 }
+  ],
+  /** Bec de la machine à café : la vapeur en part. */
+  steam: { x: 100, y: 268 },
+  /** Flaque du couchant sur le sol, qui respire. */
+  glow: { x: 195, y: 384, w: 340, h: 210 },
+  /** Zone où flottent les poussières, dans la lumière de la baie. */
+  motes: { x: 30, y: 96, w: 330, h: 210, count: 7 },
+  actors: [
+    { sheet: MENU_SHEETS.screen, x: 186, y: 300, offset: 2 },
+    { sheet: MENU_SHEETS.screen, x: 44, y: 428, offset: 0 },
+    { sheet: MENU_SHEETS.typist, x: 128, y: 428, offset: 0 },
+    { sheet: MENU_SHEETS.sipper, x: 246, y: 428, offset: 1 },
+    { sheet: MENU_SHEETS.talker, x: 330, y: 428, offset: 3 }
+  ] as MenuActor[]
+} as const;
 
 /** Vignettes de la sélection de niveau, une par thème. */
 export const LEVEL_THUMBS: Record<LevelTheme, string> = {
@@ -376,7 +433,8 @@ export const IMAGE_MANIFEST = {
     'ui-btn-pause',
     'thumb-office',
     'thumb-exec',
-    'thumb-parking'
+    'thumb-parking',
+    'menu-room'
   ]
 } as const;
 

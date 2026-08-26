@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DIGITS, IMAGE_MANIFEST, MENU_BACKGROUND } from '../game/artTheme';
+import { DIGITS, IMAGE_MANIFEST } from '../game/artTheme';
 import { ANIMATIONS, SHEET_MANIFEST } from '../game/animations';
 import { Audio } from '../core/audio';
 import { Save } from '../core/save';
@@ -39,7 +39,6 @@ export class BootScene extends Phaser.Scene {
       });
     });
 
-    this.load.image(MENU_BACKGROUND, `tiles/${MENU_BACKGROUND}.png`);
     this.load.spritesheet(DIGITS.key, `ui/${DIGITS.key}.png`, {
       frameWidth: DIGITS.frameWidth,
       frameHeight: DIGITS.frameHeight

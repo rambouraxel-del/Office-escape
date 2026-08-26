@@ -12,6 +12,7 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 - **Aucun accès direct à `localStorage`** : passer par `Save`.
 - **Phaser réutilise l'instance de scène** : les initialiseurs de champs ne rejouent pas entre deux parties. Remettre l'état à zéro en tête de `create()`. Ce piège a déjà causé un crash.
 - Les objets renvoyés par `NpcController.update()` et `buildVisionPolygon()` sont **réutilisés d'une frame à l'autre** : les consommer immédiatement.
+- **L'accueil est la seule vue de face du projet** : `menu-room` et ses planches vivent dans `tools/art/menu.mjs`, sa composition est une donnée (`MENU_STAGE`), et `MenuStage` la déroule. Ne jamais dessiner un niveau en élévation, ni écrire une position d'accueil dans la scène.
 - **Aucune couleur en dur** : tout passe par `src/game/palette.json`. Une scène choisit un RÔLE (`TEXT`, `STATE_TEXT`, `WORLD_TEXT` dans `artTheme.ts`), jamais une valeur. Aucun nom d'asset dans une scène : tout passe par `src/game/artTheme.ts`. Trois tests le vérifient.
 - **L'identité d'un niveau est une donnée** : `theme: 'office' | 'exec' | 'parking'` choisit sol et matières. Ne jamais coder une matière dans une scène.
 - **La lumière ne dit rien sur le gameplay** : `ambient` (lampes, voile de nuit, `revealRadius`) n'est lu que par le rendu. La détection ne consulte jamais l'éclairage ni l'opacité — un PNJ effacé par la nuit voit exactement comme les autres.

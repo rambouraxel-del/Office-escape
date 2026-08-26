@@ -17,7 +17,9 @@ import {
   IMAGE_MANIFEST,
   ITEM_TEXTURES,
   MATERIALS,
-  MENU_BACKGROUND,
+  MENU_ROOM,
+  MENU_SHEETS,
+  MENU_STAGE,
   PLAYER_TEXTURE,
   PROP_TEXTURES,
   TALKER_TEXTURE,
@@ -28,6 +30,9 @@ import {
 import {
   ANIMATIONS,
   CHARACTER_FRAME,
+  MENU_ANIMATED,
+  MENU_FRAMES,
+  menuAnimKey,
   LIVING_SHEETS,
   livingAnimKey,
   CHARACTER_STATES,
@@ -42,6 +47,7 @@ import {
 import { PALETTE, color, hex } from '../src/game/palette';
 import { LEVELS } from '../src/levels';
 import paletteJson from '../src/game/palette.json';
+import { VIEW_HEIGHT, VIEW_WIDTH } from '../src/game/constants';
 
 const ASSETS = join(process.cwd(), 'public', 'assets');
 
@@ -64,8 +70,7 @@ describe('images fixes', () => {
     expect(existsSync(join(ASSETS, group, `${key}.png`))).toBe(true);
   });
 
-  it('le fond de menu et la planche de chiffres existent', () => {
-    expect(existsSync(join(ASSETS, 'tiles', `${MENU_BACKGROUND}.png`))).toBe(true);
+  it('la planche de chiffres existe', () => {
     expect(existsSync(join(ASSETS, 'ui', `${DIGITS.key}.png`))).toBe(true);
   });
 
@@ -99,6 +104,64 @@ describe('planches d’animation', () => {
   it('aucune planche n’est aussi déclarée comme image fixe', () => {
     const fixed = new Set(images.map(([, key]) => key));
     SHEET_MANIFEST.forEach((sheet) => expect(fixed.has(sheet.key), sheet.key).toBe(false));
+  });
+});
+
+/** Un repère de l'accueil doit tomber dans le cadre, sinon on ne le voit pas. */
+function inside(x: number, y: number, label: string) {
+  expect(x, label).toBeGreaterThanOrEqual(0);
+  expect(x, label).toBeLessThanOrEqual(VIEW_WIDTH);
+  expect(y, label).toBeGreaterThanOrEqual(0);
+  expect(y, label).toBeLessThanOrEqual(VIEW_HEIGHT);
+}
+
+describe('accueil animé', () => {
+  it('le décor de l’accueil est livré, et il fait exactement l’écran', () => {
+    const path = join(ASSETS, 'ui', `${MENU_ROOM}.png`);
+    expect(existsSync(path)).toBe(true);
+    // L'accueil n'est pas un motif raccordable : il est cadré une fois pour
+    // toutes sur le format portrait. Un décalage d'un pixel se verrait.
+    expect(pngSize(path)).toEqual({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
+  });
+
+  it('chaque planche de l’accueil est déclarée et animée', () => {
+    const keys = new Set(ANIMATIONS.map((animation) => animation.key));
+    const sheets = new Map(SHEET_MANIFEST.map((sheet) => [sheet.key, sheet]));
+    Object.values(MENU_SHEETS).forEach((key) => {
+      const sheet = sheets.get(key);
+      expect(sheet, key).toBeDefined();
+      expect(sheet?.group, key).toBe('ui');
+      expect(sheet?.frames, key).toBe(MENU_FRAMES);
+      expect(keys.has(menuAnimKey(key)), key).toBe(true);
+    });
+    expect(MENU_ANIMATED.length).toBe(Object.values(MENU_SHEETS).length);
+  });
+
+  it('la cadence de l’accueil reste calme', () => {
+    // Un menu doit être vivant, pas agité : au-delà de six images par seconde,
+    // une boucle de repos devient un clignotement et vole l'attention.
+    MENU_ANIMATED.forEach((entry) => {
+      expect(entry.frameRate, entry.key).toBeGreaterThan(0);
+      expect(entry.frameRate, entry.key).toBeLessThanOrEqual(6);
+    });
+  });
+
+  it('chaque habitant de l’accueil vise une planche livrée, dans le cadre', () => {
+    const sheets = new Set(Object.values(MENU_SHEETS) as string[]);
+    MENU_STAGE.actors.forEach((actor, index) => {
+      expect(sheets.has(actor.sheet), `acteur ${index}`).toBe(true);
+      expect(actor.x, `acteur ${index}`).toBeGreaterThan(0);
+      expect(actor.x, `acteur ${index}`).toBeLessThan(VIEW_WIDTH);
+      expect(actor.y, `acteur ${index}`).toBeGreaterThan(0);
+      expect(actor.y, `acteur ${index}`).toBeLessThan(VIEW_HEIGHT);
+    });
+  });
+
+  it('les repères de l’accueil restent dans l’écran', () => {
+    inside(MENU_STAGE.clock.x, MENU_STAGE.clock.y, 'horloge');
+    inside(MENU_STAGE.steam.x, MENU_STAGE.steam.y, 'vapeur');
+    inside(MENU_STAGE.glow.x, MENU_STAGE.glow.y, 'flaque');
+    MENU_STAGE.neons.forEach((neon, index) => inside(neon.x, neon.y, `néon ${index}`));
   });
 });
 
@@ -291,7 +354,7 @@ describe('hygiène du rendu', () => {
     // est un nom d'événement, pas une texture. Seuls les habillages `ui-*` sont
     // tolérés — ce sont des valeurs du type `PanelSkin`, donc vérifiées par le
     // compilateur.
-    const forbidden = [...declared, MENU_BACKGROUND, DIGITS.key].filter((key) => !key.startsWith('ui-'));
+    const forbidden = [...declared, DIGITS.key].filter((key) => !key.startsWith('ui-'));
     rendering.forEach(([name, code]) => {
       forbidden.forEach((key) => {
         expect(code.includes(`'${key}'`), `${name} cite ${key}`).toBe(false);
@@ -300,7 +363,7 @@ describe('hygiène du rendu', () => {
   });
 
   it('aucun PNG orphelin dans public/assets', () => {
-    const known = new Set([...declared, MENU_BACKGROUND, DIGITS.key]);
+    const known = new Set([...declared, DIGITS.key]);
     const groups = readdirSync(ASSETS);
     const orphans: string[] = [];
     groups.forEach((group) => {

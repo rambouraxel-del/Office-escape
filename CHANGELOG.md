@@ -1,5 +1,76 @@
 # Journal des versions
 
+## V0.10.2 — Refonte de l'écran d'accueil
+
+Le menu était fonctionnel et laid : un diorama vu de dessus, à peine visible
+sous une carte opaque, et cinq boutons empilés du même poids. Cette version ne
+touche à rien d'autre — **aucune règle de jeu, aucun niveau, aucune vitesse,
+aucun cône, aucun score n'a changé.**
+
+**Un décor, pas un fond d'écran**
+- L'accueil est désormais un open space **vu de face**, au crépuscule : baie
+  vitrée sur une ville allumée, soleil couchant, rampe de néons, crédence,
+  horloge, affiche, deux rangées de bureaux habités et un premier plan sombre
+  qui cadre la composition.
+- C'est la **seule dérogation** à la vue de dessus du projet, et elle est
+  assumée : une vue de dessus donne un plan, un menu doit donner envie. La
+  palette, elle, ne change pas — neuf couleurs de ciel et de ville s'y
+  ajoutent, rien de plus.
+- Le décor est **une seule image** de 390 × 844 (6 Ko), cuite hors ligne par
+  `npm run art`. L'ancien `menu-bg` disparaît.
+
+**Ce qui vit**
+- Un collègue tape au clavier, un autre boit son café, un troisième raconte sa
+  journée ; deux écrans défilent ; la vapeur monte de la machine ; les
+  poussières flottent dans la lumière de la baie ; les néons vacillent.
+- **L'horloge murale donne l'heure réelle**, à la seconde près.
+- Les habitants sont les **personnages du jeu**, recadrés au buste au-dessus
+  du plateau : on reconnaît au menu les gens qu'on va croiser.
+- Aucune cadence ne dépasse six images par seconde, et un test le verrouille :
+  un menu doit être vivant, pas agité.
+
+**Ouverture**
+- Le décor apparaît, vit seul le temps qu'on le remarque
+  (`MENU_INTRO_HOLD_MS`), puis le titre et l'interface montent par vagues.
+  L'accueil n'accepte aucun clic tant que l'introduction dure.
+- **Mouvement réduit** : tout est là d'emblée, sans attente ; on coupe le
+  vacillement, les poussières, la vapeur et la pulsation de lumière. Les
+  personnages continuent de respirer — le réglage promet la fin des flashs,
+  pas un menu mort.
+
+**Ergonomie**
+- Le titre se pose sur une **plaque translucide au-dessus de la ville**, plus
+  sur le mur : la bande de mur nu est justement l'endroit où vivent l'horloge,
+  l'affiche et l'écran de la crédence.
+- Une seule cible primaire (**Quitter le bureau**), deux secondaires de même
+  poids côte à côte (**Niveaux**, **Défi du jour**), le reste en retrait. La
+  carte opaque plein écran de l'accueil laisse place à un panneau bas : le
+  décor garde la moitié haute de l'écran.
+- Nouvelle ligne d'état : *n/3 niveaux ouverts · Record …*. Elle remplace une
+  phrase d'accroche qui répétait le sous-titre.
+- Tous les boutons font au moins 44 pixels de haut, y compris les bascules des
+  réglages : c'est la taille d'un pouce.
+- Les écrans **Niveaux** et **Réglages** gardent leur carte, posée sur le
+  décor assombri, avec le bouton retour en pied de page.
+- **Aucune fonctionnalité retirée** : jouer, choisir un niveau, défi du jour et
+  sa graine, records, huit réglages, remise à zéro, version.
+
+**Technique**
+- Nouvelle scène `MenuStage` : elle est à l'accueil ce que `LevelView` est à un
+  niveau. La composition (`MENU_STAGE` dans `artTheme.ts`) déclare où se pose
+  chaque habitant, l'horloge, les néons, la vapeur et la flaque de lumière ;
+  la scène ne place rien d'elle-même.
+- Nouvelle profondeur `DEPTH.menuUi` : sans elle, un collègue qui tape à la
+  machine passe devant le panneau des réglages.
+- `PixelCanvas.shade()` et `PixelCanvas.disc()` : assombrir un décor avec
+  `rect(..., alpha)` REMPLAÇAIT les pixels par une couleur semi-transparente —
+  c'est ce qui délavait la pièce ; et `circle` ne trace qu'un contour, d'où un
+  cadran d'horloge troué.
+- Le test de fumée passe désormais **vraiment** par l'écran des niveaux : la
+  boucle d'avant cliquait « jouer » et rejouait trois fois le niveau 1. Il
+  couvre aussi le défi du jour.
+- 281 tests.
+
 ## V0.10.1 — Première passe d'optimisation
 
 Passe de confort : rien de neuf à jouer, mais les irritants de la V0.10 sont

@@ -109,6 +109,16 @@
   "neonDim": "#8fa8c4",
   "rubber": "#2a2a30",
 
+  "duskHigh": "#3d3663",
+  "duskMid": "#7d4c74",
+  "duskLow": "#df7a52",
+  "duskGlow": "#ffb072",
+  "cityFar": "#4b4275",
+  "cityNear": "#2d2846",
+  "cityLit": "#ffd98a",
+  "menuWall": "#57628a",
+  "menuWallLit": "#78829f",
+
   "hudPanel": "#2b2438",
   "hudPanelLight": "#4a3f5c",
   "hudEdge": "#8a7aa8",
