@@ -241,6 +241,18 @@ Le reste — personnages, objets, portes, cônes, bulles, HUD — est **identiqu
 partout**. C'est ce qui fait qu'on reconnaît le jeu d'un étage à l'autre, et
 qu'un système interactif ne se réapprend jamais.
 
+### Une pièce se reconnaît à ce qu'elle contient (V0.10.1)
+
+Les toilettes du niveau 1 s'appelaient « WC ». Écrire le nom d'une pièce, c'est
+avouer qu'on n'a pas su la dessiner. Elles ont désormais leur propre matière
+(`tile-bathroom` : petit carrelage blanc cassé, joints froids, éclat isolé) et
+trois accessoires — `stall` (cloison de cabine), `toilet`, `sink` — posés en
+deux cabines cloisonnées plus un lavabo au mur. Aucune lettre.
+
+La règle générale : **une étiquette de décor doit disparaître dès qu'un motif
+peut dire la même chose.** Ne restent au sol que les inscriptions qui portent
+une information de jeu — la sortie, l'ascenseur, un numéro de place.
+
 ## 7 quater. Lumière (niveau 3)
 
 - Un **voile** de nuit sur tout le niveau (`ambient.darkness`).
@@ -249,6 +261,12 @@ qu'un système interactif ne se réapprend jamais.
   texture fabriquée à l'exécution, aucun shader.
 - Chaque lampe a son **néon visible** au plafond, au même endroit : on doit
   voir d'où vient la lumière.
+- **La nuit cache le jeu, pas le terrain** (V0.10.1). Le décor reste lisible :
+  sol, murs, voitures, mobilier, structure. Ce sont les PNJ, les objets et les
+  indices dont l'opacité suit la distance au joueur
+  (`ambient.revealRadius`, `ambient.hiddenAlpha`), avec un bord adouci — une
+  apparition franche clignoterait à chaque pas. Le cône de vision garde un
+  plancher d'opacité : on perd le porteur de vue, jamais son faisceau.
 
 > ⚠️ **La lumière ne dit rien sur le gameplay.** `NpcController`, les cônes de
 > vision et la détection ne consultent JAMAIS `ambient.lights`. Une zone plus

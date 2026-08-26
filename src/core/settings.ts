@@ -12,6 +12,14 @@ export interface Settings {
   /** Côté du joystick. */
   joystickSide: 'left' | 'right';
   vibrations: boolean;
+  /** Bulles d'aide en jeu. Activées par défaut : elles servent au premier essai. */
+  tutorials: boolean;
+  /**
+   * Rejoue le meilleur parcours en surimpression. DÉSACTIVÉ par défaut :
+   * l'enregistrement, lui, continue toujours, donc on peut l'allumer plus tard
+   * et retrouver son record.
+   */
+  ghost: boolean;
 }
 
 const DEFAULTS: Settings = {
@@ -20,7 +28,9 @@ const DEFAULTS: Settings = {
   colorBlindMode: false,
   textScale: 1,
   joystickSide: 'left',
-  vibrations: true
+  vibrations: true,
+  tutorials: true,
+  ghost: false
 };
 
 function prefersReducedMotion(): boolean {
@@ -56,7 +66,7 @@ export const SettingsStore = {
     return current;
   },
 
-  toggle(key: 'muted' | 'reducedMotion' | 'colorBlindMode' | 'vibrations'): Settings {
+  toggle(key: 'muted' | 'reducedMotion' | 'colorBlindMode' | 'vibrations' | 'tutorials' | 'ghost'): Settings {
     return SettingsStore.set(key, !current[key]);
   },
 

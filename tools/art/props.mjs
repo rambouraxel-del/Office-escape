@@ -329,6 +329,55 @@ const EXIT_SIGN = () =>
     'KKKKKKKKKKKKKKKKKKKK'
   ]);
 
+// ──────────────────────────── sanitaires ────────────────────────────────
+
+/**
+ * Cuvette vue de dessus : abattant ovale, réservoir derrière.
+ * Deux formes suffisent — à cette taille, c'est la silhouette qui parle.
+ */
+const TOILET = () =>
+  sprite(12, [
+    '.KKKKKKKK',
+    '.KwWWWWwK',
+    '.KwwwwwwK',
+    '.KKKKKKKK',
+    '..KwwwwK',
+    '.KwwwwwwK',
+    'KwwKKKKwwK',
+    'KwKGGGGKwK',
+    'KwKGGGGKwK',
+    'KwwKKKKwwK',
+    '.KwwwwwwK',
+    '..KKKKKK'
+  ]);
+
+/** Lavabo et son miroir : l'autre moitié de la lecture « toilettes ». */
+const SINK = () =>
+  sprite(14, [
+    'KKKKKKKKKKKK',
+    'KggggggggggK',
+    'KgMMMMMMMMgK',
+    'KggggggggggK',
+    'KKKKKKKKKKKK',
+    '..KKKKKKKK',
+    '.KwwwwwwwwK',
+    'KwwKKKKKKwwK',
+    'KwKGGGGGGKwK',
+    'KwwKKnnKKwwK',
+    '.KwwwwwwwwK',
+    '..KKKKKKKK'
+  ]);
+
+/** Séparation de cabine, vue de dessus : une cloison et son montant. */
+const STALL = () =>
+  sprite(20, [
+    'KKKKKKKKKKKKKKKKKKKK',
+    'KMMMMMMMMMMMMMMMMMMK',
+    'KMnnnnnnnnnnnnnnnnMK',
+    'KMMMMMMMMMMMMMMMMMMK',
+    'KKKKKKKKKKKKKKKKKKKK'
+  ]);
+
 // ────────────────────── étage direction (niveau 2) ──────────────────────
 
 /** Fauteuil de direction : plus large et plus sombre qu'une chaise d'open space. */
@@ -686,6 +735,9 @@ export const PROPS = {
   'prop-phone': PHONE,
   'prop-lamp': LAMP,
   'prop-plant': PLANT,
+  'prop-toilet': TOILET,
+  'prop-sink': SINK,
+  'prop-stall': STALL,
   'prop-armchair': ARMCHAIR,
   'prop-frame': FRAME,
   'prop-award': AWARD,

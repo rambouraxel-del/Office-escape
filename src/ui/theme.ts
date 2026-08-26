@@ -42,7 +42,10 @@ export function makeText(
   if (options.letterSpacing !== undefined) style.letterSpacing = options.letterSpacing;
   if (options.backgroundColor) style.backgroundColor = options.backgroundColor;
   if (options.padding) style.padding = options.padding;
-  if (options.wrap) style.wordWrap = { width: options.wrap * scale };
+  // La largeur d'habillage est une largeur de PANNEAU, en pixels d'écran : elle
+  // ne suit pas l'échelle du texte. La faire grandir avec la police faisait
+  // déborder les bulles du cadre dès qu'on augmentait la taille des textes.
+  if (options.wrap) style.wordWrap = { width: options.wrap };
 
   return scene.add.text(x, y, content, style);
 }

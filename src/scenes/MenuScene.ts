@@ -234,6 +234,18 @@ export class MenuScene extends Phaser.Scene {
         onPress: () => SettingsStore.toggle('vibrations')
       },
       {
+        label: FR.settings.tutorials,
+        value: (settings) => (settings.tutorials ? FR.settings.on : FR.settings.off),
+        hint: FR.settings.hintTutorials,
+        onPress: () => SettingsStore.toggle('tutorials')
+      },
+      {
+        label: FR.settings.ghost,
+        value: (settings) => (settings.ghost ? FR.settings.on : FR.settings.off),
+        hint: FR.settings.hintGhost,
+        onPress: () => SettingsStore.toggle('ghost')
+      },
+      {
         label: FR.settings.motion,
         value: (settings) => (settings.reducedMotion ? FR.settings.on : FR.settings.off),
         hint: FR.settings.hintMotion,
@@ -267,29 +279,29 @@ export class MenuScene extends Phaser.Scene {
     ];
 
     rows.forEach((row, index) => {
-      const y = 178 + index * 74;
-      const label = makeText(this, 58, y - 12, row.label, { size: 14, bold: true, color: TEXT.onLight });
-      const valueText = makeText(this, 58, y + 10, row.value(SettingsStore.get()), {
+      const y = 166 + index * 62;
+      const label = makeText(this, 58, y - 14, row.label, { size: 13, bold: true, color: TEXT.onLight });
+      const valueText = makeText(this, 58, y + 6, row.value(SettingsStore.get()), {
         size: 12,
         bold: true,
         color: TEXT.info
       });
       const hint = row.hint
-        ? makeText(this, 58, y + 30, row.hint, { size: 9, color: TEXT.onLightMuted, wrap: 200 })
+        ? makeText(this, 58, y + 26, row.hint, { size: 9, color: TEXT.onLightMuted, wrap: 210 })
         : null;
-      const toggle = makePixelButton(this, 305, y, '⇄', { width: 54, height: 44, size: 16 }, () => {
+      const toggle = makePixelButton(this, 305, y + 4, '⇄', { width: 52, height: 40, size: 16 }, () => {
         row.onPress();
         if (this.panel === 'settings') valueText.setText(row.value(SettingsStore.get()));
       });
-      // Filet de séparation : sans lui, six lignes de réglages font un bloc.
-      const rule = this.add.rectangle(VIEW_WIDTH / 2, y + 44, 254, 1, PALETTE.floorSeam, 0.5);
+      // Filet de séparation : sans lui, huit lignes de réglages font un bloc.
+      const rule = this.add.rectangle(VIEW_WIDTH / 2, y + 40, 254, 1, PALETTE.floorSeam, 0.5);
       this.push(label, valueText, rule, ...toggle.objects);
       if (hint) this.push(hint);
     });
 
     // La remise à zéro vit ici, pas sur l'accueil : c'est un réglage, et le
     // premier écran du jeu n'a pas à proposer d'effacer sa progression.
-    const feedback = makeText(this, VIEW_WIDTH / 2, 666, '', {
+    const feedback = makeText(this, VIEW_WIDTH / 2, 700, '', {
       size: 11,
       bold: true,
       color: TEXT.success,
@@ -298,7 +310,7 @@ export class MenuScene extends Phaser.Scene {
     const reset = makePixelButton(
       this,
       VIEW_WIDTH / 2,
-      636,
+      672,
       FR.menu.reset,
       { width: 274, height: 38, skin: 'ui-button-warm', size: 11 },
       () => {

@@ -3,6 +3,7 @@ import { Prng, dailyKey, dailySeed, hashString } from '../src/core/prng';
 import { GameClock, formatMinutes } from '../src/core/clock';
 import { COLLECTION_BONUS, MAX_TIME_POINTS, STEALTH_BONUS, scoreRun, starsFor } from '../src/core/scoring';
 import { LEVEL_01 } from '../src/levels/level01';
+import { SettingsStore } from '../src/core/settings';
 
 describe('Prng', () => {
   it('est déterministe à seed égale', () => {
@@ -364,5 +365,22 @@ describe('TutorialDirector', () => {
     expect(director.dismissIf('autre')).toBe(false);
     expect(director.dismissIf('a')).toBe(true);
     expect(director.current).toBeNull();
+  });
+});
+
+describe('réglages', () => {
+  it('active les tutoriels et coupe le fantôme par défaut', () => {
+    // Les bulles servent au premier essai ; le fantôme, lui, est une option
+    // qu'on choisit — il ne doit pas s'inviter dans la partie d'un débutant.
+    const settings = SettingsStore.reset();
+    expect(settings.tutorials).toBe(true);
+    expect(settings.ghost).toBe(false);
+  });
+
+  it('bascule les deux nouveaux réglages', () => {
+    SettingsStore.reset();
+    expect(SettingsStore.toggle('tutorials').tutorials).toBe(false);
+    expect(SettingsStore.toggle('ghost').ghost).toBe(true);
+    SettingsStore.reset();
   });
 });

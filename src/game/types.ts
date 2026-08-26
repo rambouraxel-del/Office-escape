@@ -18,7 +18,7 @@ export interface RectDef {
   h: number;
 }
 
-export type ObstacleKind = 'wall' | 'desk' | 'pillar' | 'cabinet' | 'partition' | 'door';
+export type ObstacleKind = 'wall' | 'desk' | 'pillar' | 'cabinet' | 'partition' | 'door' | 'restroom';
 
 export interface ObstacleDef extends RectDef {
   kind: ObstacleKind;
@@ -47,6 +47,9 @@ export type TextTone = 'zone' | 'quiet' | 'warm' | 'cool';
 export type PropKind =
   | 'plant'
   | 'cactus'
+  | 'toilet'
+  | 'sink'
+  | 'stall'
   | 'chair'
   | 'exitSign'
   | 'trash'
@@ -94,14 +97,37 @@ export interface DecorDef {
 
 export type NpcArchetype = 'colleague' | 'boss' | 'intern' | 'guard' | 'camera';
 
+/**
+ * Balayage d'une caméra.
+ *
+ * Vitesse constante entre `from` et `to`, puis ARRÊT de `holdMs` à chaque
+ * extrémité avant de repartir en sens inverse. C'est la pause qui rend la
+ * caméra jouable : elle offre une fenêtre qu'on peut attendre et compter.
+ */
+export interface SweepDef {
+  /** Angles extrêmes, en degrés (0 = vers la droite, 90 = vers le bas). */
+  from: number;
+  to: number;
+  /** Vitesse de rotation. À défaut, `CAMERA_SWEEP_DEG_PER_SECOND`. */
+  degPerSecond?: number;
+  /** Temps d'arrêt à chaque extrémité. À défaut, `CAMERA_HOLD_MS`. */
+  holdMs?: number;
+}
+
 export interface NpcDef {
   id: string;
   label: string;
   archetype: NpcArchetype;
   /** Trajet cyclique. Un seul point = PNJ statique. */
   patrol: Vec2[];
-  /** Caméras / vigies : balayage angulaire (degrés) au lieu d'un déplacement. */
-  sweep?: { from: number; to: number; periodMs: number };
+  /**
+   * Zone de déplacement AUTORISÉE. Le PNJ décale ses points de ronde au
+   * hasard à l'intérieur, ce qui l'empêche de repasser exactement au même
+   * endroit sans le rendre imprévisible. Absent = ronde stricte.
+   */
+  roam?: RectDef;
+  /** Caméras / vigies : balayage angulaire au lieu d'un déplacement. */
+  sweep?: SweepDef;
   patrolSpeed?: number;
   chaseSpeed?: number;
   visionRange?: number;
@@ -126,6 +152,11 @@ export interface TutorialDef {
   id: string;
   text: string;
   anchor: Vec2 | 'player';
+  /**
+   * La bulle s'efface dès que le joueur s'est déplacé. À défaut, vrai pour
+   * une bulle ancrée au joueur — elle parle forcément de déplacement.
+   */
+  dismissOnMove?: boolean;
   /** Toutes les conditions renseignées doivent être vraies simultanément. */
   when: {
     after?: string;
@@ -185,8 +216,19 @@ export interface LightDef {
 }
 
 export interface AmbientDef {
-  /** 0 = plein jour, 1 = nuit noire. Le joueur porte alors une source de lumière. */
+  /**
+   * 0 = plein jour, 1 = nuit noire. Assombrit le DÉCOR, qui doit rester
+   * lisible : on continue de voir où l'on met les pieds.
+   */
   darkness?: number;
+  /**
+   * Rayon, en unités de monde, dans lequel la lampe du joueur RÉVÈLE les
+   * éléments de jeu — PNJ, objets, indices d'interaction. Au-delà, ils
+   * s'effacent. Absent = tout reste visible.
+   */
+  revealRadius?: number;
+  /** Opacité des éléments de jeu hors du halo. 0 = invisibles. */
+  hiddenAlpha?: number;
   /**
    * Lampes fixes. Purement visuelles : la détection ne les consulte JAMAIS.
    * Une lumière qui changerait la visibilité serait une mécanique, pas un rendu.
