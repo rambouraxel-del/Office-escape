@@ -28,6 +28,7 @@ src/
 │   └── session.ts     état partagé entre scènes
 ├── systems/         règles pures, sans Phaser
 │   ├── NpcController.ts   machine à états (ronde / poursuite / fouille / diversion)
+│   ├── NavGrid.ts         grille de navigation : parcours, lissage, tirage aléatoire
 │   ├── Inventory.ts       deux poches
 │   ├── TutorialDirector.ts table de conditions
 │   └── GhostRecorder.ts   enregistrement et relecture du record
@@ -101,16 +102,52 @@ choisit, dans `artTheme.ts`, le sol, les matières de chaque type d'obstacle et
 la vignette du menu. Aucun niveau ne cite un nom de fichier, et donner une
 identité à un quatrième étage ne demandera qu'une entrée de plus.
 
+## La navigation des PNJ (V0.10.1)
+
+`NavGrid` est une **grille**, pas un navmesh. Les niveaux font 500 × 2200
+unités et tous les obstacles sont des rectangles alignés : à 25 unités par
+cellule, un niveau tient dans 1 760 cases, qu'un parcours en largeur d'abord
+traverse en moins d'une milliseconde. Un navmesh serait plus élégant et
+complètement disproportionné.
+
+Trois choix portent le reste :
+
+1. **Une marge de dégagement autour de chaque obstacle** (`NAV_CLEARANCE`).
+   Un chemin qui passe pile sur l'arête met le PNJ en butée contre le moteur
+   physique — c'est exactement ce qui bloquait les PNJ du niveau 3 contre les
+   voitures.
+2. **Un lissage par ligne de vue** : tout point de passage que l'on peut
+   sauter en ligne droite disparaît. Sans lui, le PNJ suit l'escalier de la
+   grille et titube.
+3. **Le tirage vient du `Prng` du niveau.** Une destination est prise au
+   hasard dans la `roam` du PNJ — sa zone de déplacement, déclarée dans la
+   donnée — donc la ronde vit sans jamais cesser d'être reproductible : le
+   Défi du jour rejoue à l'identique.
+
+Un changement d'état invalide toujours le chemin : après une poursuite, une
+fouille ou une distraction, le PNJ repart proprement. L'ouverture d'une porte
+reconstruit la grille à partir des obstacles encore solides, plutôt que de
+« déboucher » le rectangle de la porte : sa marge est partagée avec le mur
+voisin, et la rouvrir à la main laisserait soit un bouchon, soit un trou.
+
 ### Éclairage du parking
 
 Un voile de nuit, puis des **halos additifs** aux points déclarés dans
 `ambient.lights`. Un seul sprite de dégradé, redimensionné à la volée : aucune
 texture fabriquée à l'exécution, aucun shader, rien qui coûte sur un téléphone.
 
-**Ces lampes ne disent rien sur le gameplay.** `NpcController`, `geometry.ts`
-et la détection ne lisent jamais `ambient.lights` : une zone plus claire n'est
-pas plus dangereuse. En faire une mécanique serait une décision de game design,
-pas une passe graphique.
+Depuis la V0.10.1 la nuit est aussi une **mécanique**, mais uniquement de
+lisibilité : le décor reste visible — on doit pouvoir circuler — tandis que les
+éléments de jeu (PNJ, objets, indices) voient leur opacité suivre la distance
+au joueur (`ambient.revealRadius`, `ambient.hiddenAlpha`). Le cône de vision,
+lui, garde un plancher (`CONE_NIGHT_FLOOR`) : le porteur se noie dans le noir,
+son faisceau reste perceptible, sinon la nuit devient injuste plutôt que tendue.
+
+**Ni les lampes ni ce voile ne disent quoi que ce soit sur le gameplay.**
+`NpcController`, `geometry.ts` et la détection ne lisent jamais `ambient` :
+une zone plus claire n'est pas plus dangereuse, et un PNJ effacé vous voit
+exactement comme avant. En faire une mécanique de détection serait une décision
+de game design, pas une passe graphique.
 
 **Le rendu n'a pas le droit de toucher au gameplay.** Un obstacle crée
 toujours le rectangle de collision exact de la V0.8 ; il est simplement rendu
@@ -134,10 +171,10 @@ Voir `src/game/types.ts` pour le contrat exact. En résumé :
 
 | Champ | Rôle |
 | --- | --- |
-| `size`, `spawn`, `ambient` | dimensions, départ, ambiance (`darkness` pour la nuit) |
+| `size`, `spawn`, `ambient` | dimensions, départ, ambiance (`darkness`, `revealRadius`, `hiddenAlpha` pour la nuit) |
 | `obstacles` | rectangles **définis par leur centre** ; `kind` choisit le style, `lock` en fait une porte |
 | `decor` | purement cosmétique : plantes, zones, étiquettes, accessoires de bureau |
-| `npcs` | `patrol` (cyclique), ou `sweep` pour une caméra fixe qui balaie |
+| `npcs` | `patrol` (cyclique) + `roam` (zone de déplacement), ou `sweep` pour une caméra fixe ; `visionRange` et `visionHalfAngleDeg` affinent le cône |
 | `items` | deux au maximum : l'inventaire n'a que deux poches |
 | `hidingSpots` | `door` (où l'on entre) et `exit` (où l'on ressort) |
 | `triggers` | zones `dialogue` ou `exit` |

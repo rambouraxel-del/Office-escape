@@ -24,21 +24,56 @@ export const NPC_RADIUS = 17;
 
 export const DEFAULT_PATROL_SPEED = 82;
 export const DEFAULT_CHASE_SPEED = 116;
-export const DEFAULT_VISION_RANGE = 310;
-export const DEFAULT_VISION_HALF_ANGLE_DEG = 31;
 
+/**
+ * Réglage des cônes de vision (V0.10.1).
+ *
+ * Le marché : **plus étroit et plus court, mais franchement plus mordant.**
+ * Les cônes de la V0.9 couvraient la moitié du couloir et se traversaient
+ * pourtant sans conséquence — on les subissait sans jamais les jouer.
+ * Désormais on les contourne facilement, et les traverser coûte cher.
+ *
+ * Ces cinq nombres sont le seul endroit à toucher pour réviser l'équilibrage.
+ * Un `NpcDef` peut affiner par PNJ (`visionRange`, `visionHalfAngleDeg`).
+ */
+export const DEFAULT_VISION_RANGE = 230;
+export const DEFAULT_VISION_HALF_ANGLE_DEG = 22;
+
+/** Courir agrandit le cône et remplit la jauge plus vite. */
 export const RUN_VISION_MULTIPLIER = 1.3;
 export const RUN_DETECTION_MULTIPLIER = 4 / 3;
-export const DETECTION_ALERT_SECONDS = 2;
-export const DETECTION_INTERCEPT_SECONDS = 4;
-export const DETECTION_DECAY_PER_SECOND = 1.55;
+
+/** Secondes passées dans le cône avant l'alerte, puis avant l'interception. */
+export const DETECTION_ALERT_SECONDS = 1.1;
+export const DETECTION_INTERCEPT_SECONDS = 2.4;
+/** Vitesse de retombée de la jauge une fois hors du cône. */
+export const DETECTION_DECAY_PER_SECOND = 1.4;
 
 /** Le PNJ va fouiller la dernière position connue avant de repartir en ronde. */
 export const SEARCH_SECONDS = 4;
 export const SEARCH_ARRIVAL_RADIUS = 26;
-/** Au-delà, un PNJ coincé contre un mur applique une poussée latérale. */
-export const STUCK_SECONDS = 0.35;
-export const STUCK_STRAFE_SECONDS = 0.8;
+/**
+ * Rondes (V0.10.1).
+ *
+ * Un PNJ vise un point de sa ronde, décalé au hasard dans sa zone autorisée :
+ * le circuit reste apprenable, la trajectoire ne se répète jamais à
+ * l'identique. `ROAM_JITTER` est le rayon de ce décalage.
+ */
+export const ROAM_JITTER = 90;
+/** Pause d'un PNJ arrivé sur un point de ronde, en secondes. */
+export const ROAM_PAUSE_SECONDS = 0.7;
+/** Recalcul de trajectoire pendant une poursuite, en secondes. */
+export const CHASE_REPATH_SECONDS = 0.45;
+
+/**
+ * Caméras de surveillance (V0.10.1).
+ *
+ * Une caméra balaie à vitesse constante, s'arrête à chaque extrémité, puis
+ * repart. C'est cette PAUSE qui rend la caméra jouable : elle donne la fenêtre
+ * qu'on attend, au lieu d'un va-et-vient qu'on subit.
+ */
+export const CAMERA_SWEEP_DEG_PER_SECOND = 26;
+export const CAMERA_HOLD_MS = 1600;
 
 /** Une distraction (rapport lâché) attire les PNJ dans ce rayon. */
 export const DISTRACTION_RADIUS = 300;
@@ -62,6 +97,32 @@ export const HUD_HEIGHT = 112;
 
 /** Message contextuel : au-dessus des commandes, jamais au milieu du terrain. */
 export const TOAST_Y = 620;
+
+/**
+ * Bulles de tutoriel (V0.10.1).
+ *
+ * Elles se ferment de trois façons : au toucher, dès que le joueur avance
+ * vraiment, ou toutes seules. Une consigne qui reste à l'écran finit par
+ * cacher le terrain qu'elle explique.
+ */
+export const TUTORIAL_AUTO_DISMISS_MS = 6500;
+/** Largeur d'habillage du texte, en pixels d'écran. Le panneau s'y adapte. */
+export const TUTORIAL_TEXT_WIDTH = 224;
+export const TUTORIAL_PADDING = 16;
+export const TUTORIAL_MARGIN = 24;
+/** Marge tactile autour de la bulle : on doit pouvoir la fermer au pouce. */
+export const TUTORIAL_TOUCH_MARGIN = 14;
+/** Distance parcourue après l'apparition qui referme une bulle de mouvement. */
+export const TUTORIAL_MOVE_DISMISS = 110;
+
+/**
+ * Plancher d'opacité du cône de vision dans un niveau de nuit.
+ *
+ * Le PNJ, lui, retombe à `ambient.hiddenAlpha` : on ne le distingue qu'en
+ * s'approchant. Son faisceau reste perceptible, sinon on se ferait repérer
+ * par un garde qu'aucun indice ne trahissait.
+ */
+export const CONE_NIGHT_FLOOR = 0.45;
 
 /** Durée du sursaut d'un PNJ qui vient de repérer le joueur. */
 export const REACT_MS = 520;
@@ -98,19 +159,28 @@ export const COLORS = {
   ghost: PALETTE.tealLight
 } as const;
 
+/**
+ * Ordre de dessin.
+ *
+ * Le voile de nuit (`darkness`) est posé JUSTE au-dessus du décor et
+ * en dessous de tout ce qui relève du jeu : cônes, objets, personnages. Le
+ * parking paraît donc sombre sans qu'on perde de vue les faisceaux ni ce
+ * qu'on ramasse. C'est la lampe du joueur, pas le voile, qui décide de ce
+ * qu'on distingue.
+ */
 export const DEPTH = {
   floor: 0,
   floorLabel: 1,
-  vision: 4,
   obstacleShadow: 7,
   obstacle: 8,
   obstacleDetail: 9,
   deskProps: 10,
   obstacleLabel: 11,
   plant: 12,
-  item: 15,
-  darkness: 18,
-  light: 19,
+  darkness: 13,
+  light: 14,
+  vision: 15,
+  item: 16,
   ghost: 22,
   npc: 25,
   npcDetail: 27,

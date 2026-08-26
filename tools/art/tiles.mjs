@@ -149,6 +149,23 @@ function carPaint() {
   return canvas;
 }
 
+/**
+ * Faïence de sanitaires : petits carreaux blancs et joints nets.
+ * C'est la matière qui dit « toilettes » avant même les sanitaires posés
+ * dessus — un rectangle métallique étiqueté « WC » ne l'a jamais dit.
+ */
+function bathroomTiles() {
+  const canvas = new PixelCanvas(S, S).fill('marbleLight');
+  for (let y = 0; y < S; y += 4) canvas.hLine(0, y, S, 'marbleSeam', 0.9);
+  for (let x = 0; x < S; x += 4) canvas.vLine(x, 0, S, 'marbleSeam', 0.9);
+  for (let y = 0; y < S; y += 1) {
+    for (let x = 0; x < S; x += 1) {
+      if (noise(x, y, 101) > 0.93) canvas.set(x, y, 'glass', 0.18);
+    }
+  }
+  return canvas;
+}
+
 export const TILES = {
   'tile-floor': () => carpet('floorMid', 'floorLight', 'floorSeam', 11),
   'tile-floor-alt': () => carpet('floorDark', 'floorMid', 'floorSeam', 23),
@@ -164,5 +181,6 @@ export const TILES = {
   'tile-asphalt': () => asphalt('asphaltMid', 'asphaltLight', 73),
   'tile-bay': () => asphalt('asphaltLight', 'asphaltSeam', 79),
   'tile-concrete': () => concrete(),
-  'tile-carpaint': () => carPaint()
+  'tile-carpaint': () => carPaint(),
+  'tile-bathroom': () => bathroomTiles()
 };

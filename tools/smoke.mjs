@@ -100,8 +100,8 @@ try {
 
   // Réglages : chaque bascule, y compris la taille de texte qui relance la scène.
   await click(195, 626);
-  for (let row = 0; row < 6; row += 1) await click(305, 178 + row * 74, 500);
-  console.log('  réglages : 6 bascules');
+  for (let row = 0; row < 8; row += 1) await click(305, 170 + row * 62, 420);
+  console.log('  réglages : 8 bascules');
 } catch (error) {
   failures.push(String(error));
 } finally {

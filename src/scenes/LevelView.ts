@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import {
   COLORS,
+  CONE_NIGHT_FLOOR,
   DEPTH,
   DEFAULT_VISION_HALF_ANGLE_DEG,
   DEFAULT_VISION_RANGE,
   NPC_RADIUS,
+  VIEW_WIDTH,
   VISION_SEGMENTS
 } from '../game/constants';
 import {
@@ -39,6 +41,7 @@ import {
   type MaterialStyle
 } from '../game/artTheme';
 import { PALETTE, hex, type PaletteKey } from '../game/palette';
+import { TUTORIAL_MARGIN, TUTORIAL_PADDING, TUTORIAL_TEXT_WIDTH, TUTORIAL_TOUCH_MARGIN } from '../game/constants';
 import { SettingsStore } from '../core/settings';
 import { FR } from '../core/strings';
 import {
@@ -50,7 +53,7 @@ import {
   type PointLike
 } from '../game/geometry';
 import type { NpcController } from '../systems/NpcController';
-import type { DecorDef, LevelDef, NpcDef, ObstacleDef, TutorialDef } from '../game/types';
+import type { DecorDef, LevelDef, NpcDef, ObstacleDef, TutorialDef, Vec2 } from '../game/types';
 import { makeText } from '../ui/theme';
 
 export interface NpcVisual {
@@ -74,6 +77,13 @@ export interface NpcVisual {
   /** Sommets du cône, préalloués et réutilisés d'une frame à l'autre. */
   polygon: Phaser.Math.Vector2[];
 }
+
+/**
+ * Tout ce qui peut s'effacer dans le noir. Les rectangles de Phaser n'ont
+ * qu'une opacité globale, les sprites en ont quatre : on ne demande donc que
+ * le dénominateur commun.
+ */
+type Fadeable = { setAlpha(value: number): unknown };
 
 /** Rayon du halo que le joueur porte dans le noir, en unités de monde. */
 const PLAYER_LIGHT_RADIUS = 175;
@@ -101,6 +111,13 @@ export class LevelView {
   private dressing = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.GameObject[]>();
   private doorSprites = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.Sprite>();
   private light?: Phaser.GameObjects.Image;
+  /**
+   * Ce que la lampe du joueur révèle : PNJ, objets, indices. Le DÉCOR n'y est
+   * pas — il reste lisible, on doit pouvoir se déplacer dans le noir.
+   */
+  private readonly revealed: { objects: Fadeable[]; at: Vec2; floor: number }[] = [];
+  private revealRadius = 0;
+  private hiddenAlpha = 0;
 
   /** Jeu de matières du niveau : c'est lui qui donne son identité à l'étage. */
   private readonly materials: Record<string, MaterialStyle>;
@@ -113,6 +130,49 @@ export class LevelView {
     const theme = level.theme ?? 'office';
     this.materials = MATERIALS[theme];
     this.floorTile = FLOOR_TILES[theme];
+    this.revealRadius = level.ambient?.revealRadius ?? 0;
+    this.hiddenAlpha = level.ambient?.hiddenAlpha ?? 0;
+  }
+
+  /**
+   * Déclare un groupe d'objets que la lampe du joueur révèle.
+   * Sans `revealRadius` dans le niveau, l'appel ne coûte rien : la liste
+   * reste vide et `revealAround` sort immédiatement.
+   */
+  private trackReveal(at: Vec2, ...objects: Fadeable[]) {
+    if (this.revealRadius <= 0) return;
+    this.revealed.push({ objects, at, floor: this.hiddenAlpha });
+  }
+
+  /**
+   * Comme `trackReveal`, mais avec un plancher d'opacité choisi.
+   *
+   * Sert au cône de vision : un PNJ doit disparaître dans le noir, son
+   * faisceau non. Sans ça on se ferait repérer par un garde qu'aucun indice
+   * ne trahissait — la nuit deviendrait injuste plutôt que tendue.
+   */
+  private trackRevealDimmed(at: Vec2, floor: number, ...objects: Fadeable[]) {
+    if (this.revealRadius <= 0) return;
+    this.revealed.push({ objects, at, floor });
+  }
+
+  /**
+   * Lampe torche : ce qui est loin du joueur s'efface.
+   *
+   * Purement visuel. `NpcController` et les cônes de vision ne consultent
+   * jamais l'opacité — un PNJ invisible vous voit exactement comme avant.
+   */
+  revealAround(x: number, y: number) {
+    if (this.revealRadius <= 0) return;
+    const fade = this.revealRadius * 0.45;
+    for (let index = 0; index < this.revealed.length; index += 1) {
+      const entry = this.revealed[index];
+      const distance = Math.hypot(entry.at.x - x, entry.at.y - y);
+      // Bord adouci : une apparition franche clignoterait à chaque pas.
+      const ratio = Math.min(1, Math.max(0, (this.revealRadius - distance) / fade));
+      const alpha = entry.floor + (1 - entry.floor) * ratio;
+      for (let slot = 0; slot < entry.objects.length; slot += 1) entry.objects[slot].setAlpha(alpha);
+    }
   }
 
   drawFloor() {
@@ -360,9 +420,10 @@ export class LevelView {
     points.forEach((point) => {
       const hint = this.scene.add
         .sprite(snap(point.x), snap(point.y), FX_TEXTURES.hint)
-        .setDepth(DEPTH.floorLabel)
+        .setDepth(DEPTH.item)
         .setAlpha(0.8);
       hint.play(HINT_ANIM);
+      this.trackReveal(hint, hint);
     });
   }
 
@@ -447,6 +508,14 @@ export class LevelView {
       .setDepth(DEPTH.detection + 3)
       .setVisible(false);
 
+    const vision = this.scene.add.graphics().setDepth(DEPTH.vision + index * 0.01);
+
+    // Le porteur se noie dans le noir ; son faisceau, lui, garde un plancher
+    // d'opacité. C'est le seul avertissement qui reste au joueur, et sans lui
+    // la nuit devient injuste plutôt que tendue.
+    this.trackReveal(sprite, sprite, nameText, emote, gaugeBack, gaugeFill);
+    this.trackRevealDimmed(sprite, CONE_NIGHT_FLOOR, vision);
+
     return {
       def,
       controller,
@@ -455,7 +524,7 @@ export class LevelView {
       nameText,
       emote,
       reactUntil: 0,
-      vision: this.scene.add.graphics().setDepth(DEPTH.vision + index * 0.01),
+      vision,
       nose: this.scene.add.graphics().setDepth(DEPTH.npcDetail),
       gaugeBack,
       gaugeFill,
@@ -648,6 +717,11 @@ export class LevelView {
     playLoop(sprite, itemAnimKey(texture));
   }
 
+  /** Un objet au sol : il ne se révèle que dans le halo, comme les PNJ. */
+  trackItem(sprite: Phaser.GameObjects.Sprite, label: Phaser.GameObjects.Text) {
+    this.trackReveal({ x: sprite.x, y: sprite.y }, sprite, label);
+  }
+
   showDistraction(x: number, y: number, durationMs: number) {
     const marker = this.scene.add.image(snap(x), snap(y), ITEM_TEXTURES.report).setDepth(DEPTH.item);
     const ring = this.scene.add
@@ -675,9 +749,35 @@ export class LevelView {
     talker.name.setPosition(talker.name.x - 160, talker.name.y).setText(dialogue?.speakerAfter ?? '');
   }
 
+  /**
+   * Bulle de tutoriel.
+   *
+   * Le PANNEAU se dimensionne sur le texte, jamais l'inverse : c'est la seule
+   * façon de tenir la promesse du réglage « taille du texte ». Avec un cadre
+   * figé, une consigne de trois lignes en débordait dès 120 %.
+   */
   createTutorialBubble(tutorial: TutorialDef, onDismiss: () => void): Phaser.GameObjects.Container {
-    const width = 264;
-    const height = 88;
+    const text = makeText(this.scene, 0, 0, tutorial.text, {
+      size: 14,
+      bold: true,
+      color: TEXT.onDark,
+      align: 'center',
+      wrap: TUTORIAL_TEXT_WIDTH
+    }).setOrigin(0.5);
+    const hint = makeText(this.scene, 0, 0, FR.tutorial.close, {
+      size: 10,
+      color: TEXT.onDarkMuted,
+      align: 'center'
+    }).setOrigin(0.5);
+
+    const width = Math.min(
+      VIEW_WIDTH - TUTORIAL_MARGIN * 2,
+      Math.max(text.width, hint.width) + TUTORIAL_PADDING * 2
+    );
+    const height = text.height + hint.height + TUTORIAL_PADDING * 3;
+    text.setY(-height / 2 + TUTORIAL_PADDING + text.height / 2);
+    hint.setY(height / 2 - TUTORIAL_PADDING / 2 - hint.height / 2);
+
     const panel = this.scene.add.nineslice(
       0,
       0,
@@ -695,25 +795,21 @@ export class LevelView {
     const rule = this.scene.add
       .rectangle(0, -height / 2 + OUTLINE * 3, width - OUTLINE * 8, OUTLINE, PALETTE.gold, 0.85)
       .setOrigin(0.5);
-    const text = makeText(this.scene, 0, -6, tutorial.text, {
-      size: 14,
-      bold: true,
-      color: TEXT.onDark,
-      align: 'center',
-      wrap: 220
-    }).setOrigin(0.5);
-    const hint = makeText(this.scene, 0, 30, FR.tutorial.close, {
-      size: 10,
-      color: TEXT.onDarkMuted
-    }).setOrigin(0.5);
 
     const anchor = tutorial.anchor === 'player' ? { x: 0, y: 0 } : tutorial.anchor;
     const container = this.scene.add
       .container(snap(anchor.x), snap(anchor.y), [panel, rule, text, hint])
       .setSize(width, height)
       .setDepth(DEPTH.tutorial)
+      // Zone tactile élargie : une bulle qu'on n'arrive pas à fermer est pire
+      // qu'une bulle absente.
       .setInteractive(
-        new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
+        new Phaser.Geom.Rectangle(
+          -width / 2 - TUTORIAL_TOUCH_MARGIN,
+          -height / 2 - TUTORIAL_TOUCH_MARGIN,
+          width + TUTORIAL_TOUCH_MARGIN * 2,
+          height + TUTORIAL_TOUCH_MARGIN * 2
+        ),
         Phaser.Geom.Rectangle.Contains
       );
     container.setData('anchor', tutorial.anchor);

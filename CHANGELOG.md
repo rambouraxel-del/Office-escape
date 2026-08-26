@@ -1,5 +1,116 @@
 # Journal des versions
 
+## V0.10.1 — Première passe d'optimisation
+
+Passe de confort : rien de neuf à jouer, mais les irritants de la V0.10 sont
+levés. Aucun score, aucun dialogue, aucun objet, aucune vitesse du joueur et
+aucune règle de victoire n'a bougé — seules les valeurs directement visées
+ci-dessous changent.
+
+**Tutoriels**
+- Une bulle se ferme de trois façons : au toucher (avec une marge tactile de
+  `TUTORIAL_TOUCH_MARGIN`, on la ferme au pouce sans viser), dès que le joueur
+  s'est vraiment déplacé quand la consigne le demande (`dismissOnMove` dans la
+  donnée du niveau, `TUTORIAL_MOVE_DISMISS` unités parcourues), et toute seule
+  au bout de `TUTORIAL_AUTO_DISMISS_MS`.
+- Nouveau réglage **Tutoriels**, **activé par défaut**. Coupé, aucune bulle
+  n'apparaît ; la progression « tutoriels vus » reste enregistrée comme avant.
+- **Correction du débordement de texte** : `makeText` multipliait la largeur
+  d'habillage par l'échelle du texte. Une largeur d'habillage est une largeur
+  de PANNEAU, en pixels d'écran : elle ne suit pas la taille de police. À 140 %
+  la phrase sortait du cadre. Le panneau se dimensionne désormais à partir du
+  texte mesuré, à toutes les tailles réglables.
+
+**Nettoyage visuel des niveaux**
+- Suppression des étiquettes qui expliquaient le décor au lieu de le laisser
+  parler : « TON BUREAU », « ZONE DU BOSS », « COULOIR PRINCIPAL », « ALCÔVE »,
+  « DERNIER OBSTACLE », « OBJECTIF • RENTRER CHEZ TOI » au niveau 1 ;
+  « VESTIAIRE », « OPEN SPACE », « ZONE SURVEILLÉE », « ACCÈS DIRECTION »,
+  « COULOIR DES CADRES » au niveau 2 ; les « VOITURE » du niveau 3. Les
+  panneaux qui portent une information de jeu (sortie, ascenseur) restent.
+- **Les toilettes du niveau 1 ne s'appellent plus « WC »** : nouveau
+  `ObstacleKind: 'restroom'`, carrelage sanitaire `tile-bathroom`, et trois
+  accessoires pixel art (`toilet`, `sink`, `stall`) posés en deux cabines
+  cloisonnées plus un lavabo. On reconnaît la pièce à ce qu'elle contient. Le
+  rectangle de collision, lui, n'a pas bougé d'une unité.
+
+**Déplacement des PNJ**
+- Nouveau module PUR `src/systems/NavGrid.ts` : grille de navigation à 25
+  unités par cellule, parcours en largeur d'abord puis lissage par ligne de
+  vue. Une marge de dégagement `NAV_CLEARANCE` autour de chaque obstacle
+  empêche un PNJ de raser un mur — c'est ce frottement qui bloquait les PNJ du
+  niveau 3 contre les voitures.
+- Chaque PNJ mobile déclare une `roam` (zone de déplacement) dans la donnée du
+  niveau. Ses destinations sont tirées dans cette zone, décalées de
+  `ROAM_JITTER` autour du point de ronde : la ronde reste apprenable, sans
+  être identique à chaque tour.
+- Le tirage vient du `Prng` du niveau, pas de `Math.random()` : **le Défi du
+  jour reste reproductible.**
+- La poursuite recalcule son chemin toutes les `CHASE_REPATH_SECONDS`. Tout
+  changement d'état invalide le chemin : après une poursuite, une fouille ou
+  une distraction, le PNJ repart proprement vers sa ronde.
+- L'ouverture d'une porte reconstruit la grille à partir des obstacles encore
+  solides : le passage se rouvre pour les PNJ à l'instant où il s'ouvre pour
+  le joueur.
+- Suppression de l'ancien déblocage à l'aveugle (`STUCK_SECONDS`,
+  `STUCK_STRAFE_SECONDS`, `NpcSense.blocked`) : il traitait le symptôme.
+
+**Vision des PNJ**
+- Cône plus étroit et plus court : `DEFAULT_VISION_RANGE` 310 → **230**,
+  `DEFAULT_VISION_HALF_ANGLE_DEG` 31 → **22**.
+- En échange, la détection mord plus vite : `DETECTION_ALERT_SECONDS` 2 →
+  **1,1**, `DETECTION_INTERCEPT_SECONDS` 4 → **2,4**. Un cône se contourne, il
+  ne se traverse pas.
+- La course reste pénalisante : `RUN_VISION_MULTIPLIER` allonge la portée,
+  `RUN_DETECTION_MULTIPLIER` accélère la jauge.
+- Chaque niveau peut affiner par PNJ (`visionRange`, `visionHalfAngleDeg`) —
+  le garde du parking voit loin et étroit, les collègues voient court et large.
+
+**Caméras de surveillance**
+- Balayage réécrit : vitesse **constante** en degrés par seconde, et **arrêt à
+  chaque extrémité** avant de repartir dans l'autre sens. On peut observer la
+  caméra et comprendre quand passer.
+- Tout est dans la donnée du niveau : `sweep: { from, to, degPerSecond, holdMs }`,
+  plus `visionRange` et `visionHalfAngleDeg`. Valeurs par défaut
+  `CAMERA_SWEEP_DEG_PER_SECOND` et `CAMERA_HOLD_MS`.
+- Angles et portées du niveau 2 fortement réduits (portée 200 et 190, demi-angle
+  11°).
+
+**Niveau 3 : une vraie mécanique de nuit**
+- Le décor reste lisible dans le noir : sol, murs, voitures, mobilier,
+  structure. On doit pouvoir circuler.
+- Les éléments de jeu — PNJ, objets à ramasser, indices — ne sont nets que dans
+  le halo du joueur. Leur opacité suit la distance (`ambient.revealRadius`,
+  `ambient.hiddenAlpha`), avec un bord adouci pour ne pas clignoter à chaque
+  pas.
+- Le cône de vision garde un plancher d'opacité (`CONE_NIGHT_FLOOR`) : le
+  porteur se noie dans le noir, son faisceau reste perceptible. Sans ça on se
+  ferait repérer par un garde qu'aucun indice ne trahissait.
+- `DEPTH` réordonné pour que le voile de nuit passe au-dessus du décor et sous
+  les éléments de jeu.
+- **La détection n'a pas changé d'une virgule** : l'opacité est du rendu, un
+  PNJ invisible vous voit exactement comme avant.
+
+**Fantôme du record**
+- Nouveau réglage **Fantôme du record**, **coupé par défaut**. Coupé, aucun
+  fantôme n'est créé. Activé, le comportement de la V0.10 est conservé.
+- L'enregistrement du meilleur parcours continue toujours : on peut allumer le
+  fantôme plus tard et retrouver son record.
+- Toujours absent du Défi du jour.
+
+**Tests**
+- Nouveau `tests/nav.test.ts` : unités de la grille (blocage, recalage,
+  contournement, ligne de vue, réouverture d'une porte) et, pour **chaque
+  niveau livré**, que tout point de ronde est atteignable depuis le départ,
+  que la zone de déplacement contient bien les points de ronde, et que tout
+  PNJ mobile déclare une zone.
+- `tests/npc.test.ts` couvre le contournement d'obstacle, le retour à la ronde
+  après une fouille, le maintien dans la zone, la reproductibilité du tirage et
+  l'arrêt de caméra en bout de course.
+- `tests/core.test.ts` couvre les deux nouveaux réglages et leurs valeurs par
+  défaut.
+- 271 tests.
+
 ## V0.9.2 — Polish final et généralisation (étape 3)
 
 Fin de la refonte graphique. Toujours **visuel uniquement** : aucune vitesse,

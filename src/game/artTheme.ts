@@ -45,7 +45,10 @@ export const MATERIALS: Record<LevelTheme, Record<ObstacleKind, MaterialStyle>> 
     desk: { tile: 'tile-wood', edge: 'ink', crest: 'woodLight', base: 'woodDark' },
     cabinet: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark', inset: 'glassDim' },
     pillar: { tile: 'tile-stone', edge: 'ink', crest: 'stoneLight', base: 'stoneDark', inset: 'stoneLight' },
-    door: { tile: 'tile-wood', edge: 'ink', crest: 'gold', base: 'woodDark', inset: 'goldDark' }
+    door: { tile: 'tile-wood', edge: 'ink', crest: 'gold', base: 'woodDark', inset: 'goldDark' },
+    // Sanitaires : faïence claire. Aucune incrustation — ce sont les cuvettes
+    // et le lavabo posés dessus qui font la lecture, plus une étiquette « WC ».
+    restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'marbleSeam' }
   },
   // Étage direction : plus froid, plus net, un liseré de laiton partout.
   exec: {
@@ -54,7 +57,8 @@ export const MATERIALS: Record<LevelTheme, Record<ObstacleKind, MaterialStyle>> 
     desk: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark' },
     cabinet: { tile: 'tile-metal', edge: 'ink', crest: 'marbleLight', base: 'metalDark', inset: 'marbleMid' },
     pillar: { tile: 'tile-marble', edge: 'ink', crest: 'marbleLight', base: 'marbleSeam', inset: 'brass' },
-    door: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark', inset: 'goldDark' }
+    door: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark', inset: 'goldDark' },
+    restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'brass' }
   },
   // Parking : béton brut, et les « armoires » du niveau 3 sont des voitures.
   parking: {
@@ -69,7 +73,8 @@ export const MATERIALS: Record<LevelTheme, Record<ObstacleKind, MaterialStyle>> 
       base: 'concreteDark',
       inset: 'paintLine'
     },
-    door: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark', inset: 'goldDark' }
+    door: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark', inset: 'goldDark' },
+    restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'concreteDark' }
   }
 };
 
@@ -167,6 +172,9 @@ export const DESK_PROPS = {
 export const PROP_TEXTURES: Record<PropKind, string> = {
   plant: 'prop-plant',
   cactus: 'prop-cactus',
+  toilet: 'prop-toilet',
+  sink: 'prop-sink',
+  stall: 'prop-stall',
   chair: 'prop-chair',
   exitSign: 'prop-exit-sign',
   trash: 'prop-trash',
@@ -319,7 +327,8 @@ export const IMAGE_MANIFEST = {
     'tile-asphalt',
     'tile-bay',
     'tile-concrete',
-    'tile-carpaint'
+    'tile-carpaint',
+    'tile-bathroom'
   ],
   props: [
     'prop-keyboard',
@@ -330,6 +339,9 @@ export const IMAGE_MANIFEST = {
     'prop-lamp',
     'prop-plant',
     'prop-cactus',
+    'prop-toilet',
+    'prop-sink',
+    'prop-stall',
     'prop-chair',
     'prop-trash',
     'prop-boxes',

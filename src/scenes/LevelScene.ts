@@ -12,6 +12,8 @@ import {
   INTERACTION_RADIUS,
   MANUAL_PAUSE_PENALTY_MINUTES,
   PLAYER_RADIUS,
+  TUTORIAL_AUTO_DISMISS_MS,
+  TUTORIAL_MOVE_DISMISS,
   POCKET_SLOT_STEP,
   POCKET_SLOT_X,
   POCKET_SLOT_Y,
@@ -31,6 +33,7 @@ import { FR } from '../core/strings';
 import { GhostPlayer, GhostRecorder } from '../systems/GhostRecorder';
 import { Inventory } from '../systems/Inventory';
 import { NpcController } from '../systems/NpcController';
+import { NavGrid } from '../systems/NavGrid';
 import { TutorialDirector } from '../systems/TutorialDirector';
 import { REGISTRY_KEYS, type InputState, type RunRequest, type RunResult } from '../game/session';
 import { getLevel } from '../levels';
@@ -71,6 +74,7 @@ export class LevelScene extends Phaser.Scene {
   private request!: RunRequest;
   private prng!: Prng;
   private view!: LevelView;
+  private nav!: NavGrid;
   private inputState!: InputState;
 
   private player!: Phaser.GameObjects.Sprite;
@@ -78,12 +82,16 @@ export class LevelScene extends Phaser.Scene {
   private npcs: NpcVisual[] = [];
   private items: ItemInstance[] = [];
   private doors = new Map<string, Phaser.GameObjects.Rectangle>();
+  private openedDoors = new Set<ObstacleDef>();
   private ghost?: Phaser.GameObjects.Sprite;
   private ghostPlayer?: GhostPlayer;
   private recorder = new GhostRecorder();
 
   private tutorials!: TutorialDirector;
   private tutorialBubble?: Phaser.GameObjects.Container;
+  /** Horodatage d'expiration et position du joueur à l'apparition de la bulle. */
+  private tutorialUntil = 0;
+  private readonly tutorialOrigin = { x: 0, y: 0 };
 
   private hiddenIn: string | null = null;
   private isRunning = false;
@@ -115,6 +123,10 @@ export class LevelScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, this.level.size.w, this.level.size.h);
     this.cameras.main.setBackgroundColor(COLORS.background);
 
+    // Grille de navigation : tous les obstacles OPAQUES et solides, gonflés du
+    // rayon d'un PNJ. Construite une seule fois par partie.
+    this.nav = new NavGrid(this.level.size.w, this.level.size.h, this.level.obstacles);
+
     this.view = new LevelView(this, this.level);
     this.view.drawFloor();
     this.doors = this.view.drawObstacles();
@@ -135,7 +147,12 @@ export class LevelScene extends Phaser.Scene {
     this.setupKeyboard();
     this.setupLifecycle();
 
-    this.tutorials = new TutorialDirector(this.level.tutorials, Save.areTutorialsDone(this.level.id));
+    // Deux raisons de se taire : le joueur a coupé les tutoriels, ou il les a
+    // déjà tous vus sur ce niveau.
+    this.tutorials = new TutorialDirector(
+      this.level.tutorials,
+      !SettingsStore.get().tutorials || Save.areTutorialsDone(this.level.id)
+    );
     this.scene.launch('Ui');
     Audio.startAmbient();
     enterScene(this);
@@ -167,7 +184,9 @@ export class LevelScene extends Phaser.Scene {
     // Phaser réutilise l'instance de scène : ces références pointeraient sinon
     // vers des objets détruits par la partie précédente.
     this.doors = new Map();
+    this.openedDoors = new Set();
     this.tutorialBubble = undefined;
+    this.tutorialUntil = 0;
     this.ghost = undefined;
     this.ghostPlayer = undefined;
   }
@@ -193,7 +212,11 @@ export class LevelScene extends Phaser.Scene {
         def.chaseSpeed ?? DEFAULT_CHASE_SPEED,
         // La seed décale les phases : le Défi du jour ne rejoue pas la même
         // ouverture que la partie libre.
-        this.request.daily ? this.prng.next() : 0
+        this.request.daily ? this.prng.next() : 0,
+        this.nav,
+        // Tirage SEEDÉ : les rondes varient d'une partie à l'autre mais un
+        // même Défi du jour rejoue exactement la même chose.
+        () => this.prng.next()
       );
       const visual = this.view.createNpc(def, controller, index);
 
@@ -234,11 +257,15 @@ export class LevelScene extends Phaser.Scene {
       })
         .setOrigin(0.5)
         .setDepth(DEPTH.item);
+      this.view.trackItem(sprite, label);
       this.items.push({ id: spawn.id, sprite, label, collected: false, x: spawn.at.x, y: spawn.at.y });
     });
   }
 
   private spawnGhost() {
+    // L'enregistrement continue toujours (`recorder`) : le joueur peut activer
+    // le réglage plus tard et retrouver son meilleur parcours.
+    if (!SettingsStore.get().ghost) return;
     const track = Save.getGhost(this.level.id);
     if (!track || track.length < 2 || this.request.daily) return;
     this.ghostPlayer = new GhostPlayer(track);
@@ -306,6 +333,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.updatePlayer();
     this.view.updateLight(this.player.x, this.player.y);
+    this.view.revealAround(this.player.x, this.player.y);
     this.updateGhost(delta);
     this.updateDistraction(time);
     this.updateNpcs(delta / 1000);
@@ -438,7 +466,6 @@ export class LevelScene extends Phaser.Scene {
         playerVisible: visible,
         playerPosition: this.player,
         playerRunning: this.isRunning,
-        blocked: !npc.body?.blocked.none,
         distraction: distractionInRange
       });
 
@@ -577,6 +604,10 @@ export class LevelScene extends Phaser.Scene {
     const rectangle = this.doors.get(door.id ?? '');
     if (!rectangle) return;
     this.view.openDoor(rectangle);
+    // La grille date du début de partie : sans ce recalcul, les PNJ
+    // continueraient de contourner une porte pourtant grande ouverte.
+    this.openedDoors.add(door);
+    this.nav.rebuild(this.level.obstacles.filter((obstacle) => !this.openedDoors.has(obstacle)));
     this.doors.delete(door.id ?? '');
     Audio.play('door');
     vibrate(25);
@@ -659,10 +690,27 @@ export class LevelScene extends Phaser.Scene {
 
   // ─────────────────────────────── tutoriels ──────────────────────────────
 
+  /**
+   * Bulles d'aide.
+   *
+   * Trois sorties, parce qu'une consigne qui s'accroche à l'écran finit par
+   * cacher le terrain qu'elle explique :
+   *  - au toucher (la bulle est interactive) ;
+   *  - dès que le joueur s'est vraiment déplacé, quand la consigne portait
+   *    justement sur le déplacement ;
+   *  - au bout de quelques secondes, dans tous les cas.
+   */
   private updateTutorials() {
     if (this.tutorialBubble) {
       const anchor = this.tutorialBubble.getData('anchor') as { x: number; y: number } | 'player';
-      if (anchor === 'player') this.tutorialBubble.setPosition(this.player.x, this.player.y - 85);
+      if (anchor === 'player') this.tutorialBubble.setPosition(this.player.x, this.player.y - 96);
+
+      const moved = Math.hypot(
+        this.player.x - this.tutorialOrigin.x,
+        this.player.y - this.tutorialOrigin.y
+      );
+      const byMove = this.tutorialBubble.getData('dismissOnMove') === true && moved > TUTORIAL_MOVE_DISMISS;
+      if (byMove || this.time.now >= this.tutorialUntil) this.closeTutorialBubble();
       return;
     }
 
@@ -675,12 +723,20 @@ export class LevelScene extends Phaser.Scene {
     });
     if (!next) return;
 
-    this.tutorialBubble = this.view.createTutorialBubble(next, () => {
-      const id = this.tutorials.dismiss();
-      this.tutorialBubble?.destroy(true);
-      this.tutorialBubble = undefined;
-      if (id && this.tutorials.allDismissed) Save.markTutorialsDone(this.level.id);
-    });
+    this.tutorialBubble = this.view.createTutorialBubble(next, () => this.closeTutorialBubble());
+    // Une consigne ancrée au joueur parle forcément de déplacement : elle
+    // s'efface dès qu'il avance. Une consigne posée sur un lieu, non.
+    this.tutorialBubble.setData('dismissOnMove', next.dismissOnMove ?? next.anchor === 'player');
+    this.tutorialUntil = this.time.now + TUTORIAL_AUTO_DISMISS_MS;
+    this.tutorialOrigin.x = this.player.x;
+    this.tutorialOrigin.y = this.player.y;
+  }
+
+  private closeTutorialBubble() {
+    const id = this.tutorials.dismiss();
+    this.tutorialBubble?.destroy(true);
+    this.tutorialBubble = undefined;
+    if (id && this.tutorials.allDismissed) Save.markTutorialsDone(this.level.id);
   }
 
   private dismissTutorialBubble(id: string) {

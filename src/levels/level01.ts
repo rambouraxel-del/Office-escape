@@ -26,7 +26,9 @@ export const LEVEL_01: LevelDef = {
     { x: 85, y: 2030, w: 90, h: 105, kind: 'desk' },
     { x: 415, y: 2030, w: 90, h: 105, kind: 'desk' },
 
-    { x: 77, y: 1580, w: 105, h: 230, kind: 'cabinet', label: 'WC' },
+    // Sanitaires : faïence au sol, cabines et lavabo posés dessus. Aucune
+    // étiquette — la pièce doit se reconnaître, pas se lire.
+    { x: 77, y: 1580, w: 105, h: 230, kind: 'restroom' },
 
     { x: 420, y: 1500, w: 90, h: 110, kind: 'desk' },
     { x: 80, y: 1245, w: 110, h: 75, kind: 'desk' },
@@ -40,15 +42,15 @@ export const LEVEL_01: LevelDef = {
   ],
 
   decor: [
-    { kind: 'zone', x: 250, y: 2075, w: 316, h: 124, material: 'start', text: 'TON BUREAU' },
+    { kind: 'zone', x: 250, y: 2075, w: 316, h: 124, material: 'start' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'SORTIE  ↑' },
     { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'alcove' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
-    { kind: 'text', x: 92, y: 525, text: 'ALCÔVE', size: 11, tone: 'quiet' },
-    { kind: 'text', x: 250, y: 1862, text: 'OBJECTIF  •  RENTRER CHEZ TOI', size: 12, tone: 'zone' },
-    { kind: 'text', x: 250, y: 1780, text: 'COULOIR PRINCIPAL', size: 12, tone: 'quiet' },
-    { kind: 'text', x: 250, y: 1160, text: 'ZONE DU BOSS', size: 13, tone: 'warm' },
-    { kind: 'text', x: 250, y: 340, text: 'DERNIER OBSTACLE', size: 12, tone: 'warm' },
+    { kind: 'prop', x: 77, y: 1524, prop: 'stall' },
+    { kind: 'prop', x: 77, y: 1614, prop: 'stall' },
+    { kind: 'prop', x: 56, y: 1490, prop: 'toilet' },
+    { kind: 'prop', x: 56, y: 1580, prop: 'toilet' },
+    { kind: 'prop', x: 62, y: 1664, prop: 'sink' },
     { kind: 'deskProps', x: 85, y: 2030, side: -1 },
     { kind: 'deskProps', x: 415, y: 2030, side: 1 },
     { kind: 'deskProps', x: 420, y: 1500, side: 1 },
@@ -91,7 +93,11 @@ export const LEVEL_01: LevelDef = {
       patrol: [
         { x: 250, y: 1320 },
         { x: 250, y: 1790 }
-      ]
+      ],
+      // Le collègue reste dans le couloir : il ne va jamais fouiner derrière
+      // les bureaux, mais il ne repasse pas non plus deux fois sur la même
+      // ligne.
+      roam: { x: 250, y: 1555, w: 210, h: 500 }
     },
     {
       id: 'boss',
@@ -103,10 +109,11 @@ export const LEVEL_01: LevelDef = {
         { x: 395, y: 1040 },
         { x: 105, y: 1040 }
       ],
+      roam: { x: 250, y: 860, w: 300, h: 400 },
       patrolSpeed: 72,
       chaseSpeed: 128,
-      visionRange: 340,
-      visionHalfAngleDeg: 36
+      visionRange: 250,
+      visionHalfAngleDeg: 26
     }
   ],
 

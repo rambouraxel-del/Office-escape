@@ -17,7 +17,11 @@ export const LEVEL_03: LevelDef = {
   // FIXES. Ces lampes sont PUREMENT visuelles — la détection ne les consulte
   // jamais, sinon ce serait une mécanique, pas un rendu.
   ambient: {
-    darkness: 0.76,
+    // Le décor reste LISIBLE : on doit voir où l'on met les pieds. Ce sont les
+    // PNJ, les objets et les indices qui disparaissent hors du halo.
+    darkness: 0.58,
+    revealRadius: 210,
+    hiddenAlpha: 0.1,
     lights: [
       { x: 250, y: 2010, radius: 210 },
       { x: 250, y: 1450, radius: 230 },
@@ -37,18 +41,18 @@ export const LEVEL_03: LevelDef = {
     { x: 250, y: 20, w: 500, h: 40, kind: 'wall' },
     { x: 250, y: 2180, w: 500, h: 40, kind: 'wall' },
 
-    { x: 95, y: 1900, w: 120, h: 70, kind: 'cabinet', label: 'VOITURE' },
-    { x: 405, y: 1900, w: 120, h: 70, kind: 'cabinet', label: 'VOITURE' },
+    { x: 95, y: 1900, w: 120, h: 70, kind: 'cabinet' },
+    { x: 405, y: 1900, w: 120, h: 70, kind: 'cabinet' },
     { x: 250, y: 1700, w: 90, h: 150, kind: 'pillar' },
 
     { x: 77, y: 1330, w: 105, h: 190, kind: 'cabinet', label: 'ESCALIER' },
-    { x: 420, y: 1450, w: 120, h: 70, kind: 'cabinet', label: 'VOITURE' },
+    { x: 420, y: 1450, w: 120, h: 70, kind: 'cabinet' },
 
     { x: 120, y: 1080, w: 90, h: 150, kind: 'pillar' },
     { x: 380, y: 1080, w: 90, h: 150, kind: 'pillar' },
 
-    { x: 90, y: 820, w: 120, h: 70, kind: 'cabinet', label: 'VOITURE' },
-    { x: 410, y: 820, w: 120, h: 70, kind: 'cabinet', label: 'VOITURE' },
+    { x: 90, y: 820, w: 120, h: 70, kind: 'cabinet' },
+    { x: 410, y: 820, w: 120, h: 70, kind: 'cabinet' },
     { x: 250, y: 620, w: 90, h: 150, kind: 'pillar' },
 
     { x: 95, y: 165, w: 150, h: 30, kind: 'wall' },
@@ -124,11 +128,13 @@ export const LEVEL_03: LevelDef = {
         { x: 420, y: 400 },
         { x: 420, y: 1500 }
       ],
+      // Le vigile couvre la moitié droite du parking et la rampe.
+      roam: { x: 320, y: 950, w: 300, h: 1180 },
       patrolSpeed: 92,
       chaseSpeed: 150,
-      // Lampe torche : très loin, très étroit. Contournable si on l'observe.
-      visionRange: 430,
-      visionHalfAngleDeg: 17
+      // Lampe torche : loin, très étroit. Contournable si on l'observe.
+      visionRange: 330,
+      visionHalfAngleDeg: 14
     },
     {
       id: 'late-colleague',
@@ -138,10 +144,11 @@ export const LEVEL_03: LevelDef = {
         { x: 120, y: 1850 },
         { x: 120, y: 1200 }
       ],
+      roam: { x: 150, y: 1520, w: 180, h: 660 },
       patrolSpeed: 74,
       chaseSpeed: 112,
-      visionRange: 260,
-      visionHalfAngleDeg: 30
+      visionRange: 200,
+      visionHalfAngleDeg: 24
     },
     {
       id: 'cleaner',
@@ -153,10 +160,11 @@ export const LEVEL_03: LevelDef = {
         { x: 120, y: 700 },
         { x: 250, y: 700 }
       ],
+      roam: { x: 190, y: 500, w: 220, h: 440 },
       patrolSpeed: 68,
       chaseSpeed: 104,
-      visionRange: 250,
-      visionHalfAngleDeg: 33
+      visionRange: 195,
+      visionHalfAngleDeg: 24
     }
   ],
 

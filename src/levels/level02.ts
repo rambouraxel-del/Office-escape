@@ -1,5 +1,4 @@
 import type { LevelDef } from '../game/types';
-
 /**
  * Niveau 2 — l'étage direction.
  * Nouvelles mécaniques : caméras à balayage (vision sans déplacement) et
@@ -52,11 +51,6 @@ export const LEVEL_02: LevelDef = {
     { kind: 'zone', x: 250, y: 1290, w: 130, h: 380, material: 'exec' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
 
-    { kind: 'text', x: 425, y: 1250, text: 'VESTIAIRE', size: 11, tone: 'quiet' },
-    { kind: 'text', x: 250, y: 1640, text: 'OPEN SPACE', size: 13, tone: 'quiet' },
-    { kind: 'text', x: 250, y: 880, text: 'ZONE SURVEILLÉE', size: 14, tone: 'warm' },
-    { kind: 'text', x: 250, y: 700, text: 'ACCÈS DIRECTION', size: 12, tone: 'warm' },
-    { kind: 'text', x: 250, y: 330, text: 'COULOIR DES CADRES', size: 12, tone: 'quiet' },
 
     { kind: 'deskProps', x: 85, y: 1880, side: -1 },
     { kind: 'deskProps', x: 415, y: 1880, side: 1 },
@@ -105,18 +99,20 @@ export const LEVEL_02: LevelDef = {
       label: 'CAMÉRA',
       archetype: 'camera',
       patrol: [{ x: 445, y: 1660 }],
-      sweep: { from: 130, to: 220, periodMs: 5200 },
-      visionRange: 330,
-      visionHalfAngleDeg: 22
+      // Balayage lent, avec un temps d'arrêt franc en bout de course : c'est
+      // cette pause qu'on observe et qu'on attend pour passer.
+      sweep: { from: 130, to: 220, degPerSecond: 24, holdMs: 1800 },
+      visionRange: 200,
+      visionHalfAngleDeg: 11
     },
     {
       id: 'cam-vestiaire',
       label: 'CAMÉRA',
       archetype: 'camera',
       patrol: [{ x: 445, y: 1090 }],
-      sweep: { from: 100, to: 175, periodMs: 4200 },
-      visionRange: 300,
-      visionHalfAngleDeg: 20
+      sweep: { from: 100, to: 175, degPerSecond: 28, holdMs: 1400 },
+      visionRange: 190,
+      visionHalfAngleDeg: 11
     },
     {
       id: 'boss',
@@ -128,10 +124,11 @@ export const LEVEL_02: LevelDef = {
         { x: 390, y: 1120 },
         { x: 110, y: 1120 }
       ],
+      roam: { x: 250, y: 1000, w: 300, h: 280 },
       patrolSpeed: 76,
       chaseSpeed: 132,
-      visionRange: 340,
-      visionHalfAngleDeg: 36
+      visionRange: 250,
+      visionHalfAngleDeg: 26
     },
     {
       id: 'intern',
@@ -143,10 +140,11 @@ export const LEVEL_02: LevelDef = {
         { x: 350, y: 640 },
         { x: 150, y: 640 }
       ],
+      roam: { x: 250, y: 530, w: 260, h: 260 },
       patrolSpeed: 96,
       chaseSpeed: 124,
-      visionRange: 270,
-      visionHalfAngleDeg: 28
+      visionRange: 205,
+      visionHalfAngleDeg: 21
     }
   ],
 
