@@ -288,6 +288,11 @@ function drawBody(c, spec, view, pose) {
     }
   }
 
+  // Volume (V0.11) : une arête éclairée sur le haut du buste, une ombre à la
+  // taille. Deux lignes, et le personnage cesse d'être un aplat découpé.
+  c.rect(side + 1, y + 1, shoulder - 2, 1, 'paper', 0.16);
+  c.rect(side + 1, y + 5, shoulder - 2, 1, 'ink', 0.2);
+
   if (pose.arms === 2) {
     drawRaisedArms(c, spec, side, shoulder, y);
   } else {
@@ -518,5 +523,48 @@ export const CHARACTERS = {
     pants: 'woodDark',
     openMouth: true,
     hairTop: 3
+  },
+
+  // ── V0.11 : quatre rôles de plus, d'après la planche de personnages.
+  // On les distingue à la SILHOUETTE et à l'accessoire, jamais à la seule
+  // couleur : c'est la règle de lisibilité de la bible graphique.
+
+  // RH : chignon haut, lunettes fines, veste bleu bureau.
+  'char-hr': {
+    hair: 'hairDark',
+    cloth: 'blue',
+    clothDark: 'blueDark',
+    pants: 'navyDark',
+    glasses: true,
+    hairTop: 1
+  },
+  // Technicien informatique : cheveux en bataille, polo teal, badge.
+  'char-tech': {
+    hair: 'woodDark',
+    cloth: 'tealDark',
+    clothDark: 'navyDark',
+    pants: 'navy',
+    glasses: true,
+    badge: 'glass',
+    hairTop: 3
+  },
+  // Réceptionniste : blond clair, chemisier prune, sourire de façade.
+  'char-receptionist': {
+    hair: 'hairBlond',
+    cloth: 'plumLight',
+    clothDark: 'plum',
+    pants: 'stoneDark',
+    hairTop: 2
+  },
+  // Agent d'entretien : casquette bleue, tenue de travail, carrure large.
+  'char-janitor': {
+    hair: 'hairGrey',
+    cloth: 'blueLight',
+    clothDark: 'blue',
+    pants: 'blueDark',
+    cap: 'blue',
+    capDark: 'blueDark',
+    big: true,
+    hairTop: 2
   }
 };

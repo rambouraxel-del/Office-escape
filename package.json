@@ -1,6 +1,6 @@
 {
   "name": "office-escape",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "description": "Jeu web 2D d'infiltration mobile-first : quitter le bureau avant les heures sup.",

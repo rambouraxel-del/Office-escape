@@ -104,6 +104,26 @@ choisit, dans `artTheme.ts`, le sol, les matières de chaque type d'obstacle et
 la vignette du menu. Aucun niveau ne cite un nom de fichier, et donner une
 identité à un quatrième étage ne demandera qu'une entrée de plus.
 
+## Le vocabulaire visuel (V0.11)
+
+Trois tables, dans `artTheme.ts`, forment le pont entre une donnée de niveau et
+un asset. Elles sont le SEUL endroit où un nom de fichier apparaît :
+
+- `MATERIALS[theme][kind]` — la matière d'un obstacle. 14 natures d'obstacle,
+  de `wall` à `server`, déclinées sur les trois thèmes.
+- `ZONE_TILES[material]` — le sol d'une zone. 12 matières, du tapis d'accueil
+  au sol caoutchouc d'un local technique.
+- `PROP_TEXTURES[kind]` — l'accessoire posé. 53 accessoires.
+
+Ajouter une pièce au jeu, c'est ajouter une ligne à chacune, pas une condition
+dans `LevelView`. Trois tests d'hygiène vérifient que chaque entrée pointe vers
+un PNG livré, qu'aucune scène ne cite un nom d'asset, et qu'aucun PNG ne traîne
+sans être déclaré.
+
+**La règle de la passe graphique de la V0.11** : aucun rectangle de collision
+n'a bougé. Un obstacle change de `kind`, jamais de géométrie — l'habillage se
+refait, le level design reste intact, et le diff le montre.
+
 ## L'accueil (V0.10.2)
 
 L'écran d'accueil est le seul endroit du projet dessiné **en élévation**, et

@@ -65,7 +65,24 @@ const L = {
   N: 'neonTube',
   U: 'rubber',
   j: 'marbleLight',
-  J: 'marbleMid'
+  J: 'marbleMid',
+  // ── V0.11 : teintes des planches d'assets fournies.
+  F: 'sofaNavy',
+  '~': 'sofaNavyLight',
+  '1': 'glassPane',
+  '2': 'glassFrame',
+  '3': 'lockerBlue',
+  '4': 'lockerBlueDark',
+  '5': 'server',
+  '6': 'serverLed',
+  '7': 'signGreen',
+  '8': 'signGreenDark',
+  '9': 'hazard',
+  '0': 'hazardDark',
+  '#': 'kitchenTile',
+  '@': 'carpetBlue',
+  '%': 'stateOk',
+  '+': 'info'
 };
 
 /** Cadre commun des objets ramassables et des planches, en pixels d'art. */
@@ -727,7 +744,339 @@ const NEON = () =>
     'KKKKKKKKKKKKKKKKKKKKKKKK'
   ]);
 
+// ───────────────────── V0.11 : d'après les planches fournies ─────────────
+
+/**
+ * Canapé du coin détente, vu de dessus.
+ *
+ * Le dossier est une bande ÉPAISSE sur un seul côté, les accoudoirs deux
+ * blocs aux extrémités, et les coussins deux carrés séparés. Sans ces trois
+ * masses, un canapé vu de dessus n'est qu'un rectangle sombre.
+ */
+const SOFA = () =>
+  sprite(26, [
+    'KKKKKKKKKKKKKKKKKKKKKKKKKK',
+    'KFFFFFFFFFFFFFFFFFFFFFFFFK',
+    'KF~~~~~~~~~~~~~~~~~~~~~~~K',
+    'KFFFFFFFFFFFFFFFFFFFFFFFFK',
+    'KKKKKKKKKKKKKKKKKKKKKKKKKK',
+    'KFFK~~~~~~~~KK~~~~~~~~KFFK',
+    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
+    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
+    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
+    'KFFKFFFFFFFFKKFFFFFFFFKFFK',
+    'KKKKKKKKKKKKKKKKKKKKKKKKKK'
+  ]);
+
+/** Table basse en verre du lounge : on voit le tapis au travers. */
+const COFFEE_TABLE = () =>
+  sprite(16, [
+    'KKKKKKKKKKKKKKKK',
+    'K11111111111111K',
+    'K1222222222221wK',
+    'K1211111111121wK',
+    'K1211111111121wK',
+    'K1222222222221wK',
+    'K11111111111wwK',
+    'KKKKKKKKKKKKKKKK',
+    '.Kn..........nK'
+  ]);
+
+/** Tableau blanc sur pied : la salle de réunion se reconnaît à ça. */
+const WHITEBOARD = () =>
+  sprite(20, [
+    'KKKKKKKKKKKKKKKKKKKK',
+    'KwwwwwwwwwwwwwwwwwwK',
+    'KwwccwwwwwwwttwwwwwK',
+    'KwwwwwwwwwwwwwwwwwwK',
+    'KwwwwtttwwwwwwccwwwK',
+    'KwwwwwwwwwwwwwwwwwwK',
+    'KWWWWWWWWWWWWWWWWWWK',
+    'KKKKKKKKKKKKKKKKKKKK',
+    '..KnK..........KnK'
+  ]);
+
+/** Panneau de liège : notes de service que personne ne lit. */
+const CORKBOARD = () =>
+  sprite(16, [
+    'KKKKKKKKKKKKKKKK',
+    'KOooooooooooooOK',
+    'KOwwwOoOyyyOooOK',
+    'KOwwwOoOyyyOooOK',
+    'KOoooOoOoooOccOK',
+    'KOccOooowwwOooOK',
+    'KOccOooowwwOooOK',
+    'KOooooooooooooOK',
+    'KKKKKKKKKKKKKKKK'
+  ]);
+
+/**
+ * Portemanteau, vu de dessus : un pied rond, quatre patères, et deux
+ * manteaux accrochés. Vu d'en haut, ce sont les MANTEAUX qu'on reconnaît —
+ * le mât, lui, n'est qu'un point.
+ */
+const COAT_RACK = () =>
+  sprite(14, [
+    '....KKKK....',
+    '..KKccccKK..',
+    '.KccccccccK.',
+    'KKcccKKcccKK',
+    'KbbKKmmKKbbK',
+    'KbbbKmmKbbbK',
+    'KbbbKmmKbbbK',
+    'KKbbbKKbbbKK',
+    '.KKbbbbbbKK.',
+    '...KKKKKK...'
+  ]);
+
+/** Horloge murale : le rappel permanent de l'heure qu'il est. */
+const WALL_CLOCK = () =>
+  sprite(12, [
+    '...KKKK...',
+    '..KMMMMK..',
+    '.KMwwwwMK.',
+    'KMwwKwwwMK',
+    'KMwwKKwwMK',
+    'KMwwwwwwMK',
+    '.KMwwwwMK.',
+    '..KMMMMK..',
+    '...KKKK...'
+  ]);
+
+/** Tapis d'entrée : ce qui dit « ici, on entre ». */
+const MAT = () =>
+  sprite(30, [
+    'KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK',
+    'K@@@@@@@@@@@@@@@@@@@@@@@@@@@@K',
+    'K@KKKKKKKKKKKKKKKKKKKKKKKKKK@K',
+    'K@K@@@@@@@@@@@@@@@@@@@@@@@@K@K',
+    'K@K@KKKKKKKKKKKKKKKKKKKKKK@K@K',
+    'K@K@K@@@@@@@@@@@@@@@@@@@@K@K@K',
+    'K@K@K@@@@@@@@@@@@@@@@@@@@K@K@K',
+    'K@K@KKKKKKKKKKKKKKKKKKKKKK@K@K',
+    'K@K@@@@@@@@@@@@@@@@@@@@@@@@K@K',
+    'K@KKKKKKKKKKKKKKKKKKKKKKKKKK@K',
+    'K@@@@@@@@@@@@@@@@@@@@@@@@@@@@K',
+    'KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK'
+  ]);
+
+/** Baie de serveurs : diodes vertes, câbles, souffle de ventilation. */
+const SERVER = () =>
+  sprite(14, [
+    'KKKKKKKKKKKKKK',
+    'K5555555555555K'.slice(0, 14),
+    'K5666555566655K'.slice(0, 14),
+    'K5555555555555K'.slice(0, 14),
+    'K5665556665555K'.slice(0, 14),
+    'K5555555555555K'.slice(0, 14),
+    'K5556665556665K'.slice(0, 14),
+    'K5555555555555K'.slice(0, 14),
+    'KnnnnnnnnnnnnK'
+  ]);
+
+/** Distributeur : la vitrine éclairée d'un couloir désert. */
+const VENDING = () =>
+  sprite(14, [
+    'KKKKKKKKKKKKKK',
+    'KnnnnnnnnnnnnK',
+    'KnKcKyKtKbKnnK',
+    'KnKcKyKtKbKnnK',
+    'KnKKKKKKKKKnnK',
+    'KnKdKiKcKyKnnK',
+    'KnKdKiKcKyKnnK',
+    'KnKKKKKKKKKn%K',
+    'KnnnnnnnnnnnnK',
+    'KKKKKKKKKKKKKK'
+  ]);
+
+/** Micro-ondes de la kitchenette, porte vitrée et minuterie. */
+const MICROWAVE = () =>
+  sprite(14, [
+    'KKKKKKKKKKKKKK',
+    'KMMMMMMMMMMMMK',
+    'KMKssssssKMMMK',
+    'KMKsSSSSsKM%MK',
+    'KMKssssssKMMMK',
+    'KMKKKKKKKKMMMK',
+    'KMMMMMMMMMMMMK',
+    'KKKKKKKKKKKKKK'
+  ]);
+
+/** Réfrigérateur : deux portes, poignées verticales. */
+const FRIDGE = () =>
+  sprite(14, [
+    'KKKKKKKKKKKKKK',
+    'K############K',
+    'K#MMMMMMMMMM#K',
+    'K#MMMMMMMMMn#K',
+    'K############K',
+    'K#MMMMMMMMMM#K',
+    'K#MMMMMMMMMn#K',
+    'K#MMMMMMMMMM#K',
+    'K############K',
+    'KKKKKKKKKKKKKK'
+  ]);
+
+/**
+ * Seau de ménage et son manche, vus de dessus : un seau jaune à essoreuse,
+ * d'où sort une hampe en diagonale. La diagonale est ce qui empêche de le
+ * confondre avec une poubelle.
+ */
+const MOP = () =>
+  sprite(14, [
+    '..........KK..',
+    '.........KmmK.',
+    '........KmmK..',
+    'KKKKKKKKmmK...',
+    'K999999KmK....',
+    'K9111119K.....',
+    'K9111119K.....',
+    'K9111119K.....',
+    'K0999990K.....',
+    'KKKKKKKKK.....'
+  ]);
+
+/** Panneau « sol glissant » : le jaune le plus universel du bureau. */
+const WET_FLOOR = () =>
+  sprite(12, [
+    '....KK....',
+    '...K99K...',
+    '..K9KK9K..',
+    '..K9KK9K..',
+    '.K99KK99K.',
+    '.K90KK09K.',
+    'K9999KK999K'.slice(0, 11),
+    'K000000000K'.slice(0, 11),
+    '.KKKKKKKK.'
+  ]);
+
+/** Bacs de tri : le vert, le bleu et le jaune, dans cet ordre. */
+const RECYCLING = () =>
+  sprite(18, [
+    'KKKKKKKKKKKKKKKKKK',
+    'K77KKK++KKK99KKKKK'.slice(0, 18),
+    'K77K.K++K.K99K....',
+    'K77K.K++K.K99K....',
+    'K88K.K+2K.K00K....',
+    'KKKK.KKKK.KKKK....'
+  ]);
+
+/** Ordinateur portable ouvert : l'écran allumé fait tout le travail. */
+const LAPTOP = () =>
+  sprite(14, [
+    '.KKKKKKKKKKKK.',
+    '.KnssssssssnK.',
+    '.KnsSSSSSSsnK.',
+    '.KnssssssssnK.',
+    '.KnnnnnnnnnnK.',
+    'KMMMMMMMMMMMMK',
+    'KMnnnnnnnnnnMK',
+    'KMMMMMMMMMMMMK',
+    '.KKKKKKKKKKKK.'
+  ]);
+
+/** Lecteur de badge mural : diode verte quand la porte cède. */
+const READER = () =>
+  sprite(8, ['.KKKK.', 'KnnnnK', 'Kn%%nK', 'KnnnnK', 'KnwwnK', 'KnnnnK', '.KKKK.']);
+
+/** Portique de sécurité : deux bornes et un tourniquet entre elles. */
+const TURNSTILE = () =>
+  sprite(20, [
+    'KKKK......KKKK',
+    'KnnK......KnnK',
+    'Kn%K......Kn%K',
+    'KnnKKKKKKKKnnK',
+    'KnnKmmmmmmKnnK',
+    'KnnKKKKKKKKnnK',
+    'KnnK......KnnK',
+    'KKKK......KKKK'
+  ]);
+
+/** Garde-corps : la limite d'une mezzanine ou d'une rampe. */
+const RAILING = () =>
+  sprite(20, [
+    'KKKKKKKKKKKKKKKKKKKK',
+    'KMMMMMMMMMMMMMMMMMMK',
+    'KKKKKKKKKKKKKKKKKKKK',
+    '.KnK..KnK..KnK..KnK.',
+    '.KnK..KnK..KnK..KnK.',
+    '.KKK..KKK..KKK..KKK.'
+  ]);
+
+/** Urinoir : l'autre moitié des sanitaires. */
+const URINAL = () =>
+  sprite(10, [
+    'KKKKKKKK',
+    'KjjjjjjK',
+    'KjwwwwjK',
+    'KjwJJwjK',
+    'KjwwwwjK',
+    'KjjJJjjK',
+    'KKjjjjKK',
+    '.KKKKKK'
+  ]);
+
+/** Plan de lavabos : trois vasques et un long miroir. */
+const SINK_COUNTER = () =>
+  sprite(24, [
+    'KKKKKKKKKKKKKKKKKKKKKKKK',
+    'K1111111111111111111111K',
+    'KJJJJJJJJJJJJJJJJJJJJJJK',
+    'KJKKjjKKJKKjjKKJKKjjKKJK',
+    'KJKwwwwKJKwwwwKJKwwwwKJK',
+    'KJKwmmwKJKwmmwKJKwmmwKJK',
+    'KJKKKKKKJKKKKKKJKKKKKKJK',
+    'KJJJJJJJJJJJJJJJJJJJJJJK',
+    'KKKKKKKKKKKKKKKKKKKKKKKK'
+  ]);
+
+/** Classeur à levier : le dossier debout d'une étagère d'archives. */
+const BINDER = () =>
+  sprite(12, [
+    'KKKKKKKKKK',
+    'KcKbKyKtKK',
+    'KcKbKyKtKK',
+    'KcKbKyKtKK',
+    'KCKBKYKTKK',
+    'KcKbKyKtKK',
+    'KcKbKyKtKK',
+    'KKKKKKKKKK'
+  ]);
+
+/** Bande de chantier : un obstacle qu'on ne franchit pas. */
+const HAZARD_TAPE = () =>
+  sprite(20, [
+    'KKKKKKKKKKKKKKKKKKKK',
+    'K99009900990099009K.',
+    'K00990099009900990K.',
+    'KKKKKKKKKKKKKKKKKKKK'
+  ]);
+
 export const PROPS = {
+  // ── V0.11
+  'prop-sofa': SOFA,
+  'prop-coffee-table': COFFEE_TABLE,
+  'prop-whiteboard': WHITEBOARD,
+  'prop-corkboard': CORKBOARD,
+  'prop-coat-rack': COAT_RACK,
+  'prop-wall-clock': WALL_CLOCK,
+  'prop-mat': MAT,
+  'prop-server': SERVER,
+  'prop-vending': VENDING,
+  'prop-microwave': MICROWAVE,
+  'prop-fridge': FRIDGE,
+  'prop-mop': MOP,
+  'prop-wet-floor': WET_FLOOR,
+  'prop-recycling': RECYCLING,
+  'prop-laptop': LAPTOP,
+  'prop-reader': READER,
+  'prop-turnstile': TURNSTILE,
+  'prop-railing': RAILING,
+  'prop-urinal': URINAL,
+  'prop-sink-counter': SINK_COUNTER,
+  'prop-binder': BINDER,
+  'prop-hazard-tape': HAZARD_TAPE,
+
   'prop-keyboard': KEYBOARD,
   'prop-mug': MUG,
   'prop-folder': FOLDER,

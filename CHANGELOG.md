@@ -1,5 +1,90 @@
 # Journal des versions
 
+## V0.11 — Grande passe graphique
+
+Montée en gamme visuelle des trois niveaux, à partir des planches d'assets
+fournies. **Aucune règle de jeu ne change** : aucune vitesse, aucun cône,
+aucune détection, aucun score, aucune ronde, et surtout **aucun rectangle de
+collision n'a bougé**.
+
+**Sur les planches fournies — ce qui a été fait, et pourquoi**
+
+Les cinq planches livrées sont des illustrations de style pixel art, pas des
+spritesheets : 29 000 couleurs sur une seule zone, aucune grille de découpe,
+des perspectives mélangées (mobilier vu de dessus, murs et portes en
+élévation), et un anticrénelage sur chaque contour. Elles ne peuvent donc pas
+être découpées ni intégrées telles quelles — elles casseraient la palette
+unique, le rendu NEAREST et la règle d'échelle du projet, et jureraient avec
+tout le reste.
+
+Elles ont donc servi de **cahier des charges visuel** : chaque objet, chaque
+matière, chaque rôle et chaque type de pièce qu'elles montrent a été redessiné
+à la résolution du jeu, dans la palette du jeu, par le générateur du jeu. Le
+catalogue est respecté ; c'est la technique de production qui reste celle du
+projet.
+
+**Matières — 9 sols et surfaces de plus**
+- Moquette bleue et moquette grise, dallage clair de hall, carrelage de
+  cuisine, pavage extérieur, sol technique caoutchouc, verre de cloison,
+  façade de casiers, façade de baie serveur.
+- Deux nouveaux motifs génériques dans le générateur : `slabs()` (dalles à
+  joints, dont l'écart donne l'échelle de la pièce) et `paving()` (dalles
+  décalées d'une rangée sur deux — sans le décalage, on lit une grille).
+
+**Mobilier — 7 natures d'obstacle de plus**
+- `bench` (îlot d'open space), `meeting` (table de réunion), `reception`
+  (banque d'accueil), `lockers` (vestiaire), `glass` (cloison vitrée),
+  `server` (baie informatique), `counter` (plan de kitchenette).
+- Chacune est déclinée sur les trois thèmes : bureau, direction, parking.
+- `glass` n'est utilisée par aucun niveau livré, et c'est délibéré — voir
+  l'exception documentée dans la bible graphique.
+
+**Accessoires — 22 de plus**
+- Canapé, table basse en verre, tableau blanc, panneau de liège, portemanteau,
+  horloge murale, tapis d'entrée, baie de serveurs, distributeur, micro-ondes,
+  réfrigérateur, seau de ménage, panneau « sol glissant », bacs de tri,
+  ordinateur portable, lecteur de badge, portique de sécurité, garde-corps,
+  urinoir, plan de lavabos, classeurs à levier, rubalise.
+- Tous vus de DESSUS, comme le reste du jeu.
+
+**Zones — 6 matières de sol de plus**
+- `lounge`, `meeting`, `hall`, `kitchen`, `tech`, `outdoor`. Une zone de sol
+  suffit désormais à dire de quelle pièce il s'agit.
+
+**Personnages — 4 rôles de plus**
+- RH, technicien informatique, réceptionniste, agent d'entretien. Chacun se
+  distingue à la silhouette et à l'accessoire, jamais à la seule couleur.
+- Un archétype choisit une PLANCHE, jamais un comportement : la ronde, la
+  vision et la détection restent entièrement dans la donnée du PNJ.
+- Passe de volume sur tous les personnages : arête éclairée sur le haut du
+  buste, ombre à la taille. Deux lignes, et le personnage cesse d'être un
+  aplat découpé.
+
+**Réhabillage des trois niveaux**
+- **Niveau 1** — accueil (tapis, portemanteau, horloge, panneau d'affichage),
+  open space en îlots, sanitaires complétés (plan de lavabos, urinoir, seau et
+  panneau du ménage), coin pause (distributeur, micro-ondes, frigo, tri),
+  archives (classeurs), salle de réunion (tableau blanc, fauteuils), et
+  l'alcôve où l'on se cache devient un vrai coin détente.
+- **Niveau 2** — hall d'ascenseurs dallé, point de sécurité devant la porte à
+  badge (portique, lecteur, rubalise), salle de réunion autour du bloc
+  central, local informatique à sol technique, salle de copies équipée, coin
+  détente côté direction.
+- **Niveau 3** — sas d'ascenseur, local technique sous la rampe, local ménage
+  près de l'escalier, zone de livraison condamnée, distributeur près de
+  l'ascenseur, et le bloc « ESCALIER » devient un vestiaire.
+
+**Ce qui n'a PAS changé**
+- Tous les rectangles de collision, à l'unité près.
+- Toutes les rondes, tous les cônes, toutes les vitesses, tous les seuils.
+- Le menu, la nuit du niveau 3, le HUD.
+
+**Technique**
+- 131 PNG livrés, 532 Ko au total. Le décor supplémentaire est fait de sprites
+  statiques : aucun coût par frame.
+- Palette étendue de 24 teintes, sans un seul doublon (un test le vérifie).
+- 343 tests. Lint, typage, build, budget et smoke verts.
+
 ## V0.10.3 — IA lisible, vraie nuit, plus de pression
 
 Trois chantiers : rendre les rondes APPRENABLES, faire de la nuit du parking

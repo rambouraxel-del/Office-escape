@@ -15,28 +15,31 @@ export const LEVEL_01: LevelDef = {
   spawn: { x: 250, y: 2050 },
   theme: 'office',
 
+  // V0.11 — RÈGLE DE LA PASSE GRAPHIQUE : aucun rectangle de collision n'a
+  // bougé. Seule la NATURE d'un obstacle change (`kind`), ce qui rhabille une
+  // pièce sans déplacer un mur d'une unité, plus du décor sans collision.
   obstacles: [
     { x: 21, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 479, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 250, y: 20, w: 500, h: 40, kind: 'wall' },
     { x: 250, y: 2180, w: 500, h: 40, kind: 'wall' },
 
-    { x: 106, y: 1900, w: 170, h: 35, kind: 'wall' },
-    { x: 394, y: 1900, w: 170, h: 35, kind: 'wall' },
-    { x: 85, y: 2030, w: 90, h: 105, kind: 'desk' },
-    { x: 415, y: 2030, w: 90, h: 105, kind: 'desk' },
+    { x: 106, y: 1900, w: 170, h: 35, kind: 'partition' },
+    { x: 394, y: 1900, w: 170, h: 35, kind: 'partition' },
+    { x: 85, y: 2030, w: 90, h: 105, kind: 'reception' },
+    { x: 415, y: 2030, w: 90, h: 105, kind: 'reception' },
 
     // Sanitaires : faïence au sol, cabines et lavabo posés dessus. Aucune
     // étiquette — la pièce doit se reconnaître, pas se lire.
     { x: 77, y: 1580, w: 105, h: 230, kind: 'restroom' },
 
-    { x: 420, y: 1500, w: 90, h: 110, kind: 'desk' },
-    { x: 80, y: 1245, w: 110, h: 75, kind: 'desk' },
+    { x: 420, y: 1500, w: 90, h: 110, kind: 'bench' },
+    { x: 80, y: 1245, w: 110, h: 75, kind: 'bench' },
 
     { x: 250, y: 860, w: 150, h: 190, kind: 'pillar', label: 'ARCHIVES' },
 
-    { x: 77, y: 560, w: 110, h: 80, kind: 'desk' },
-    { x: 423, y: 560, w: 110, h: 80, kind: 'desk' },
+    { x: 77, y: 560, w: 110, h: 80, kind: 'meeting' },
+    { x: 423, y: 560, w: 110, h: 80, kind: 'meeting' },
     { x: 95, y: 165, w: 150, h: 30, kind: 'wall' },
     { x: 405, y: 165, w: 150, h: 30, kind: 'wall' }
   ],
@@ -44,7 +47,7 @@ export const LEVEL_01: LevelDef = {
   decor: [
     { kind: 'zone', x: 250, y: 2075, w: 316, h: 124, material: 'start' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'SORTIE  ↑' },
-    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'alcove' },
+    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'lounge' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
     { kind: 'prop', x: 77, y: 1524, prop: 'stall' },
     { kind: 'prop', x: 77, y: 1614, prop: 'stall' },
@@ -82,7 +85,46 @@ export const LEVEL_01: LevelDef = {
     { kind: 'prop', x: 250, y: 430, prop: 'books' },
     { kind: 'prop', x: 444, y: 470, prop: 'cactus' },
     { kind: 'prop', x: 84, y: 262, prop: 'boxes' },
-    { kind: 'prop', x: 420, y: 262, prop: 'trash' }
+    { kind: 'prop', x: 420, y: 262, prop: 'trash' },
+
+    // ── V0.11 : chaque zone du plateau reçoit ce qui la nomme.
+
+    // Accueil : tapis d'entrée, portemanteau, horloge et panneau d'affichage.
+    { kind: 'zone', x: 250, y: 1955, w: 300, h: 90, material: 'hall' },
+    { kind: 'prop', x: 250, y: 1985, prop: 'mat' },
+    { kind: 'prop', x: 155, y: 1962, prop: 'coatRack' },
+    { kind: 'prop', x: 140, y: 1900, prop: 'wallClock' },
+    { kind: 'prop', x: 345, y: 1958, prop: 'corkboard' },
+    { kind: 'prop', x: 118, y: 2030, prop: 'laptop' },
+
+    // Sanitaires : le plan de lavabos et l'urinoir complètent les cabines.
+    { kind: 'prop', x: 77, y: 1662, prop: 'sinkCounter' },
+    { kind: 'prop', x: 104, y: 1476, prop: 'urinal' },
+    { kind: 'prop', x: 148, y: 1690, prop: 'wetFloor' },
+    { kind: 'prop', x: 148, y: 1745, prop: 'mop' },
+
+    // Coin pause, côté droit : distributeur, micro-ondes, frigo, tri.
+    { kind: 'zone', x: 434, y: 1680, w: 108, h: 210, material: 'kitchen' },
+    { kind: 'prop', x: 442, y: 1780, prop: 'vending' },
+    { kind: 'prop', x: 442, y: 1620, prop: 'microwave' },
+    { kind: 'prop', x: 442, y: 1490, prop: 'fridge' },
+    { kind: 'prop', x: 396, y: 1806, prop: 'recycling' },
+
+    // Coin détente de l'alcôve : c'est là qu'on se cache, autant y être bien.
+    { kind: 'prop', x: 92, y: 442, prop: 'sofa' },
+    { kind: 'prop', x: 92, y: 498, prop: 'coffeeTable' },
+
+    // Archives : les classeurs debout autour du bloc central.
+    { kind: 'prop', x: 250, y: 742, prop: 'binder' },
+    { kind: 'prop', x: 250, y: 978, prop: 'binder' },
+    { kind: 'prop', x: 166, y: 860, prop: 'boxes' },
+
+    // Salle de réunion, en haut : le tableau blanc suffit à la nommer.
+    { kind: 'zone', x: 250, y: 620, w: 300, h: 170, material: 'meeting' },
+    { kind: 'prop', x: 250, y: 552, prop: 'whiteboard' },
+    { kind: 'prop', x: 250, y: 660, prop: 'coffeeTable' },
+    { kind: 'prop', x: 178, y: 660, prop: 'armchair' },
+    { kind: 'prop', x: 322, y: 660, prop: 'armchair' }
   ],
 
   npcs: [

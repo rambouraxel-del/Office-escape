@@ -253,6 +253,40 @@ La règle générale : **une étiquette de décor doit disparaître dès qu'un m
 peut dire la même chose.** Ne restent au sol que les inscriptions qui portent
 une information de jeu — la sortie, l'ascenseur, un numéro de place.
 
+## 7 sexies. Le vocabulaire de pièces (V0.11)
+
+Un niveau ne se décrit plus avec quatre matières et un mot. Il dispose d'un
+**vocabulaire** : un `kind` d'obstacle nomme un meuble, une `material` de zone
+nomme un sol, un `prop` pose un objet. Trois familles ajoutées d'après les
+planches d'assets fournies :
+
+| Ce qu'on veut dire | Comment on le dit |
+| --- | --- |
+| un accueil | `kind: 'reception'` + `prop: 'mat'`, `coatRack`, `corkboard`, `wallClock` |
+| un open space | `kind: 'bench'` + `deskProps` + `laptop` |
+| une salle de réunion | `kind: 'meeting'` + `material: 'meeting'` + `whiteboard` |
+| un coin détente | `material: 'lounge'` + `sofa` + `coffeeTable` |
+| une kitchenette | `material: 'kitchen'` + `vending`, `microwave`, `fridge`, `recycling` |
+| un local technique | `material: 'tech'` + `kind: 'server'` + `server`, `reader` |
+| un vestiaire | `kind: 'lockers'` |
+| des sanitaires | `kind: 'restroom'` + `stall`, `toilet`, `urinal`, `sinkCounter` |
+| un point de sécurité | `turnstile`, `reader`, `hazardTape` |
+| un local ménage | `mop`, `wetFloor` |
+
+**La règle de la passe graphique** : *aucun rectangle de collision ne bouge.*
+Rhabiller une pièce, c'est changer un `kind` et ajouter du décor sans
+collision. C'est ce qui permet de refaire l'aspect de trois niveaux sans
+toucher au level design, et de le vérifier d'un coup d'œil dans le diff.
+
+### Une exception documentée
+
+`kind: 'glass'` (cloison vitrée) existe, avec sa matière et son motif, mais
+**aucun niveau livré ne l'utilise**. Le seul endroit où elle aurait été belle —
+la cloison de la porte à badge du niveau 2 — est un mur qui arrête les regards.
+Une vitre qui bloque la vue est un mensonge ; la rendre traversante aurait
+laissé les PNJ voir de l'autre côté. C'est une décision de game design, pas une
+passe graphique : la matière attend un niveau qui la voudra vraiment.
+
 ## 7 quinquies. L'accueil, une exception assumée (V0.10.2)
 
 Tout le jeu est vu **de dessus**. L'accueil, lui, est vu **de face** : un open

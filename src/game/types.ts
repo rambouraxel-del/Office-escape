@@ -18,7 +18,27 @@ export interface RectDef {
   h: number;
 }
 
-export type ObstacleKind = 'wall' | 'desk' | 'pillar' | 'cabinet' | 'partition' | 'door' | 'restroom';
+/**
+ * Nature d'un obstacle. Elle ne décide QUE de son habillage : le rectangle de
+ * collision, lui, est celui du niveau. Changer un `kind` rehabille une pièce
+ * sans déplacer un mur d'une unité.
+ */
+export type ObstacleKind =
+  | 'wall'
+  | 'desk'
+  | 'pillar'
+  | 'cabinet'
+  | 'partition'
+  | 'door'
+  | 'restroom'
+  // ── V0.11 : de quoi nommer une pièce au lieu de la deviner.
+  | 'bench'
+  | 'meeting'
+  | 'reception'
+  | 'lockers'
+  | 'glass'
+  | 'server'
+  | 'counter';
 
 export interface ObstacleDef extends RectDef {
   kind: ObstacleKind;
@@ -32,7 +52,20 @@ export interface ObstacleDef extends RectDef {
 }
 
 /** Matières de sol nommées, pour les zones de décor. */
-export type ZoneMaterial = 'start' | 'exit' | 'alcove' | 'neutral' | 'exec' | 'bay';
+export type ZoneMaterial =
+  | 'start'
+  | 'exit'
+  | 'alcove'
+  | 'neutral'
+  | 'exec'
+  | 'bay'
+  // ── V0.11 : une zone de sol suffit à dire de quelle pièce il s'agit.
+  | 'lounge'
+  | 'meeting'
+  | 'hall'
+  | 'kitchen'
+  | 'tech'
+  | 'outdoor';
 
 /**
  * Identité visuelle d'un niveau. Elle choisit le jeu de matières et le sol,
@@ -75,7 +108,30 @@ export type PropKind =
   | 'crate'
   | 'tire'
   | 'parkingSign'
-  | 'neon';
+  | 'neon'
+  // ── V0.11 : d'après les planches d'assets fournies.
+  | 'sofa'
+  | 'coffeeTable'
+  | 'whiteboard'
+  | 'corkboard'
+  | 'coatRack'
+  | 'wallClock'
+  | 'mat'
+  | 'server'
+  | 'vending'
+  | 'microwave'
+  | 'fridge'
+  | 'mop'
+  | 'wetFloor'
+  | 'recycling'
+  | 'laptop'
+  | 'reader'
+  | 'turnstile'
+  | 'railing'
+  | 'urinal'
+  | 'sinkCounter'
+  | 'binder'
+  | 'hazardTape';
 
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {
@@ -95,7 +151,19 @@ export interface DecorDef {
   side?: -1 | 1;
 }
 
-export type NpcArchetype = 'colleague' | 'boss' | 'intern' | 'guard' | 'camera';
+export type NpcArchetype =
+  | 'colleague'
+  | 'boss'
+  | 'intern'
+  | 'guard'
+  | 'camera'
+  // ── V0.11 : quatre rôles de plus. Purement visuel — un archétype choisit
+  // une planche, jamais un comportement. La ronde, la vision et la détection
+  // restent entièrement dans la donnée du PNJ.
+  | 'hr'
+  | 'tech'
+  | 'receptionist'
+  | 'janitor';
 
 /**
  * Balayage d'une caméra.

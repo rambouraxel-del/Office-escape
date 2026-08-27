@@ -36,6 +36,8 @@ export const LEVEL_03: LevelDef = {
   },
   spawn: { x: 250, y: 2060 },
 
+  // V0.11 — aucun rectangle de collision n'a bougé : seule la NATURE des
+  // obstacles change, plus du décor sans collision.
   obstacles: [
     { x: 21, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 479, y: 1100, w: 42, h: 2200, kind: 'wall' },
@@ -46,7 +48,7 @@ export const LEVEL_03: LevelDef = {
     { x: 405, y: 1900, w: 120, h: 70, kind: 'cabinet' },
     { x: 250, y: 1700, w: 90, h: 150, kind: 'pillar' },
 
-    { x: 77, y: 1330, w: 105, h: 190, kind: 'cabinet', label: 'ESCALIER' },
+    { x: 77, y: 1330, w: 105, h: 190, kind: 'lockers', label: 'ESCALIER' },
     { x: 420, y: 1450, w: 120, h: 70, kind: 'cabinet' },
 
     { x: 120, y: 1080, w: 90, h: 150, kind: 'pillar' },
@@ -115,7 +117,32 @@ export const LEVEL_03: LevelDef = {
     // Deux plantes oubliées près de l'ascenseur : le seul geste chaleureux du
     // niveau, et il est raté.
     { kind: 'prop', x: 55, y: 1880, prop: 'cactus' },
-    { kind: 'prop', x: 444, y: 1620, prop: 'cactus' }
+    { kind: 'prop', x: 444, y: 1620, prop: 'cactus' },
+
+    // ── V0.11 : le parking se dote de ce qui fait un vrai sous-sol.
+
+    // Sas de l'ascenseur : dallage, tapis, et le lecteur de badge du hall.
+    { kind: 'zone', x: 250, y: 1960, w: 260, h: 80, material: 'hall' },
+    { kind: 'prop', x: 250, y: 1975, prop: 'mat' },
+    { kind: 'prop', x: 168, y: 2016, prop: 'reader' },
+
+    // Local technique, sous la rampe : sol caoutchouc, baies, garde-corps.
+    { kind: 'zone', x: 442, y: 340, w: 76, h: 200, material: 'tech' },
+    { kind: 'prop', x: 444, y: 290, prop: 'server' },
+    { kind: 'prop', x: 444, y: 380, prop: 'server' },
+    { kind: 'prop', x: 250, y: 250, prop: 'railing' },
+
+    // Local ménage, près de l'escalier : le seau et le panneau qui vont avec.
+    { kind: 'prop', x: 150, y: 1250, prop: 'mop' },
+    { kind: 'prop', x: 150, y: 1310, prop: 'wetFloor' },
+    { kind: 'prop', x: 150, y: 1400, prop: 'recycling' },
+
+    // Zone livraison : rubalise et cartons devant une place condamnée.
+    { kind: 'prop', x: 405, y: 1900, prop: 'hazardTape' },
+    { kind: 'prop', x: 405, y: 1836, prop: 'binder' },
+
+    // Coin distributeur de l'ascenseur : le seul endroit éclairé où traîner.
+    { kind: 'prop', x: 56, y: 2010, prop: 'vending' }
   ],
 
   npcs: [
