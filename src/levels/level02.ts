@@ -65,7 +65,8 @@ export const LEVEL_02: LevelDef = {
     { kind: 'prop', x: 250, y: 1820, prop: 'mat' },
     { kind: 'prop', x: 158, y: 1740, prop: 'wallClock' },
     { kind: 'prop', x: 340, y: 1740, prop: 'corkboard' },
-    { kind: 'prop', x: 118, y: 1880, prop: 'laptop' },
+    { kind: 'prop', x: 118, y: 1880, prop: 'monitor' },
+    { kind: 'prop', x: 52, y: 1912, prop: 'stapler' },
 
     // Point de sécurité, juste avant la porte à badge : portique et lecteur.
     { kind: 'prop', x: 250, y: 830, prop: 'turnstile' },
@@ -89,16 +90,16 @@ export const LEVEL_02: LevelDef = {
     { kind: 'prop', x: 428, y: 1212, prop: 'coffeeTable' },
 
     // Salle de copies : les classeurs qui vont avec.
-    { kind: 'prop', x: 148, y: 1420, prop: 'binder' },
+    { kind: 'prop', x: 148, y: 1420, prop: 'filebox' },
     { kind: 'prop', x: 148, y: 1540, prop: 'recycling' },
 
 
     { kind: 'deskProps', x: 85, y: 1880, side: -1 },
     { kind: 'deskProps', x: 415, y: 1880, side: 1 },
     { kind: 'deskProps', x: 420, y: 1380, side: 1 },
-    { kind: 'deskProps', x: 80, y: 1180, side: -1 },
-    { kind: 'deskProps', x: 77, y: 520, side: -1 },
-    { kind: 'deskProps', x: 423, y: 520, side: 1 },
+    { kind: 'prop', x: 80, y: 1180, prop: 'workstation' },
+    { kind: 'prop', x: 77, y: 520, prop: 'workstation' },
+    { kind: 'prop', x: 423, y: 520, prop: 'workstation' },
 
     // Fauteuils plutôt que chaises : la carrure du mobilier suffit à faire
     // comprendre qu'on a changé d'étage.

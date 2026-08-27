@@ -47,6 +47,7 @@ import {
 import { PALETTE, color, hex } from '../src/game/palette';
 import { LEVELS } from '../src/levels';
 import paletteJson from '../src/game/palette.json';
+import IMPORTED from '../assets-source/imported.json';
 import { VIEW_HEIGHT, VIEW_WIDTH } from '../src/game/constants';
 
 const ASSETS = join(process.cwd(), 'public', 'assets');
@@ -183,11 +184,25 @@ describe('gabarit des personnages', () => {
 });
 
 describe('motifs de matière', () => {
-  it.each(IMAGE_MANIFEST.tiles.map((key) => [key]))('%s est carré et à l’échelle d’art', (key) => {
+  // Un motif GÉNÉRÉ fait 16 pixels d'art × ART_SCALE. Un motif FOURNI arrive
+  // à sa propre densité : on ne le redimensionne pas pour le faire rentrer
+  // dans notre règle, on constate la sienne. Les deux doivent rester carrés
+  // et raccordables — c'est ça qui compte pour un `TileSprite`.
+  it.each(IMAGE_MANIFEST.tiles.map((key) => [key]))('%s est carré et raccordable', (key) => {
     const { width, height } = pngSize(join(ASSETS, 'tiles', `${key}.png`));
     expect(width).toBe(height);
-    // 16 pixels d'art × ART_SCALE : la règle d'échelle du projet.
-    expect(width).toBe(16 * ART_SCALE);
+    expect(width % (16 * ART_SCALE), `${key} : ${width}px`).toBe(0);
+  });
+
+  it('chaque motif fourni est transporté depuis un fichier source', () => {
+    // Garantit qu'aucun motif « fourni » n'a été redessiné en douce : il doit
+    // figurer dans la trace d'import, avec son fichier d'origine.
+    const tiles = IMPORTED.assets.filter((asset) => asset.group === 'tiles');
+    tiles.forEach((asset) => {
+      expect(IMAGE_MANIFEST.tiles as readonly string[], asset.key).toContain(asset.key);
+      expect(asset.source, asset.key).toMatch(/^architecture\//);
+    });
+    expect(tiles.length).toBeGreaterThan(0);
   });
 });
 

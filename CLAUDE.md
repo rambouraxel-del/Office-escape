@@ -5,6 +5,8 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 
 ## Règles non négociables
 
+- **Un asset FOURNI ne se redessine jamais.** Les sources vivent dans `assets-source/`, `tools/assets/import.mjs` les transporte (découpe, recomposition, décimation ×1/2), et `tests/supplied.test.ts` compare les pixels livrés à la source. Il n'y a aucune primitive de dessin dans `tools/assets/`. Un asset manquant se marque `ASSET_TODO: nom`, avec sa fiche dans `tools/assets/wanted.mjs` — jamais par une imitation du style.
+
 - **`src/core/` et `src/systems/` n'importent jamais Phaser.** C'est ce qui rend la logique testable sans navigateur.
 - **Un niveau est une donnée** (`LevelDef`, `src/game/types.ts`), jamais du code. Ne jamais coder en dur des coordonnées de niveau dans une scène.
 - **Aucun texte visible en dur dans une scène** : interface dans `src/core/strings.ts`, contenu dans le fichier du niveau.
@@ -26,6 +28,9 @@ Lire `ARCHITECTURE.md` avant toute modification structurelle.
 ## Vérifier
 
 ```bash
+npm run assets  # retransporte les assets fournis (inclus dans `npm run art`)
+npm run assets:report  # fiches des ASSET_TODO restants
+npm run mobile  # portrait, cinq tailles d'écran (après build)
 npm run verify   # lint + typage + tests + build + budget
 npm run smoke    # parcours réel dans Chromium (après build)
 npm run art      # régénère les sprites après modification de tools/art/

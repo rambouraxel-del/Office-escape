@@ -65,7 +65,8 @@ export type ZoneMaterial =
   | 'hall'
   | 'kitchen'
   | 'tech'
-  | 'outdoor';
+  | 'outdoor'
+  | 'parquet';
 
 /**
  * Identité visuelle d'un niveau. Elle choisit le jeu de matières et le sol,
@@ -131,7 +132,12 @@ export type PropKind =
   | 'urinal'
   | 'sinkCounter'
   | 'binder'
-  | 'hazardTape';
+  | 'hazardTape'
+  // ── V0.11.1 : accessoires fournis.
+  | 'workstation'
+  | 'monitor'
+  | 'filebox'
+  | 'stapler';
 
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {

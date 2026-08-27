@@ -8,7 +8,7 @@
  */
 import { PixelCanvas } from './canvas.mjs';
 import { TILES } from './tiles.mjs';
-import { PROPS } from './props.mjs';
+import { MENU_PARTS, PROPS } from './props.mjs';
 import { CHARACTERS, makeCharacterFrame } from './characters.mjs';
 
 const W = 60;
@@ -42,7 +42,7 @@ function office() {
   block(canvas, wood, 42, 6, 16, 12, 'woodLight', 'woodDark');
   block(canvas, wood, 2, 24, 16, 12, 'woodLight', 'woodDark');
   canvas.blit(PROPS['prop-plant'](), 42, 22);
-  canvas.blit(PROPS['prop-mug'](), 21, 30);
+  canvas.blit(MENU_PARTS.mug(), 21, 30);
   figure(canvas, 'char-player', 14, 4, 'up');
   canvas.stroke(0, 0, W, H, 'ink');
   return canvas;

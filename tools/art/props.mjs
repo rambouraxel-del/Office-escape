@@ -1052,6 +1052,8 @@ const HAZARD_TAPE = () =>
     'KKKKKKKKKKKKKKKKKKKK'
   ]);
 
+// Note V0.11.1 : la tasse, le bloc de notes et la chaise ne sont plus générés
+// ici — ils sont FOURNIS et transportés par `tools/assets/import.mjs`.
 export const PROPS = {
   // ── V0.11
   'prop-sofa': SOFA,
@@ -1078,9 +1080,9 @@ export const PROPS = {
   'prop-hazard-tape': HAZARD_TAPE,
 
   'prop-keyboard': KEYBOARD,
-  'prop-mug': MUG,
+  
   'prop-folder': FOLDER,
-  'prop-sticky': STICKY,
+  
   'prop-phone': PHONE,
   'prop-lamp': LAMP,
   'prop-plant': PLANT,
@@ -1100,7 +1102,7 @@ export const PROPS = {
   'prop-tire': TIRE,
   'prop-parking-sign': PARKING_SIGN,
   'prop-cactus': CACTUS,
-  'prop-chair': CHAIR,
+  
   'prop-trash': TRASH,
   'prop-boxes': BOXES,
   'prop-books': BOOKS,
@@ -1111,6 +1113,13 @@ export const PROPS = {
  * Image fixe des décors animés : le menu et les vignettes composent des PNG
  * statiques, ils ne peuvent pas blitter une planche.
  */
+/**
+ * Sprites encore dessinés ici mais qui ne sont PLUS livrés comme assets de
+ * jeu : ils servent uniquement aux vignettes du menu et au diorama d'accueil,
+ * où le style généré reste cohérent avec le reste de l'écran.
+ */
+export const MENU_PARTS = { mug: MUG, sticky: STICKY, chair: CHAIR };
+
 export const STILLS = {
   'prop-screen': SCREEN,
   'prop-printer': PRINTER,

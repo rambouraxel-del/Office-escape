@@ -121,7 +121,8 @@ export const ZONE_TILES: Record<ZoneMaterial, string> = {
   hall: 'tile-slab',
   kitchen: 'tile-kitchen',
   tech: 'tile-rubber',
-  outdoor: 'tile-paving'
+  outdoor: 'tile-paving',
+  parquet: 'tile-parquet'
 };
 
 /**
@@ -140,7 +141,8 @@ export const ZONE_EDGES: Record<ZoneMaterial, PaletteKey> = {
   hall: 'tileLightSeam',
   kitchen: 'kitchenSeam',
   tech: 'rubberStud',
-  outdoor: 'pavingSeam'
+  outdoor: 'pavingSeam',
+  parquet: 'woodDark'
 };
 
 /**
@@ -221,13 +223,9 @@ export const CHARACTER_SHEETS = [
   'char-player',
   'char-colleague',
   'char-boss',
-  'char-intern',
   'char-guard',
-  'char-talker',
   'char-hr',
-  'char-tech',
-  'char-receptionist',
-  'char-janitor'
+  'char-tech'
 ] as const;
 
 export type CharacterSheet = (typeof CHARACTER_SHEETS)[number];
@@ -239,17 +237,24 @@ export type CharacterSheet = (typeof CHARACTER_SHEETS)[number];
 export const CHARACTER_TEXTURES: Record<NpcArchetype, string> = {
   colleague: 'char-colleague',
   boss: 'char-boss',
-  intern: 'char-intern',
   guard: 'char-guard',
   camera: 'prop-camera',
   hr: 'char-hr',
   tech: 'char-tech',
-  receptionist: 'char-receptionist',
-  janitor: 'char-janitor'
+  // Quatre rôles partagent la planche d'un autre en attendant la leur. Ils
+  // restent des archétypes distincts dans la donnée : le jour où la planche
+  // arrive, une seule ligne change ici.
+  // ASSET_TODO: char_stagiaire
+  intern: 'char-tech',
+  // ASSET_TODO: char_receptionniste
+  receptionist: 'char-hr',
+  // ASSET_TODO: char_agent_entretien
+  janitor: 'char-guard'
 };
 
 export const PLAYER_TEXTURE: CharacterSheet = 'char-player';
-export const TALKER_TEXTURE: CharacterSheet = 'char-talker';
+// ASSET_TODO: char_collegue_bavard
+export const TALKER_TEXTURE: CharacterSheet = 'char-hr';
 
 // ─────────────────────── objets, accessoires, effets ────────────────────
 
@@ -271,6 +276,12 @@ export const DESK_PROPS = {
 } as const;
 
 export const PROP_TEXTURES: Record<PropKind, string> = {
+  // ── V0.11.1 : accessoires FOURNIS.
+  workstation: 'prop-workstation',
+  monitor: 'prop-monitor',
+  filebox: 'prop-filebox',
+  stapler: 'prop-stapler',
+
   sofa: 'prop-sofa',
   coffeeTable: 'prop-coffee-table',
   whiteboard: 'prop-whiteboard',
@@ -463,7 +474,8 @@ export const IMAGE_MANIFEST = {
     'tile-rubber',
     'tile-glass',
     'tile-locker',
-    'tile-server'
+    'tile-server',
+    'tile-parquet'
   ],
   props: [
     'prop-keyboard',
@@ -515,7 +527,11 @@ export const IMAGE_MANIFEST = {
     'prop-urinal',
     'prop-sink-counter',
     'prop-binder',
-    'prop-hazard-tape'
+    'prop-hazard-tape',
+    'prop-workstation',
+    'prop-monitor',
+    'prop-filebox',
+    'prop-stapler'
   ],
   fx: ['fx-light', 'fx-beam'],
   ui: [

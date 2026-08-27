@@ -104,6 +104,42 @@ choisit, dans `artTheme.ts`, le sol, les matières de chaque type d'obstacle et
 la vignette du menu. Aucun niveau ne cite un nom de fichier, et donner une
 identité à un quatrième étage ne demandera qu'une entrée de plus.
 
+## D'où viennent les images (V0.11.1)
+
+Deux chaînes, deux natures, jamais mélangées :
+
+```
+assets-source/v011/   ← les PNG FOURNIS, tels que livrés (source de vérité)
+   └─ tools/assets/import.mjs  → public/assets/…   (transport, jamais dessin)
+tools/art/            ← le générateur maison, pour ce qui n'est pas fourni
+   └─ tools/art/build-art.mjs  → public/assets/…   (dessin procédural)
+```
+
+`npm run art` déroule les deux, dans cet ordre : le générateur d'abord, le
+transport ensuite, qui écrase ce qui a été fourni. Un asset fourni gagne
+toujours.
+
+**Le transport ne sait faire que quatre choses** : découper une planche,
+recomposer les frames dans la disposition du moteur, réduire d'un facteur
+ENTIER par décimation, écrire le fichier. Il n'y a pas une primitive de dessin
+dans `tools/assets/` — et `tests/supplied.test.ts` le vérifie en comparant, pixel
+par pixel, chaque motif livré à son fichier source.
+
+**Pourquoi une décimation ×1/2** : les planches sont dessinées pour un monde
+deux fois plus grand que celui des niveaux. Un bureau fourni mesure 240 pixels
+de large, le rectangle de collision d'un bureau du niveau 1 en mesure 110.
+Doubler toutes les coordonnées des trois niveaux aurait cassé le level design
+et l'équilibrage ; transporter les assets à l'échelle du jeu ne touche qu'à la
+densité de pixels, et prendre un pixel sur deux ne produit aucun flou.
+
+**Échelle de référence** : le joueur fourni fait 64 × 116 pixels de planche,
+soit 32 × 58 unités de monde après transport. Tout le reste s'y accroche — un
+bureau fait deux joueurs de large, une chaise un joueur et demi de haut.
+
+**Ce qui manque se marque, ne s'invente pas** : `ASSET_TODO: nom` dans le code,
+fiche correspondante dans `tools/assets/wanted.mjs`, et `npm run assets:report`
+recoupe les deux. Un tag sans fiche fait échouer le rapport.
+
 ## Le vocabulaire visuel (V0.11)
 
 Trois tables, dans `artTheme.ts`, forment le pont entre une donnée de niveau et

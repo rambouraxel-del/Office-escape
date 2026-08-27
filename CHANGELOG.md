@@ -1,5 +1,80 @@
 # Journal des versions
 
+## V0.11.1 — Intégration des assets fournis
+
+Première version où les visuels du jeu viennent d'assets **livrés**, et non du
+générateur maison. Le lot « STRICTEMENT VALIDÉS » (37 PNG) est entré dans le
+dépôt comme source de vérité ; 23 textures en sont issues.
+
+**Une chaîne de transport, pas de dessin**
+- `assets-source/v011/` contient les PNG fournis tels quels, empreintes
+  comprises. `tools/assets/import.mjs` les transporte vers `public/assets/`.
+- Cet outil ne sait faire que quatre choses : découper une planche,
+  recomposer les frames dans la disposition du moteur, réduire d'un facteur
+  entier par décimation, écrire le fichier. **Il ne contient aucune primitive
+  de dessin.**
+- `tests/supplied.test.ts` le vérifie plutôt que de le promettre : empreinte
+  SHA-256 de chaque source, et comparaison **pixel par pixel** de chaque motif
+  livré avec son fichier d'origine. Une couleur retouchée fait échouer la
+  suite.
+- `npm run art` déroule le générateur puis le transport : un asset fourni
+  écrase toujours un asset généré.
+
+**Personnages — les six planches fournies remplacent tout**
+- Les planches livrées sont en 6 colonnes × 3 lignes de 128 px (colonnes 0-1
+  face, 2-3 dos, 4-5 profil vers la droite). Le moteur attend 8 × 3 (repos,
+  marche, sursaut). L'import **range** les frames dans cette disposition :
+  aucune n'est redessinée, aucune n'est inventée.
+- Le gabarit de frame reste 64 × 64 après décimation : `Body.setCircle()`
+  n'a pas bougé d'un pixel, et aucune collision n'a changé.
+- Le générateur de personnages ne produit plus de planches de jeu. Il reste
+  employé par le diorama de l'accueil et les vignettes du menu.
+
+**Décors — 10 sols, 7 meubles et accessoires**
+- Sols fournis pour : moquette bleue, moquette grise, béton, sol sombre,
+  carrelage de cuisine, dallage clair, pavage, carrelage sanitaire, sol
+  technique, parquet. Ils remplacent les motifs générés de même rôle.
+- Le poste de travail complet (écran, clavier, tasse, parapheur) remplace les
+  accessoires épars sur les six bureaux dont le rectangle est en paysage.
+- Chaise de bureau, écran, boîte à archives, agrafeuse, tasse et bloc de notes
+  fournis remplacent leurs équivalents générés.
+
+**Échelle**
+- Les planches sont dessinées pour un monde deux fois plus grand que celui des
+  niveaux : le bureau fourni fait 240 px de large, le rectangle de collision
+  d'un bureau du niveau 1 en fait 110. Tout est donc transporté à **1/2**, par
+  décimation — un pixel sur deux, aucune moyenne, aucun flou.
+- L'autre issue aurait été de doubler toutes les coordonnées des trois
+  niveaux : cela aurait cassé le level design, les vitesses, les portées de
+  vision et tout l'équilibrage. **Aucune coordonnée de niveau n'a changé.**
+- Échelle de référence : le joueur fait 32 × 58 unités de monde. Un bureau fait
+  deux joueurs de large, une chaise un joueur et demi de haut.
+
+**Ce qui manque est marqué, pas imité**
+- `ASSET_TODO: nom` dans le code, fiche complète dans
+  `tools/assets/wanted.mjs`, et `npm run assets:report` recoupe les deux — un
+  tag sans fiche fait échouer le rapport.
+- Six fiches ouvertes : stagiaire, collègue bavard, réceptionniste, agent
+  d'entretien, mur raccordable vu de dessus, poste de travail portrait.
+- **Les 14 murs fournis ne sont pas intégrés** : ce sont des segments
+  d'élévation d'un jeu de tuiles (courses, angles, T, embout), alors que le
+  moteur habille des rectangles de taille arbitraire en étirant un motif. Les
+  brancher demanderait un auto-tuilage, donc un changement de format de
+  niveau. Les murs générés restent en place, et la fiche décrit précisément le
+  motif raccordable qui les remplacerait.
+
+**Contrôle mobile**
+- Nouveau `npm run mobile` : cinq formats portrait, de l'iPhone SE (320) à
+  l'iPad mini (744). Il vérifie qu'aucun bord du canvas ne sort de la fenêtre,
+  qu'aucun débordement horizontal n'apparaît, que le rapport d'image 390 × 844
+  est conservé — sans quoi les zones tactiles ne tombent plus où on les voit —
+  et qu'aucune erreur ne remonte.
+
+**Vérifications**
+- 348 tests, lint, typage, build, budget, test de fumée (trois niveaux, défi
+  du jour, huit bascules de réglages) et contrôle mobile : tous verts.
+- 123 PNG livrés, 1,1 Mo. Aucun asset orphelin, aucune référence manquante.
+
 ## V0.11 — Grande passe graphique
 
 Montée en gamme visuelle des trois niveaux, à partir des planches d'assets

@@ -1,0 +1,213 @@
+{
+  "shrink": 2,
+  "count": 23,
+  "assets": [
+    {
+      "key": "char-player",
+      "group": "characters",
+      "source": "characters/char-player-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "char-colleague",
+      "group": "characters",
+      "source": "characters/char-colleague-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "char-boss",
+      "group": "characters",
+      "source": "characters/char-boss-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "char-guard",
+      "group": "characters",
+      "source": "characters/char-security-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "char-hr",
+      "group": "characters",
+      "source": "characters/char-hr-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "char-tech",
+      "group": "characters",
+      "source": "characters/char-it-v011.png",
+      "size": [
+        512,
+        192
+      ]
+    },
+    {
+      "key": "tile-carpet-blue",
+      "group": "tiles",
+      "source": "architecture/floor-carpet-blue.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-carpet-grey",
+      "group": "tiles",
+      "source": "architecture/floor-carpet-gray.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-concrete",
+      "group": "tiles",
+      "source": "architecture/floor-concrete.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-floor-alt",
+      "group": "tiles",
+      "source": "architecture/floor-dark.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-kitchen",
+      "group": "tiles",
+      "source": "architecture/floor-kitchen.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-slab",
+      "group": "tiles",
+      "source": "architecture/floor-light.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-paving",
+      "group": "tiles",
+      "source": "architecture/floor-paving.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-bathroom",
+      "group": "tiles",
+      "source": "architecture/floor-restroom.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-rubber",
+      "group": "tiles",
+      "source": "architecture/floor-rubber.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "tile-parquet",
+      "group": "tiles",
+      "source": "architecture/floor-wood.png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    {
+      "key": "prop-workstation",
+      "group": "props",
+      "source": "furniture/desk-standard.png",
+      "size": [
+        128,
+        96
+      ]
+    },
+    {
+      "key": "prop-chair",
+      "group": "props",
+      "source": "furniture/chair-blue.png",
+      "size": [
+        80,
+        96
+      ]
+    },
+    {
+      "key": "prop-monitor",
+      "group": "props",
+      "source": "props/monitor-office-a.png",
+      "size": [
+        48,
+        40
+      ]
+    },
+    {
+      "key": "prop-filebox",
+      "group": "props",
+      "source": "props/filebox-blue-a.png",
+      "size": [
+        40,
+        40
+      ]
+    },
+    {
+      "key": "prop-stapler",
+      "group": "props",
+      "source": "props/stapler-a.png",
+      "size": [
+        40,
+        32
+      ]
+    },
+    {
+      "key": "prop-mug",
+      "group": "props",
+      "source": "props/mug-coffee-a.png",
+      "size": [
+        32,
+        32
+      ]
+    },
+    {
+      "key": "prop-sticky",
+      "group": "props",
+      "source": "props/sticky-notes-a.png",
+      "size": [
+        32,
+        32
+      ]
+    }
+  ]
+}

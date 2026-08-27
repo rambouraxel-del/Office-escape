@@ -1,0 +1,731 @@
+{
+  "project": "Office Escape",
+  "target_version": "V0.11",
+  "package": "STRICT — assets passing the current full technical checklist",
+  "created": "2026-08-27T11:52:57",
+  "total_assets": 37,
+  "counts": {
+    "characters": 6,
+    "architecture": 24,
+    "furniture": 2,
+    "props": 5
+  },
+  "criteria": [
+    "PNG readable",
+    "valid dimensions",
+    "binary alpha (0/255 only)",
+    "transparent sprites have a safety margin on all four sides",
+    "opaque floor tiles are allowed to fill the full canvas",
+    "asset belongs to a previously visually accepted set"
+  ],
+  "included": [
+    {
+      "file": "characters/char-boss-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "83ae1018a0c9ab0e891a281ea411aa78be042eca94fa1fb3929a7cb669bd9db2",
+      "ok": true
+    },
+    {
+      "file": "characters/char-colleague-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "db45afe442bfb14624254b290d705d381c4738e23ab50b542f6dcbf75f141582",
+      "ok": true
+    },
+    {
+      "file": "characters/char-hr-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "af9c9ccc7974622e12b78fd7e5262ba24a5f7b5e6b86148c36a3586d7054ccdc",
+      "ok": true
+    },
+    {
+      "file": "characters/char-it-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "ea96b85b23fddc1c06becca83aa0f7fbd50fdd5212323b0e877cad7c5e7e35c0",
+      "ok": true
+    },
+    {
+      "file": "characters/char-player-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "9f7ff66fb2fd1bd669e165ce670defd0df889c569120865e56c2453c8b627e5b",
+      "ok": true
+    },
+    {
+      "file": "characters/char-security-v011.png",
+      "size_px": [
+        768,
+        384
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "f86c5852ecaecd0f88efa04fe094b0e44e7a72d1b045b9c7feff0426aa9fcdf5",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-carpet-blue.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "bbc513950ebade05a29c8a36e5ae94d5569a1c1c1120d57004323747bd094034",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-carpet-gray.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "bce3b2bef99b7ac64806047eff8c66e50bd6ef78963618120084814172c1291e",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-concrete.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "2e976a0f1bec72fc75624e51972d91eaa8be405d06cbcff84122f366ddef931e",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-dark.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "cd64c7e3a0a58afbfd288b1a7f0c3f4dcd316110f8eb61a5dde1ec475368ca01",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-kitchen.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "00d5f1eac98002c3739ef1d3e8b403d53d8cc64095cef458683925490c27fd2c",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-light.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "817aceba90d40e1b2ef2d19921567c25c050e552c9f90697c6201b54af56c4ff",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-paving.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "bc309b4ffd82f47cf30b7e39536a622887aa695087ca7b5034f098c180bb838c",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-restroom.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "baec94c0e635272daff34bc8f428b9f97f1156828ce7b4132fc081c106290e5e",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-rubber.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "cf76da096ec33ca612cfcde58c9b15b6bc567aeacda0e48d864f37ab74a0ddb8",
+      "ok": true
+    },
+    {
+      "file": "architecture/floor-wood.png",
+      "size_px": [
+        128,
+        128
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": false,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "1f1b2da5bf1f465bcdc74bcaa98945fa324eb9994697e4d7913ab51d8daeba79",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-endcap.png",
+      "size_px": [
+        48,
+        96
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "e2999836c57ff93397f51b6f497428260f44f512708bb58327aeb85d1a74bc19",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-gray-a.png",
+      "size_px": [
+        160,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "6d07f4f2ea2d94b13c09acd3231f8a5e92803ea91a29e764d02e97ae38710a20",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-gray-b.png",
+      "size_px": [
+        160,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "f578c9c05ddd6579f7182a5d119afc5835d480b7a3a698962b5885bbd7fe9947",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-light-a.png",
+      "size_px": [
+        144,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "4c20b577aadca747df8cdbf4dcea90d75efaab337484e42b40d2861c989b059d",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-light-b.png",
+      "size_px": [
+        144,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "166e6036191592ea8d48754e540d7a5947e925456dbfc841830df879379ea7fa",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-wood-a.png",
+      "size_px": [
+        144,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "eff6029075cff74fedb52b5eb9915d5e8f1043ad18db9475efa6c0a478a521ff",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-h-wood-b.png",
+      "size_px": [
+        144,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "452400845b6bc1817baade22cd63a28dd2eedc3ab1d4e6695d7c54973f101949",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-inner-a.png",
+      "size_px": [
+        104,
+        112
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "2f43fcedd509fdfe93208ffde6dab1ce666b69f26fe378f2bfef6b81990eb31e",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-inner-b.png",
+      "size_px": [
+        96,
+        104
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "f78e5e49be5f621835ec2c7ecb9388561093f05f6b206332844263d37e054a9b",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-outer-a.png",
+      "size_px": [
+        144,
+        112
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "99199b2da3cf6b648b8a5387d53a7a2a04b8a7d327a6cf5bb452e80c26f06dce",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-t.png",
+      "size_px": [
+        152,
+        112
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "9faf6db41d002043aa68b323b622286b772d60fe6f141e318ca78aef55099fcb",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-v-gray.png",
+      "size_px": [
+        56,
+        144
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "10d92b1dea50cdf7c52cf5aea07962d705f193c595e2ec519a428f81d1e2101e",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-v-light.png",
+      "size_px": [
+        48,
+        144
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "b8562daf51f11e13e91129200d15747949edda68e5e7a2257e2131f3dcc2cf7b",
+      "ok": true
+    },
+    {
+      "file": "architecture/wall-v-white.png",
+      "size_px": [
+        48,
+        144
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "a77702fa6bfdb9071840c74c858a8a41cddf11b88b9590b93af92ba654f98292",
+      "ok": true
+    },
+    {
+      "file": "furniture/desk-standard.png",
+      "size_px": [
+        256,
+        192
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "9bb3ea322bf18b1581d0043e573506783d128387d86bf5740a268121145a2141",
+      "ok": true
+    },
+    {
+      "file": "furniture/chair-blue.png",
+      "size_px": [
+        160,
+        192
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "273a96c2eb40c27fb3ffe8bc9ed15961d0e98b8455eb48972852715df7f73696",
+      "ok": true
+    },
+    {
+      "file": "props/filebox-blue-a.png",
+      "size_px": [
+        80,
+        80
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "f44af32e805c9ce3b9a92e360cda55e5b932e2ab4dc21d6dd23f49d355862111",
+      "ok": true
+    },
+    {
+      "file": "props/monitor-office-a.png",
+      "size_px": [
+        96,
+        80
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "d1806cf4ac9546b0e70fa77c6f12651836f718ee7f6d02df25d1fd45bbe230d7",
+      "ok": true
+    },
+    {
+      "file": "props/mug-coffee-a.png",
+      "size_px": [
+        64,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "ada33840c9ad6252196bbf12147eaac578f5f2f8bf3144380b6e814ba6a2558f",
+      "ok": true
+    },
+    {
+      "file": "props/stapler-a.png",
+      "size_px": [
+        80,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "2e293f94721b887433970eda0516ccdf92a04c0ed0f56c83ca6a20e5fc04fb01",
+      "ok": true
+    },
+    {
+      "file": "props/sticky-notes-a.png",
+      "size_px": [
+        64,
+        64
+      ],
+      "png": true,
+      "binary_alpha": true,
+      "has_transparency": true,
+      "safe_margin_or_opaque_tile": true,
+      "sha256": "fb61454d338f8507b10cfb81aa53abd22faf80d330cd2f03faa94b3788ca9120",
+      "ok": true
+    }
+  ],
+  "excluded_after_recheck": [
+    {
+      "file": "architecture/door-double-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-double-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-fire-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-fire-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-glass-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-glass-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-office-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-office-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-restroom-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-restroom-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-security-closed.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/door-security-open.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/elevator.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/gate-green.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/gate-red.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-corner-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-corner-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-corner-c.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-panel-dark.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-t-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-t-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-t-c.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-wall-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-wall-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-wall-c.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-wall-d.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/glass-wall-wide.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/partition-beige.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/partition-blue.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/partition-gray.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/partition-green.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/sink-double.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/sink-single.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/sink-triple.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stairs-down.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stairs-up.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stall-blue-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stall-blue-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stall-gray-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stall-gray-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/stall-wall.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/toilet-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/toilet-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/toilet-c.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/toilet-d.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/turnstile-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/turnstile-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/urinal-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "architecture/urinal-b.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "furniture/bench-two-person.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "furniture/desk-executive.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "furniture/meeting-table-8.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "furniture/sofa-blue.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "props/pen-cup-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    },
+    {
+      "file": "props/plant-office-a.png",
+      "reason": "Does not yet satisfy the current strict production checklist (canvas safety margin and/or binary alpha). It is not included in this archive."
+    }
+  ],
+  "important": [
+    "Character animations remain deferred; use character sheets as static directional art only.",
+    "Rejected animation packs, rejected bulk furniture packs, large visual reference sheets, and unnormalized high-resolution prop masters are not included.",
+    "No asset in this archive should be redrawn by Claude during integration."
+  ]
+}

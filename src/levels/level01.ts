@@ -47,19 +47,23 @@ export const LEVEL_01: LevelDef = {
   decor: [
     { kind: 'zone', x: 250, y: 2075, w: 316, h: 124, material: 'start' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'SORTIE  ↑' },
-    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'lounge' },
+    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'parquet' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
     { kind: 'prop', x: 77, y: 1524, prop: 'stall' },
     { kind: 'prop', x: 77, y: 1614, prop: 'stall' },
     { kind: 'prop', x: 56, y: 1490, prop: 'toilet' },
     { kind: 'prop', x: 56, y: 1580, prop: 'toilet' },
     { kind: 'prop', x: 62, y: 1664, prop: 'sink' },
+    // Bureaux PORTRAIT : le poste de travail fourni est en paysage (120 × 80)
+    // et déborderait d'un rectangle de 90 × 105. On garde les accessoires
+    // épars en attendant une variante verticale.
+    // ASSET_TODO: poste_de_travail_portrait
     { kind: 'deskProps', x: 85, y: 2030, side: -1 },
     { kind: 'deskProps', x: 415, y: 2030, side: 1 },
     { kind: 'deskProps', x: 420, y: 1500, side: 1 },
-    { kind: 'deskProps', x: 80, y: 1245, side: -1 },
-    { kind: 'deskProps', x: 77, y: 560, side: -1 },
-    { kind: 'deskProps', x: 423, y: 560, side: 1 },
+    { kind: 'prop', x: 80, y: 1245, prop: 'workstation' },
+    { kind: 'prop', x: 77, y: 560, prop: 'workstation' },
+    { kind: 'prop', x: 423, y: 560, prop: 'workstation' },
     { kind: 'prop', x: 150, y: 2030, prop: 'chair' },
     { kind: 'prop', x: 350, y: 2030, prop: 'chair' },
     { kind: 'prop', x: 355, y: 1500, prop: 'chair' },
@@ -95,7 +99,8 @@ export const LEVEL_01: LevelDef = {
     { kind: 'prop', x: 155, y: 1962, prop: 'coatRack' },
     { kind: 'prop', x: 140, y: 1900, prop: 'wallClock' },
     { kind: 'prop', x: 345, y: 1958, prop: 'corkboard' },
-    { kind: 'prop', x: 118, y: 2030, prop: 'laptop' },
+    { kind: 'prop', x: 118, y: 2030, prop: 'monitor' },
+    { kind: 'prop', x: 52, y: 2062, prop: 'stapler' },
 
     // Sanitaires : le plan de lavabos et l'urinoir complètent les cabines.
     { kind: 'prop', x: 77, y: 1662, prop: 'sinkCounter' },
@@ -117,7 +122,7 @@ export const LEVEL_01: LevelDef = {
     // Archives : les classeurs debout autour du bloc central.
     { kind: 'prop', x: 250, y: 742, prop: 'binder' },
     { kind: 'prop', x: 250, y: 978, prop: 'binder' },
-    { kind: 'prop', x: 166, y: 860, prop: 'boxes' },
+    { kind: 'prop', x: 166, y: 860, prop: 'filebox' },
 
     // Salle de réunion, en haut : le tableau blanc suffit à la nommer.
     { kind: 'zone', x: 250, y: 620, w: 300, h: 170, material: 'meeting' },

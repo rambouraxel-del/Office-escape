@@ -1,6 +1,6 @@
 {
   "name": "office-escape",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "private": true,
   "type": "module",
   "description": "Jeu web 2D d'infiltration mobile-first : quitter le bureau avant les heures sup.",
@@ -20,7 +20,10 @@
     "verify": "npm run lint && npm run check && npm run test && npm run build && npm run budget",
     "preview": "vite preview",
     "smoke": "node tools/smoke.mjs",
-    "art": "node tools/art/build-art.mjs"
+    "art": "node tools/art/build-art.mjs && node tools/assets/import.mjs",
+    "assets": "node tools/assets/import.mjs",
+    "assets:report": "node tools/assets/report.mjs",
+    "mobile": "node tools/mobile-check.mjs"
   },
   "dependencies": {
     "phaser": "4.2.1"

@@ -15,7 +15,6 @@
 import { mkdirSync, writeFileSync, readdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CHARACTERS, makeCharacterSheet } from './characters.mjs';
 import { TILES } from './tiles.mjs';
 import { PROPS, PROP_SHEETS } from './props.mjs';
 import { FX_SHEETS, makeBeam, makeLight } from './fx.mjs';
@@ -27,13 +26,10 @@ const ART_SCALE = 2;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ASSETS = join(ROOT, 'public', 'assets');
 
-const characterSheets = Object.entries(CHARACTERS).map(([key, spec]) => [
-  key,
-  () => makeCharacterSheet(spec)
-]);
-
+// Les planches de personnages ne sont PLUS générées : elles sont fournies, et
+// `tools/assets/import.mjs` les transporte. `characters.mjs` reste utilisé par
+// le diorama de l'accueil et les vignettes du menu.
 const GROUPS = [
-  { dir: 'characters', entries: characterSheets },
   { dir: 'tiles', entries: Object.entries(TILES) },
   { dir: 'props', entries: [...Object.entries(PROPS), ...Object.entries(PROP_SHEETS)] },
   { dir: 'fx', entries: [...Object.entries(FX_SHEETS), ['fx-light', makeLight], ['fx-beam', makeBeam]] },

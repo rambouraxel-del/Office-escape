@@ -139,7 +139,7 @@ export const LEVEL_03: LevelDef = {
 
     // Zone livraison : rubalise et cartons devant une place condamnée.
     { kind: 'prop', x: 405, y: 1900, prop: 'hazardTape' },
-    { kind: 'prop', x: 405, y: 1836, prop: 'binder' },
+    { kind: 'prop', x: 405, y: 1836, prop: 'filebox' },
 
     // Coin distributeur de l'ascenseur : le seul endroit éclairé où traîner.
     { kind: 'prop', x: 56, y: 2010, prop: 'vending' }
