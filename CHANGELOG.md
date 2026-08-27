@@ -1,5 +1,103 @@
 # Journal des versions
 
+## V0.10.3 — IA lisible, vraie nuit, plus de pression
+
+Trois chantiers : rendre les rondes APPRENABLES, faire de la nuit du parking
+une mécanique plutôt qu'une gêne, et resserrer la difficulté. Le menu, la
+direction artistique générale et tout le gameplay non cité ne bougent pas.
+
+**Les PNJ suivent à nouveau un circuit prédéfini**
+- Abandon du déplacement semi-aléatoire de la V0.10.1. Un PNJ enchaîne les
+  points de sa `patrol`, en **ligne droite**, dans l'ordre. La zone `roam`
+  disparaît du format de niveau, `ROAM_JITTER` avec elle.
+- Pourquoi : un jeu d'infiltration se joue sur ce qu'on peut apprendre. Une
+  destination tirée au hasard donnait des PNJ vivants et illisibles — on
+  subissait leurs trajectoires au lieu de les jouer.
+- Ce qui varie, et rien d'autre, tiré **une seule fois par PNJ** au `Prng` du
+  niveau : le sens de départ du circuit, la durée des pauses
+  (`PATROL_PAUSE_SECONDS` ± `PATROL_PAUSE_VARIATION`), la vitesse
+  (± `PATROL_SPEED_VARIATION`). Le Défi du jour reste reproductible.
+- `NavGrid` ne sert plus qu'à quatre choses : la poursuite, la fouille, la
+  diversion, et le **retour en ronde** — où l'on rattrape le point de circuit
+  le plus proche, pas celui qu'on visait avant l'écart. Rebrousser tout le
+  couloir pour revenir à un point déjà dépassé donne un PNJ qui a l'air perdu.
+- Nouveau **filet anti-blocage** : un PNJ qui voulait avancer et n'a pas
+  parcouru `STUCK_DISTANCE` en `STUCK_SECONDS` jette son chemin et passe par
+  la grille. Le pathfinding seul ne suffisait pas — deux PNJ qui se croisent
+  dans une porte se poussent hors de leur trajectoire, et aucun des deux n'est
+  « contre un mur » au sens de la grille.
+- **Quatre rondes corrigées dans les niveaux livrés.** Un nouveau test refuse
+  tout segment qui ne soit pas franchissable en ligne droite ; il a trouvé
+  quatre circuits qui traversaient un pilier ou rasaient un bureau. Ils
+  « marchaient » parce que le pathfinding les contournait, et c'était
+  exactement ce qui rendait les trajectoires incompréhensibles.
+  - niveau 2 — le boss fait les cent pas devant la porte à badge (son ancienne
+    boucle passait à dix unités du pilier central) ; le stagiaire a une boucle
+    resserrée entre les deux bureaux ;
+  - niveau 3 — le vigile tient la travée centrale sur toute sa longueur (son
+    ancien tracé traversait le pilier du milieu) ; le collègue tardif remonte
+    la travée de gauche ; l'agent d'entretien contourne le pilier du fond.
+
+**Niveau 3 : une lampe torche, pas un halo**
+- Le halo circulaire devient un **faisceau directionnel** qui suit
+  l'orientation du joueur. Un halo révélait tout autour de soi : on voyait
+  arriver ce qu'on n'avait aucune raison de voir. Un faisceau oriente
+  l'attention et fait du fait de REGARDER une décision.
+- Le faisceau glisse vers la direction de marche au lieu de se braquer d'un
+  coup, et **garde sa direction à l'arrêt** : une lampe qu'on tient ne se
+  recentre pas toute seule.
+- Une **flaque de lumière** reste aux pieds du joueur : on ne marche jamais
+  totalement à l'aveugle.
+- Les PNJ, leurs étiquettes, leurs jauges, **leurs cônes de vision**, les
+  objets et les indices sont désormais **réellement invisibles** hors lumière
+  (`hiddenAlpha` passe de 0,1 à 0). En V0.10.2 un garde restait perceptible et
+  son faisceau trahissait sa position : la nuit n'était qu'une gêne.
+- Les **lampes fixes révèlent ce qu'elles éclairent** : les flaques de néon
+  deviennent autant de zones à surveiller, où l'on voit les gardes et où l'on
+  se voit.
+- Le décor — sol, murs, voitures, mobilier, structure — reste lisible. Voile
+  légèrement renforcé (0,58 → 0,66), un test refuse d'aller au-delà de 0,8.
+- Nouveau module PUR `src/systems/Torch.ts` : il répond à « quelle lumière
+  reçoit ce point », et rien d'autre. Testable sans navigateur.
+- Nouveau sprite `fx-beam`, cuit hors ligne. Son atténuation est **linéaire**,
+  pas quadratique : un faisceau qui s'éteint à mi-course révélerait des choses
+  dans une zone que le joueur voit noire — le dessin doit dire la vérité sur
+  la portée.
+- **La détection n'a pas changé d'une virgule.** Un PNJ invisible vous voit
+  exactement comme en plein jour, et c'est ce qui rend la nuit tendue.
+
+**Détection**
+- La jauge se remplit plus vite, sans toucher aux seuils : ils restent
+  lisibles en secondes, et la cadence devient un multiplicateur explicite.
+- **PNJ : +10 %** (`NPC_DETECTION_RATE`). Interception en 2,2 s au lieu de 2,4.
+- **Caméras : +60 %** (`CAMERA_DETECTION_RATE`). Interception en 1,5 s. Une
+  caméra s'observe — angle affiché, balayage régulier, arrêt en bout de
+  course : on sait exactement quand passer, et se tromper doit coûter. Le
+  balayage, lui, n'a pas bougé : elles restent aussi faciles à lire.
+- La course reste pénalisante, et se cumule avec la cadence.
+
+**Le temps passe 1,75× plus vite**
+- Une minute de bureau prend désormais **2 857 ms** au lieu de 5 000
+  (`MS_PER_GAME_MINUTE`).
+- `msPerMinute` devient optionnel dans `LevelDef` et disparaît des trois
+  niveaux : la pression du temps est une constante du jeu, pas une propriété
+  d'étage — trois copies du même nombre, c'étaient trois occasions de se
+  désynchroniser.
+- Les seuils d'étoiles, l'heure fatidique et **toutes les pénalités en minutes
+  de jeu sont inchangés** : c'est le temps réel disponible qui se resserre.
+  Un test vérifie qu'il reste au moins deux minutes réelles par niveau.
+
+**Tests**
+- Nouveau `tests/torch.test.ts` : géométrie des angles, atténuation en
+  distance et en angle, cône orienté, lampes fixes, et le contrat de nuit des
+  niveaux livrés.
+- `tests/nav.test.ts` : le test de zone de déplacement laisse place au test de
+  ligne droite sur chaque segment de ronde.
+- `tests/npc.test.ts` : circuit prédéfini, bouclage, sens de départ, reprise au
+  point le plus proche, cadence des caméras.
+- `tests/core.test.ts` : cadence de l'horloge et budget réel de chaque niveau.
+- 295 tests.
+
 ## V0.10.2 — Refonte de l'écran d'accueil
 
 Le menu était fonctionnel et laid : un diorama vu de dessus, à peine visible

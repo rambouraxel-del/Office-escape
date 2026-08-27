@@ -286,12 +286,26 @@ clignotement, et un menu agité n'est pas un menu vivant.
   texture fabriquée à l'exécution, aucun shader.
 - Chaque lampe a son **néon visible** au plafond, au même endroit : on doit
   voir d'où vient la lumière.
-- **La nuit cache le jeu, pas le terrain** (V0.10.1). Le décor reste lisible :
-  sol, murs, voitures, mobilier, structure. Ce sont les PNJ, les objets et les
-  indices dont l'opacité suit la distance au joueur
-  (`ambient.revealRadius`, `ambient.hiddenAlpha`), avec un bord adouci — une
-  apparition franche clignoterait à chaque pas. Le cône de vision garde un
-  plancher d'opacité : on perd le porteur de vue, jamais son faisceau.
+- **La nuit cache le jeu, pas le terrain** (V0.10.3). Le décor reste lisible :
+  sol, murs, voitures, mobilier, structure. Ce qui disparaît — vraiment,
+  `hiddenAlpha` à zéro — ce sont les PNJ, leurs étiquettes, leurs jauges,
+  **leurs cônes de vision**, les objets et les indices.
+- **Un faisceau, pas un halo** (V0.10.3). Le halo circulaire révélait tout
+  autour de soi : on voyait arriver ce qu'on n'avait aucune raison de voir. Le
+  faisceau (`ambient.torch`) suit l'orientation du joueur et fait du fait de
+  REGARDER une décision. Une flaque de lumière reste à ses pieds : on ne
+  marche jamais totalement à l'aveugle.
+- Le sprite du faisceau est dessiné **pointe à gauche**, s'ouvrant vers la
+  droite : le jeu pose son origine sur la pointe et lui donne directement
+  l'orientation du joueur comme rotation. Un cône dessiné vers le haut aurait
+  obligé chaque appelant à retrancher 90°, et quelqu'un aurait fini par
+  l'oublier.
+- Son atténuation est **linéaire**, pas quadratique. Un faisceau qui s'éteint
+  à mi-course révélerait des choses dans une zone que le joueur voit noire :
+  le dessin doit dire la vérité sur la portée, sinon la lampe ment.
+- Les lampes fixes révèlent ce qu'elles éclairent : les flaques de néon
+  deviennent des zones à surveiller, où l'on voit les gardes et où l'on se
+  voit.
 
 > ⚠️ **La lumière ne dit rien sur le gameplay.** `NpcController`, les cônes de
 > vision et la détection ne consultent JAMAIS `ambient.lights`. Une zone plus

@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { NpcController, type NpcSense } from '../src/systems/NpcController';
 import {
+  CAMERA_DETECTION_RATE,
   DETECTION_ALERT_SECONDS,
   DETECTION_INTERCEPT_SECONDS,
-  ROAM_PAUSE_SECONDS,
+  NPC_DETECTION_RATE,
+  PATROL_PAUSE_SECONDS,
+  PATROL_PAUSE_VARIATION,
+  PATROL_SPEED_VARIATION,
   SEARCH_SECONDS
 } from '../src/game/constants';
 import { NavGrid } from '../src/systems/NavGrid';
@@ -41,7 +45,10 @@ function sense(overrides: Partial<NpcSense> = {}): NpcSense {
 describe('jauge de détection', () => {
   it('déclenche l’alerte puis l’interception aux seuils réglés', () => {
     const npc = new NpcController(patroller, 80, 120);
-    expect(npc.updateDetection(DETECTION_ALERT_SECONDS - 0.1, true, false)).toBe(false);
+    // Les seuils sont en secondes de jauge ; la CADENCE de remplissage est un
+    // multiplicateur. Un humain remplit 1,1 fois plus vite qu'en V0.10.2.
+    const toAlert = DETECTION_ALERT_SECONDS / NPC_DETECTION_RATE;
+    expect(npc.updateDetection(toAlert - 0.1, true, false)).toBe(false);
     expect(npc.alerted).toBe(false);
     expect(npc.updateDetection(0.2, true, false)).toBe(true); // front montant
     expect(npc.alerted).toBe(true);
@@ -69,6 +76,20 @@ describe('jauge de détection', () => {
     expect(running.detectionSeconds).toBeGreaterThan(walking.detectionSeconds);
   });
 
+  it('une caméra mord bien plus vite qu’un humain', () => {
+    // Une caméra s'observe : angle affiché, balayage régulier, arrêt en bout
+    // de course. On sait quand passer — se tromper doit coûter.
+    const human = new NpcController(patroller, 80, 120);
+    const lens = new NpcController(camera, 80, 120);
+    human.updateDetection(0.5, true, false);
+    lens.updateDetection(0.5, true, false);
+    expect(lens.detectionSeconds / human.detectionSeconds).toBeCloseTo(
+      CAMERA_DETECTION_RATE / NPC_DETECTION_RATE,
+      5
+    );
+    expect(CAMERA_DETECTION_RATE).toBeGreaterThan(NPC_DETECTION_RATE);
+  });
+
   it('plafonne à l’interception et ne dépasse jamais', () => {
     const npc = new NpcController(patroller, 80, 120);
     npc.updateDetection(60, true, true);
@@ -91,10 +112,14 @@ describe('machine à états', () => {
     const npc = new NpcController(patroller, 80, 120);
     const first = npc.update(0.016, sense({ position: { x: 0, y: 0 } }));
     expect(first.target).toEqual({ x: 0, y: 200 });
-    expect(first.speed).toBe(80);
+    expect(first.speed).toBeCloseTo(80, 0);
+    expect(Math.abs(first.speed - 80)).toBeLessThanOrEqual(80 * PATROL_SPEED_VARIATION + 0.001);
     // Arrivée : le PNJ marque une pause avant de repartir vers l'autre point.
     npc.update(0.016, sense({ position: { x: 0, y: 197 } }));
-    const second = npc.update(ROAM_PAUSE_SECONDS + 0.1, sense({ position: { x: 0, y: 197 } }));
+    const second = npc.update(
+      PATROL_PAUSE_SECONDS + PATROL_PAUSE_VARIATION + 0.1,
+      sense({ position: { x: 0, y: 197 } })
+    );
     expect(second.target).toEqual({ x: 0, y: 0 });
   });
 
@@ -157,8 +182,8 @@ function corridor() {
   return new NavGrid(400, 400, [{ x: 200, y: 200, w: 200, h: 40 }], 10, 20);
 }
 
-/** Un rôdeur seedé, reconstruit à l'identique pour comparer deux parties. */
-function roamer() {
+/** Un PNJ seedé, reconstruit à l'identique pour comparer deux parties. */
+function seeded() {
   let seed = 0;
   return new NpcController(
     {
@@ -167,9 +192,9 @@ function roamer() {
       archetype: 'guard',
       patrol: [
         { x: 200, y: 160 },
-        { x: 200, y: 240 }
-      ],
-      roam: { x: 200, y: 200, w: 160, h: 160 }
+        { x: 200, y: 240 },
+        { x: 280, y: 240 }
+      ]
     },
     80,
     120,
@@ -180,6 +205,51 @@ function roamer() {
       return seed;
     }
   );
+}
+
+/** Une ronde carrée, sans obstacle : de quoi observer un circuit complet. */
+function square(random?: () => number) {
+  return new NpcController(
+    {
+      id: 'n',
+      label: 'N',
+      archetype: 'guard',
+      patrol: [
+        { x: 100, y: 100 },
+        { x: 300, y: 100 },
+        { x: 300, y: 300 },
+        { x: 100, y: 300 }
+      ]
+    },
+    80,
+    120,
+    0,
+    new NavGrid(400, 400, [], 10, 20),
+    random
+  );
+}
+
+/** Fait tourner le PNJ jusqu'à sa cible, et renvoie les points visités. */
+function walk(npc: NpcController, from: { x: number; y: number }, steps: number): string[] {
+  const position = { ...from };
+  const visited: string[] = [];
+  for (let step = 0; step < steps; step += 1) {
+    const intent = npc.update(0.1, sense({ position }));
+    // Pendant une pause, l'intention est « reste ici » : ce n'est pas un point
+    // de ronde, c'est l'absence de destination.
+    if (intent.speed === 0) continue;
+    const key = `${Math.round(intent.target.x)},${Math.round(intent.target.y)}`;
+    if (visited[visited.length - 1] !== key) visited.push(key);
+    const dx = intent.target.x - position.x;
+    const dy = intent.target.y - position.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance > 0 && intent.speed > 0) {
+      const move = Math.min(distance, intent.speed * 0.1);
+      position.x += (dx / distance) * move;
+      position.y += (dy / distance) * move;
+    }
+  }
+  return visited;
 }
 
 describe('rondes et navigation', () => {
@@ -212,40 +282,48 @@ describe('rondes et navigation', () => {
     expect(intent.target).toEqual({ x: 360, y: 40 });
   });
 
-  it('décale ses points de ronde dans sa zone, jamais au-delà', () => {
-    const nav = new NavGrid(400, 400, [], 10, 20);
-    const zone = { x: 200, y: 200, w: 120, h: 120 };
-    let seed = 0;
-    const npc = new NpcController(
-      {
-        id: 'n',
-        label: 'N',
-        archetype: 'guard',
-        patrol: [{ x: 200, y: 160 }, { x: 200, y: 240 }],
-        roam: zone
-      },
-      80,
-      120,
-      0,
-      nav,
-      () => {
-        seed = (seed + 0.37) % 1;
-        return seed;
-      }
-    );
-    for (let step = 0; step < 40; step += 1) {
-      const intent = npc.update(0.2, sense({ position: { x: 200, y: 200 } }));
-      expect(intent.target.x).toBeGreaterThanOrEqual(zone.x - zone.w / 2 - 1);
-      expect(intent.target.x).toBeLessThanOrEqual(zone.x + zone.w / 2 + 1);
-      expect(intent.target.y).toBeGreaterThanOrEqual(zone.y - zone.h / 2 - 1);
-      expect(intent.target.y).toBeLessThanOrEqual(zone.y + zone.h / 2 + 1);
-    }
+  it('enchaîne les points déclarés, sans jamais viser ailleurs', () => {
+    // Le contrat de lisibilité de la V0.10.3 : la ronde est APPRENABLE. Un PNJ
+    // ne vise que des points du niveau, et il les prend dans l'ordre.
+    const declared = new Set(['100,100', '300,100', '300,300', '100,300']);
+    const visited = walk(square(), { x: 100, y: 100 }, 400);
+    expect(visited.length).toBeGreaterThan(4);
+    visited.forEach((point) => expect(declared.has(point), point).toBe(true));
+  });
+
+  it('boucle sur son circuit au lieu de faire des allers-retours', () => {
+    const visited = walk(square(), { x: 100, y: 100 }, 400);
+    // Un circuit parcouru dans un sens visite les quatre coins avant de
+    // repasser par le premier.
+    expect(new Set(visited.slice(0, 4)).size).toBe(4);
+  });
+
+  it('part dans un sens ou dans l’autre selon le tirage', () => {
+    const forward = walk(square(() => 0.9), { x: 100, y: 100 }, 120)[0];
+    const backward = walk(square(() => 0.1), { x: 100, y: 100 }, 120)[0];
+    expect(forward).not.toBe(backward);
+  });
+
+  it('reprend au point de ronde le plus proche après une poursuite', () => {
+    // Rebrousser tout le couloir pour revenir à un point déjà dépassé donne
+    // un PNJ qui a l'air perdu. On rattrape le circuit là où l'on est.
+    const npc = square();
+    npc.updateDetection(DETECTION_INTERCEPT_SECONDS, true, false);
+    npc.update(0.016, sense({ playerVisible: true, playerPosition: { x: 100, y: 300 } }));
+    npc.update(0.016, sense({ playerVisible: false, position: { x: 100, y: 300 } }));
+    npc.updateDetection(10, false, false);
+    npc.update(SEARCH_SECONDS + 1, sense({ playerVisible: false, position: { x: 110, y: 290 } }));
+    expect(npc.state).toBe('patrol');
+    // On était déjà sur (100, 300) : le PNJ enchaîne sur le point suivant du
+    // circuit au lieu de rejoindre celui qu'il occupe.
+    const back = walk(npc, { x: 110, y: 290 }, 40)[0];
+    expect(['300,300', '100,100']).toContain(back);
   });
 
   it('rejoue exactement la même ronde à tirage identique', () => {
     // Contrat du Défi du jour : même seed, même partie.
-    const a = roamer();
-    const b = roamer();
+    const a = seeded();
+    const b = seeded();
     for (let step = 0; step < 25; step += 1) {
       const left = { ...a.update(0.2, sense({ position: { x: 200, y: 200 } })).target };
       const right = { ...b.update(0.2, sense({ position: { x: 200, y: 200 } })).target };

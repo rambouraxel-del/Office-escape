@@ -97,7 +97,6 @@ export const LEVEL_01: LevelDef = {
       // Le collègue reste dans le couloir : il ne va jamais fouiner derrière
       // les bureaux, mais il ne repasse pas non plus deux fois sur la même
       // ligne.
-      roam: { x: 250, y: 1555, w: 210, h: 500 }
     },
     {
       id: 'boss',
@@ -109,7 +108,6 @@ export const LEVEL_01: LevelDef = {
         { x: 395, y: 1040 },
         { x: 105, y: 1040 }
       ],
-      roam: { x: 250, y: 860, w: 300, h: 400 },
       patrolSpeed: 72,
       chaseSpeed: 128,
       visionRange: 250,
@@ -205,6 +203,6 @@ export const LEVEL_01: LevelDef = {
     }
   ],
 
-  clock: { startHour: 17, startMinute: 0, msPerMinute: 5000, failAtHour: 22 },
+  clock: { startHour: 17, startMinute: 0, failAtHour: 22 },
   stars: [20, 30, 45]
 };

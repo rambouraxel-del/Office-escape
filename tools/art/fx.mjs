@@ -146,6 +146,44 @@ export function makeLight() {
 }
 
 /**
+ * Faisceau de la lampe torche (V0.10.3).
+ *
+ * Dessiné pointe à GAUCHE, s'ouvrant vers la droite : le jeu pose son origine
+ * sur la pointe et lui donne directement l'orientation du joueur comme
+ * rotation. Un cône dessiné vers le haut aurait obligé chaque appelant à
+ * retrancher 90°, et quelqu'un aurait fini par l'oublier.
+ *
+ * L'atténuation est double — en distance ET en angle — pour que le bord du
+ * faisceau soit une transition, pas une découpe.
+ */
+export function makeBeam() {
+  const width = 96;
+  const height = 64;
+  const centre = (height - 1) / 2;
+  const canvas = new PixelCanvas(width, height);
+  for (let x = 0; x < width; x += 1) {
+    const reach = x / (width - 1);
+    // Demi-largeur du cône à cette distance : la pointe est fine, le fond
+    // occupe toute la hauteur du sprite.
+    const half = 1 + reach * centre;
+    for (let y = 0; y < height; y += 1) {
+      const offset = Math.abs(y - centre) / half;
+      if (offset >= 1) continue;
+      // Atténuation LINÉAIRE en distance, avec un reste au bout : un carré
+      // éteint le faisceau à mi-course, et l'on révélait alors des choses
+      // dans une zone que le joueur voyait noire. Le dessin doit dire la
+      // vérité sur la portée, sinon la lampe ment.
+      const alongFalloff = 1 - reach * 0.8;
+      const acrossFalloff = 1 - offset * offset;
+      const alpha = alongFalloff * acrossFalloff;
+      if (alpha <= 0.01) continue;
+      canvas.set(x, y, reach < 0.3 ? 'lampGlow' : 'neonTube', Math.min(1, alpha));
+    }
+  }
+  return canvas;
+}
+
+/**
  * Planches d'effets. Chaque entrée est une bande horizontale de frames de
  * 16×16 (32×32 une fois cuite), déclarée côté jeu dans `animations.ts`.
  */

@@ -274,21 +274,4 @@ export class NavGrid {
     }
     return true;
   }
-
-  /**
-   * Point aléatoire libre dans une zone, ou `null` après quelques essais.
-   * Le tirage vient du `Prng` du niveau : le Défi du jour reste reproductible.
-   */
-  randomPointIn(zone: RectDef, random: () => number, out: Vec2, attempts = 12): Vec2 | null {
-    for (let attempt = 0; attempt < attempts; attempt += 1) {
-      const x = zone.x - zone.w / 2 + random() * zone.w;
-      const y = zone.y - zone.h / 2 + random() * zone.h;
-      if (this.isWalkable(x, y)) {
-        out.x = x;
-        out.y = y;
-        return out;
-      }
-    }
-    return null;
-  }
 }

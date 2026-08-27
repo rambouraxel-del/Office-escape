@@ -118,14 +118,13 @@ export interface NpcDef {
   id: string;
   label: string;
   archetype: NpcArchetype;
-  /** Trajet cyclique. Un seul point = PNJ statique. */
-  patrol: Vec2[];
   /**
-   * Zone de déplacement AUTORISÉE. Le PNJ décale ses points de ronde au
-   * hasard à l'intérieur, ce qui l'empêche de repasser exactement au même
-   * endroit sans le rendre imprévisible. Absent = ronde stricte.
+   * Circuit cyclique, parcouru point par point, en ligne droite et dans
+   * l'ordre. Un seul point = PNJ statique. C'est la ronde que le joueur doit
+   * pouvoir apprendre : deux points consécutifs doivent se voir sans obstacle,
+   * un test le vérifie sur tous les niveaux livrés.
    */
-  roam?: RectDef;
+  patrol: Vec2[];
   /** Caméras / vigies : balayage angulaire au lieu d'un déplacement. */
   sweep?: SweepDef;
   patrolSpeed?: number;
@@ -215,6 +214,16 @@ export interface LightDef {
   intensity?: number;
 }
 
+/** Lampe torche du joueur. Sa présence allume la mécanique de nuit. */
+export interface TorchDef {
+  /** Portée du faisceau, en unités de monde. */
+  range: number;
+  /** Demi-ouverture du faisceau, en degrés. */
+  halfAngleDeg: number;
+  /** Rayon éclairé autour des pieds : on ne marche jamais totalement à l'aveugle. */
+  spill: number;
+}
+
 export interface AmbientDef {
   /**
    * 0 = plein jour, 1 = nuit noire. Assombrit le DÉCOR, qui doit rester
@@ -222,12 +231,12 @@ export interface AmbientDef {
    */
   darkness?: number;
   /**
-   * Rayon, en unités de monde, dans lequel la lampe du joueur RÉVÈLE les
-   * éléments de jeu — PNJ, objets, indices d'interaction. Au-delà, ils
-   * s'effacent. Absent = tout reste visible.
+   * Faisceau du joueur. Présent, les éléments de JEU — PNJ, cônes de vision,
+   * objets, indices — ne sont visibles que dans sa lumière ou dans celle des
+   * lampes fixes. Absent, tout reste visible.
    */
-  revealRadius?: number;
-  /** Opacité des éléments de jeu hors du halo. 0 = invisibles. */
+  torch?: TorchDef;
+  /** Opacité des éléments de jeu dans le noir. 0 = réellement invisibles. */
   hiddenAlpha?: number;
   /**
    * Lampes fixes. Purement visuelles : la détection ne les consulte JAMAIS.
@@ -254,7 +263,12 @@ export interface LevelDef {
   triggers: TriggerDef[];
   dialogues: DialogueDef[];
   tutorials: TutorialDef[];
-  clock: { startHour: number; startMinute: number; msPerMinute: number; failAtHour: number };
+  /**
+   * `msPerMinute` est optionnel : à défaut, `MS_PER_GAME_MINUTE`. La pression
+   * du temps est une constante du jeu, pas une propriété d'étage — la mettre
+   * dans chaque niveau, c'était trois copies du même nombre à tenir à jour.
+   */
+  clock: { startHour: number; startMinute: number; msPerMinute?: number; failAtHour: number };
   /** Seuils en minutes de jeu écoulées pour 3, 2 et 1 étoile. */
   stars: [number, number, number];
 }

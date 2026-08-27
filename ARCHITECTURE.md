@@ -28,7 +28,8 @@ src/
 │   └── session.ts     état partagé entre scènes
 ├── systems/         règles pures, sans Phaser
 │   ├── NpcController.ts   machine à états (ronde / poursuite / fouille / diversion)
-│   ├── NavGrid.ts         grille de navigation : parcours, lissage, tirage aléatoire
+│   ├── NavGrid.ts         grille de navigation : parcours, lissage, ligne de vue
+│   ├── Torch.ts           ce que le joueur éclaire, et donc ce qu'il voit
 │   ├── Inventory.ts       deux poches
 │   ├── TutorialDirector.ts table de conditions
 │   └── GhostRecorder.ts   enregistrement et relecture du record
@@ -136,52 +137,77 @@ poussières, la vapeur et la pulsation de lumière ; les personnages, eux,
 continuent de respirer à 1,4 à 5 images par seconde — le réglage promet la fin
 des flashs, pas un menu mort.
 
-## La navigation des PNJ (V0.10.1)
+## Les rondes et la navigation (V0.10.3)
 
-`NavGrid` est une **grille**, pas un navmesh. Les niveaux font 500 × 2200
-unités et tous les obstacles sont des rectangles alignés : à 25 unités par
+**Une ronde est prédéfinie.** Un PNJ enchaîne les points déclarés dans la
+donnée du niveau, en LIGNE DROITE, dans l'ordre. La V0.10.1 tirait chaque
+destination au hasard dans une zone autorisée : c'était vivant et illisible.
+Un jeu d'infiltration se joue sur ce qu'on peut apprendre — si le circuit n'est
+pas mémorisable, il ne reste que la chance.
+
+Ce qui varie tient en trois nombres, tirés UNE FOIS par PNJ au `Prng` du
+niveau (le Défi du jour reste donc reproductible) : le sens de départ, la durée
+des pauses, la vitesse à quelques pour cent près.
+
+Un test refuse tout segment de ronde qui ne soit pas franchissable en ligne
+droite, sur tous les niveaux livrés. Il en a trouvé quatre à la livraison de la
+V0.10.3 : ils « marchaient » parce que le pathfinding les contournait, et
+c'était précisément ce qui rendait les trajectoires incompréhensibles.
+
+`NavGrid` reste une **grille**, pas un navmesh : les niveaux font 500 × 2200
+unités et tous les obstacles sont des rectangles alignés. À 25 unités par
 cellule, un niveau tient dans 1 760 cases, qu'un parcours en largeur d'abord
-traverse en moins d'une milliseconde. Un navmesh serait plus élégant et
-complètement disproportionné.
+traverse en moins d'une milliseconde.
 
-Trois choix portent le reste :
+Elle ne sert plus que dans quatre cas :
 
-1. **Une marge de dégagement autour de chaque obstacle** (`NAV_CLEARANCE`).
-   Un chemin qui passe pile sur l'arête met le PNJ en butée contre le moteur
-   physique — c'est exactement ce qui bloquait les PNJ du niveau 3 contre les
-   voitures.
-2. **Un lissage par ligne de vue** : tout point de passage que l'on peut
-   sauter en ligne droite disparaît. Sans lui, le PNJ suit l'escalier de la
-   grille et titube.
-3. **Le tirage vient du `Prng` du niveau.** Une destination est prise au
-   hasard dans la `roam` du PNJ — sa zone de déplacement, déclarée dans la
-   donnée — donc la ronde vit sans jamais cesser d'être reproductible : le
-   Défi du jour rejoue à l'identique.
+1. **la poursuite**, recalculée toutes les `CHASE_REPATH_SECONDS` ;
+2. **la fouille** et la **diversion** ;
+3. **le retour en ronde** : on rattrape le point de circuit le PLUS PROCHE,
+   pas celui qu'on visait avant. Rebrousser tout le couloir pour revenir à un
+   point déjà dépassé donne un PNJ qui a l'air perdu ;
+4. **le filet anti-blocage** : un PNJ qui voulait avancer et n'a pas parcouru
+   `STUCK_DISTANCE` en `STUCK_SECONDS` jette son chemin et passe par la
+   grille. Le pathfinding seul ne suffit pas — deux PNJ qui se croisent dans
+   une porte se poussent hors de leur trajectoire, et aucun des deux n'est
+   « contre un mur » au sens de la grille.
 
-Un changement d'état invalide toujours le chemin : après une poursuite, une
-fouille ou une distraction, le PNJ repart proprement. L'ouverture d'une porte
-reconstruit la grille à partir des obstacles encore solides, plutôt que de
-« déboucher » le rectangle de la porte : sa marge est partagée avec le mur
-voisin, et la rouvrir à la main laisserait soit un bouchon, soit un trou.
+Deux choix portent la qualité du résultat : une **marge de dégagement** autour
+de chaque obstacle (`NAV_CLEARANCE`), sans laquelle un chemin qui passe sur
+l'arête met le PNJ en butée ; et un **lissage par ligne de vue**, sans lequel
+le PNJ suit l'escalier de la grille et titube.
 
-### Éclairage du parking
+### La nuit du parking (V0.10.3)
 
 Un voile de nuit, puis des **halos additifs** aux points déclarés dans
 `ambient.lights`. Un seul sprite de dégradé, redimensionné à la volée : aucune
 texture fabriquée à l'exécution, aucun shader, rien qui coûte sur un téléphone.
 
-Depuis la V0.10.1 la nuit est aussi une **mécanique**, mais uniquement de
-lisibilité : le décor reste visible — on doit pouvoir circuler — tandis que les
-éléments de jeu (PNJ, objets, indices) voient leur opacité suivre la distance
-au joueur (`ambient.revealRadius`, `ambient.hiddenAlpha`). Le cône de vision,
-lui, garde un plancher (`CONE_NIGHT_FLOOR`) : le porteur se noie dans le noir,
-son faisceau reste perceptible, sinon la nuit devient injuste plutôt que tendue.
+Le halo circulaire du joueur devient un **faisceau directionnel**. Un halo
+révélait tout autour de soi : on voyait arriver ce qu'on n'avait aucune raison
+de voir, et la nuit n'était qu'une gêne. Un faisceau oriente l'attention et
+fait du simple fait de REGARDER une décision.
 
-**Ni les lampes ni ce voile ne disent quoi que ce soit sur le gameplay.**
-`NpcController`, `geometry.ts` et la détection ne lisent jamais `ambient` :
-une zone plus claire n'est pas plus dangereuse, et un PNJ effacé vous voit
-exactement comme avant. En faire une mécanique de détection serait une décision
-de game design, pas une passe graphique.
+- `src/systems/Torch.ts` est PUR : il répond à « quelle lumière reçoit ce
+  point », et rien d'autre. Trois sources, on garde la plus forte — la flaque
+  aux pieds du joueur, le faisceau (atténué en distance ET en angle), les
+  lampes fixes du niveau.
+- Les lampes fixes révèlent ce qu'elles éclairent : les flaques de néon
+  deviennent autant de zones à surveiller, où l'on voit les gardes et où l'on
+  se voit.
+- Ce qui disparaît dans le noir, ce sont les éléments de JEU : PNJ, étiquettes,
+  jauges, **cônes de vision**, objets, indices. Le décor, lui, reste lisible —
+  on doit pouvoir circuler.
+- Le dessin doit dire la vérité sur la portée. L'atténuation du sprite est
+  linéaire, pas quadratique : un faisceau qui s'éteint à mi-course révélerait
+  des choses dans une zone que le joueur voit noire, et la lampe mentirait.
+
+**Ni les lampes, ni le voile, ni le faisceau ne disent quoi que ce soit sur le
+gameplay.** `NpcController`, `geometry.ts` et la détection ne lisent jamais
+`ambient` : un PNJ noyé dans le noir vous voit exactement comme en plein jour.
+C'est précisément ce qui rend la nuit tendue — on ne sait pas, eux si. En faire
+une mécanique de détection serait une décision de game design, pas une passe
+graphique.
 
 **Le rendu n'a pas le droit de toucher au gameplay.** Un obstacle crée
 toujours le rectangle de collision exact de la V0.8 ; il est simplement rendu
@@ -205,10 +231,10 @@ Voir `src/game/types.ts` pour le contrat exact. En résumé :
 
 | Champ | Rôle |
 | --- | --- |
-| `size`, `spawn`, `ambient` | dimensions, départ, ambiance (`darkness`, `revealRadius`, `hiddenAlpha` pour la nuit) |
+| `size`, `spawn`, `ambient` | dimensions, départ, ambiance (`darkness`, `torch`, `hiddenAlpha`, `lights` pour la nuit) |
 | `obstacles` | rectangles **définis par leur centre** ; `kind` choisit le style, `lock` en fait une porte |
 | `decor` | purement cosmétique : plantes, zones, étiquettes, accessoires de bureau |
-| `npcs` | `patrol` (cyclique) + `roam` (zone de déplacement), ou `sweep` pour une caméra fixe ; `visionRange` et `visionHalfAngleDeg` affinent le cône |
+| `npcs` | `patrol` : circuit cyclique parcouru en ligne droite. Ou `sweep`, pour une caméra fixe. `visionRange` et `visionHalfAngleDeg` affinent le cône |
 | `items` | deux au maximum : l'inventaire n'a que deux poches |
 | `hidingSpots` | `door` (où l'on entre) et `exit` (où l'on ressort) |
 | `triggers` | zones `dialogue` ou `exit` |

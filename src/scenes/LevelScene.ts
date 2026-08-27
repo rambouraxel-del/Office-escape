@@ -22,7 +22,9 @@ import {
   RUN_VISION_MULTIPLIER,
   WALK_SPEED,
   EXIT_FLOURISH_MS,
-  INTERCEPT_FLOURISH_MS
+  INTERCEPT_FLOURISH_MS,
+  MS_PER_GAME_MINUTE,
+  TORCH_LERP
 } from '../game/constants';
 import { Audio, vibrate } from '../core/audio';
 import { GameClock } from '../core/clock';
@@ -34,6 +36,7 @@ import { GhostPlayer, GhostRecorder } from '../systems/GhostRecorder';
 import { Inventory } from '../systems/Inventory';
 import { NpcController } from '../systems/NpcController';
 import { NavGrid } from '../systems/NavGrid';
+import { approachAngle } from '../systems/Torch';
 import { TutorialDirector } from '../systems/TutorialDirector';
 import { REGISTRY_KEYS, type InputState, type RunRequest, type RunResult } from '../game/session';
 import { getLevel } from '../levels';
@@ -95,6 +98,8 @@ export class LevelScene extends Phaser.Scene {
 
   private hiddenIn: string | null = null;
   private isRunning = false;
+  /** Où pointe la lampe. Suit le déplacement, et le garde à l'arrêt. */
+  private playerFacing = -Math.PI / 2;
   private hasRun = false;
   private resolvedDialogues = new Set<string>();
   private firedTriggers = new Set<string>();
@@ -160,10 +165,13 @@ export class LevelScene extends Phaser.Scene {
 
   private resetRunState() {
     this.state = 'playing';
+    // Vers le haut : c'est la direction de la sortie dans les trois niveaux,
+    // donc celle où l'on regarde avant même d'avoir bougé.
+    this.playerFacing = -Math.PI / 2;
     this.clock = new GameClock(
       this.level.clock.startHour,
       this.level.clock.startMinute,
-      this.level.clock.msPerMinute
+      this.level.clock.msPerMinute ?? MS_PER_GAME_MINUTE
     );
     this.inventory = new Inventory();
     this.npcs = [];
@@ -332,8 +340,7 @@ export class LevelScene extends Phaser.Scene {
     }
 
     this.updatePlayer();
-    this.view.updateLight(this.player.x, this.player.y);
-    this.view.revealAround(this.player.x, this.player.y);
+    this.view.revealAround(this.player.x, this.player.y, this.playerFacing);
     this.updateGhost(delta);
     this.updateDistraction(time);
     this.updateNpcs(delta / 1000);
@@ -399,6 +406,10 @@ export class LevelScene extends Phaser.Scene {
     if (moving) {
       Audio.play('step');
       if (this.isRunning) this.hasRun = true;
+      // Le faisceau suit le déplacement, en glissant : braqué d'un coup, il
+      // saccadait à chaque micro-correction du joystick. À l'arrêt il GARDE sa
+      // direction — une lampe qu'on tient ne se recentre pas toute seule.
+      this.playerFacing = approachAngle(this.playerFacing, Math.atan2(dy, dx), TORCH_LERP);
     }
 
     const state: CharacterState = moving ? (this.isRunning ? 'run' : 'walk') : 'idle';

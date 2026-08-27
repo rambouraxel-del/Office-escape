@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import {
   COLORS,
-  CONE_NIGHT_FLOOR,
   DEPTH,
   DEFAULT_VISION_HALF_ANGLE_DEG,
   DEFAULT_VISION_RANGE,
   NPC_RADIUS,
+  TORCH_BEAM_ALPHA,
+  TORCH_SPILL_ALPHA,
   VIEW_WIDTH,
   VISION_SEGMENTS
 } from '../game/constants';
@@ -41,6 +42,7 @@ import {
   type MaterialStyle
 } from '../game/artTheme';
 import { PALETTE, hex, type PaletteKey } from '../game/palette';
+import { Torch } from '../systems/Torch';
 import { TUTORIAL_MARGIN, TUTORIAL_PADDING, TUTORIAL_TEXT_WIDTH, TUTORIAL_TOUCH_MARGIN } from '../game/constants';
 import { SettingsStore } from '../core/settings';
 import { FR } from '../core/strings';
@@ -85,8 +87,9 @@ export interface NpcVisual {
  */
 type Fadeable = { setAlpha(value: number): unknown };
 
-/** Rayon du halo que le joueur porte dans le noir, en unités de monde. */
-const PLAYER_LIGHT_RADIUS = 175;
+/** Position du joueur, réutilisée : `revealAround` tourne à chaque frame. */
+const POINT: Vec2 = { x: 0, y: 0 };
+
 
 /** Aligne une coordonnée sur la grille du pixel d'art. */
 function snap(value: number): number {
@@ -110,14 +113,17 @@ export class LevelView {
   private talkers = new Map<string, { sprite: Phaser.GameObjects.Sprite; name: Phaser.GameObjects.Text }>();
   private dressing = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.GameObject[]>();
   private doorSprites = new Map<Phaser.GameObjects.Rectangle, Phaser.GameObjects.Sprite>();
-  private light?: Phaser.GameObjects.Image;
   /**
    * Ce que la lampe du joueur révèle : PNJ, objets, indices. Le DÉCOR n'y est
    * pas — il reste lisible, on doit pouvoir se déplacer dans le noir.
    */
-  private readonly revealed: { objects: Fadeable[]; at: Vec2; floor: number }[] = [];
-  private revealRadius = 0;
+  private readonly revealed: { objects: Fadeable[]; at: Vec2 }[] = [];
+  /** Modèle d'éclairage du niveau. Absent = plein jour, rien à révéler. */
+  private torch: Torch | null = null;
   private hiddenAlpha = 0;
+  /** Faisceau et flaque au sol, déplacés à chaque frame. */
+  private beam?: Phaser.GameObjects.Image;
+  private spill?: Phaser.GameObjects.Image;
 
   /** Jeu de matières du niveau : c'est lui qui donne son identité à l'étage. */
   private readonly materials: Record<string, MaterialStyle>;
@@ -130,47 +136,40 @@ export class LevelView {
     const theme = level.theme ?? 'office';
     this.materials = MATERIALS[theme];
     this.floorTile = FLOOR_TILES[theme];
-    this.revealRadius = level.ambient?.revealRadius ?? 0;
-    this.hiddenAlpha = level.ambient?.hiddenAlpha ?? 0;
+    const ambient = level.ambient;
+    this.torch = ambient?.torch ? new Torch(ambient.torch, ambient.lights ?? []) : null;
+    this.hiddenAlpha = ambient?.hiddenAlpha ?? 0;
   }
 
   /**
-   * Déclare un groupe d'objets que la lampe du joueur révèle.
-   * Sans `revealRadius` dans le niveau, l'appel ne coûte rien : la liste
-   * reste vide et `revealAround` sort immédiatement.
+   * Déclare un groupe d'objets que la lumière révèle.
+   * Sans faisceau dans le niveau, l'appel ne coûte rien : la liste reste vide
+   * et `revealAround` sort immédiatement.
    */
   private trackReveal(at: Vec2, ...objects: Fadeable[]) {
-    if (this.revealRadius <= 0) return;
-    this.revealed.push({ objects, at, floor: this.hiddenAlpha });
+    if (!this.torch) return;
+    this.revealed.push({ objects, at });
   }
 
   /**
-   * Comme `trackReveal`, mais avec un plancher d'opacité choisi.
-   *
-   * Sert au cône de vision : un PNJ doit disparaître dans le noir, son
-   * faisceau non. Sans ça on se ferait repérer par un garde qu'aucun indice
-   * ne trahissait — la nuit deviendrait injuste plutôt que tendue.
-   */
-  private trackRevealDimmed(at: Vec2, floor: number, ...objects: Fadeable[]) {
-    if (this.revealRadius <= 0) return;
-    this.revealed.push({ objects, at, floor });
-  }
-
-  /**
-   * Lampe torche : ce qui est loin du joueur s'efface.
+   * Lampe torche : n'est visible que ce qui est ÉCLAIRÉ.
    *
    * Purement visuel. `NpcController` et les cônes de vision ne consultent
    * jamais l'opacité — un PNJ invisible vous voit exactement comme avant.
+   * C'est justement ce qui rend la nuit tendue : on ne sait pas, eux si.
    */
-  revealAround(x: number, y: number) {
-    if (this.revealRadius <= 0) return;
-    const fade = this.revealRadius * 0.45;
+  revealAround(x: number, y: number, facing: number) {
+    const torch = this.torch;
+    if (!torch) return;
+    this.beam?.setPosition(x, y).setRotation(facing);
+    this.spill?.setPosition(x, y);
+
     for (let index = 0; index < this.revealed.length; index += 1) {
       const entry = this.revealed[index];
-      const distance = Math.hypot(entry.at.x - x, entry.at.y - y);
-      // Bord adouci : une apparition franche clignoterait à chaque pas.
-      const ratio = Math.min(1, Math.max(0, (this.revealRadius - distance) / fade));
-      const alpha = entry.floor + (1 - entry.floor) * ratio;
+      POINT.x = x;
+      POINT.y = y;
+      const light = torch.lightAt(entry.at, POINT, facing);
+      const alpha = this.hiddenAlpha + (1 - this.hiddenAlpha) * light;
       for (let slot = 0; slot < entry.objects.length; slot += 1) entry.objects[slot].setAlpha(alpha);
     }
   }
@@ -455,16 +454,27 @@ export class LevelView {
       halo.setDisplaySize(lamp.radius * 2, lamp.radius * 2);
     });
 
-    this.light = this.scene.add
+    const torch = this.level.ambient?.torch;
+    if (!torch) return;
+
+    // Faisceau : le sprite pointe vers la DROITE et son origine est à la
+    // pointe, donc la rotation vaut directement l'orientation du joueur.
+    this.beam = this.scene.add
+      .image(this.level.spawn.x, this.level.spawn.y, FX_TEXTURES.beam)
+      .setOrigin(0, 0.5)
+      .setDepth(DEPTH.light + 1)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setAlpha(TORCH_BEAM_ALPHA);
+    this.beam.setDisplaySize(torch.range, torch.range * Math.tan((torch.halfAngleDeg * Math.PI) / 180) * 2);
+
+    // Flaque aux pieds : sans elle, on avance en fixant l'horizon et l'on se
+    // cogne dans ce qu'on a sous le nez.
+    this.spill = this.scene.add
       .image(this.level.spawn.x, this.level.spawn.y, FX_TEXTURES.light)
       .setDepth(DEPTH.light + 1)
       .setBlendMode(Phaser.BlendModes.ADD)
-      .setAlpha(0.62);
-    this.light.setDisplaySize(PLAYER_LIGHT_RADIUS * 2, PLAYER_LIGHT_RADIUS * 2);
-  }
-
-  updateLight(x: number, y: number) {
-    this.light?.setPosition(x, y);
+      .setAlpha(TORCH_SPILL_ALPHA);
+    this.spill.setDisplaySize(torch.spill * 2.4, torch.spill * 2.4);
   }
 
   createNpc(def: NpcDef, controller: NpcController, index: number): NpcVisual {
@@ -510,11 +520,10 @@ export class LevelView {
 
     const vision = this.scene.add.graphics().setDepth(DEPTH.vision + index * 0.01);
 
-    // Le porteur se noie dans le noir ; son faisceau, lui, garde un plancher
-    // d'opacité. C'est le seul avertissement qui reste au joueur, et sans lui
-    // la nuit devient injuste plutôt que tendue.
-    this.trackReveal(sprite, sprite, nameText, emote, gaugeBack, gaugeFill);
-    this.trackRevealDimmed(sprite, CONE_NIGHT_FLOOR, vision);
+    // Le cône entre dans le groupe (V0.10.3) : dans le noir, un garde ne
+    // trahit plus sa position par son faisceau. On l'éclaire, ou on ne sait
+    // pas qu'il est là — et lui vous voit quand même.
+    this.trackReveal(sprite, sprite, nameText, emote, gaugeBack, gaugeFill, vision);
 
     return {
       def,

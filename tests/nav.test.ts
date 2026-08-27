@@ -57,20 +57,6 @@ describe('grille de navigation', () => {
     expect(nav.findPath({ x: 40, y: 40 }, { x: 40, y: 260 }, buffer())).toBe(0);
   });
 
-  it('ne tire un point aléatoire que sur une case libre', () => {
-    const nav = new NavGrid(300, 300, [{ x: 150, y: 150, w: 120, h: 120 }], 5, 10);
-    const out = { x: 0, y: 0 };
-    let seed = 0;
-    const random = () => {
-      seed = (seed + 0.317) % 1;
-      return seed;
-    };
-    for (let attempt = 0; attempt < 30; attempt += 1) {
-      const point = nav.randomPointIn({ x: 150, y: 150, w: 280, h: 280 }, random, out);
-      if (point) expect(nav.isWalkable(point.x, point.y)).toBe(true);
-    }
-  });
-
   it('rouvre le passage quand une porte disparaît', () => {
     const left = { x: 60, y: 150, w: 120, h: 20 };
     const door = { x: 150, y: 150, w: 60, h: 20 };
@@ -118,30 +104,28 @@ describe('navigabilité des niveaux livrés', () => {
   );
 
   it.each(LEVELS.map((level) => [level.id, level] as const))(
-    '%s : la zone de déplacement contient bien les points de ronde',
+    '%s : chaque segment de ronde est franchissable en ligne droite',
     (_id, level) => {
-      level.npcs
-        .filter((npc) => npc.roam)
-        .forEach((npc) => {
-          const zone = npc.roam!;
-          npc.patrol.forEach((point) => {
-            // Sans ça, un PNJ viserait éternellement un point que sa zone
-            // ramène ailleurs : il tournerait en rond au bord de sa cage.
-            expect(point.x, `${npc.id} hors zone en x`).toBeGreaterThanOrEqual(zone.x - zone.w / 2);
-            expect(point.x, `${npc.id} hors zone en x`).toBeLessThanOrEqual(zone.x + zone.w / 2);
-            expect(point.y, `${npc.id} hors zone en y`).toBeGreaterThanOrEqual(zone.y - zone.h / 2);
-            expect(point.y, `${npc.id} hors zone en y`).toBeLessThanOrEqual(zone.y + zone.h / 2);
-          });
-        });
-    }
-  );
-
-  it.each(LEVELS.map((level) => [level.id, level] as const))(
-    '%s : tout PNJ mobile déclare une zone de déplacement',
-    (_id, level) => {
+      // C'est LA garantie de lisibilité de la V0.10.3 : en ronde, un PNJ va
+      // tout droit d'un point au suivant. Un segment barré le ferait basculer
+      // sur la grille — il contournerait sans que le joueur comprenne
+      // pourquoi, et le circuit cesserait d'être apprenable.
+      const nav = new NavGrid(
+        level.size.w,
+        level.size.h,
+        level.obstacles.filter((obstacle) => obstacle.kind !== 'door')
+      );
       level.npcs
         .filter((npc) => npc.patrol.length > 1)
-        .forEach((npc) => expect(npc.roam, `${npc.id} sans zone`).toBeDefined());
+        .forEach((npc) => {
+          npc.patrol.forEach((point, index) => {
+            const next = npc.patrol[(index + 1) % npc.patrol.length];
+            expect(
+              nav.hasLineOfSight(point.x, point.y, next.x, next.y),
+              `${npc.id} : segment ${index} → ${(index + 1) % npc.patrol.length}`
+            ).toBe(true);
+          });
+        });
     }
   );
 });

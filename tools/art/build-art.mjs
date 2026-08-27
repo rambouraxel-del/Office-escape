@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { CHARACTERS, makeCharacterSheet } from './characters.mjs';
 import { TILES } from './tiles.mjs';
 import { PROPS, PROP_SHEETS } from './props.mjs';
-import { FX_SHEETS, makeLight } from './fx.mjs';
+import { FX_SHEETS, makeBeam, makeLight } from './fx.mjs';
 import { THUMBS } from './thumbs.mjs';
 import { UI } from './ui.mjs';
 import { MENU_SHEETS, MENU_STILLS } from './menu.mjs';
@@ -36,7 +36,7 @@ const GROUPS = [
   { dir: 'characters', entries: characterSheets },
   { dir: 'tiles', entries: Object.entries(TILES) },
   { dir: 'props', entries: [...Object.entries(PROPS), ...Object.entries(PROP_SHEETS)] },
-  { dir: 'fx', entries: [...Object.entries(FX_SHEETS), ['fx-light', makeLight]] },
+  { dir: 'fx', entries: [...Object.entries(FX_SHEETS), ['fx-light', makeLight], ['fx-beam', makeBeam]] },
   { dir: 'ui', entries: Object.entries(THUMBS) },
   { dir: 'ui', entries: Object.entries(UI), keep: true },
   // L'accueil vit dans `ui/` : c'est de l'habillage, pas une matière de niveau.

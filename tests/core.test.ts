@@ -3,6 +3,8 @@ import { Prng, dailyKey, dailySeed, hashString } from '../src/core/prng';
 import { GameClock, formatMinutes } from '../src/core/clock';
 import { COLLECTION_BONUS, MAX_TIME_POINTS, STEALTH_BONUS, scoreRun, starsFor } from '../src/core/scoring';
 import { LEVEL_01 } from '../src/levels/level01';
+import { LEVELS } from '../src/levels';
+import { MS_PER_GAME_MINUTE } from '../src/game/constants';
 import { SettingsStore } from '../src/core/settings';
 
 describe('Prng', () => {
@@ -73,6 +75,31 @@ describe('seed quotidienne', () => {
   it('hashString est stable et non nul', () => {
     expect(hashString('office')).toBe(hashString('office'));
     expect(hashString('office')).not.toBe(hashString('offices'));
+  });
+});
+
+describe('cadence de l’horloge', () => {
+  it('avance 1,75 fois plus vite qu’en V0.10.2', () => {
+    // La V0.10.2 comptait 5 000 ms par minute de bureau. Les seuils d'étoiles
+    // et l'heure fatidique n'ont pas bougé : c'est le temps RÉEL disponible
+    // qui se resserre d'autant.
+    expect(MS_PER_GAME_MINUTE).toBeCloseTo(5000 / 1.75, 0);
+  });
+
+  it('est la même pour tous les niveaux livrés', () => {
+    // La pression du temps est une constante du jeu, pas une propriété
+    // d'étage : aucun niveau ne redéclare sa cadence.
+    LEVELS.forEach((level) => expect(level.clock.msPerMinute, level.id).toBeUndefined());
+  });
+
+  it('laisse de quoi finir chaque niveau', () => {
+    LEVELS.forEach((level) => {
+      const budget = (level.clock.failAtHour - level.clock.startHour) * 60 - level.clock.startMinute;
+      const realSeconds = (budget * MS_PER_GAME_MINUTE) / 1000;
+      // Deux minutes réelles au minimum : en deçà, un niveau de trois étages
+      // ne serait plus tendu, il serait injouable.
+      expect(realSeconds, level.id).toBeGreaterThan(120);
+    });
   });
 });
 

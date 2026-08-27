@@ -118,13 +118,14 @@ export const LEVEL_02: LevelDef = {
       id: 'boss',
       label: 'BOSS',
       archetype: 'boss',
+      // Le boss fait les cent pas devant la porte à badge. Son ancienne boucle
+      // rectangulaire passait à dix unités du pilier central : le PNJ frottait,
+      // le contournement le déportait, et le circuit devenait illisible. Un
+      // va-et-vient franc dit la même chose et s'apprend en une passe.
       patrol: [
-        { x: 110, y: 880 },
-        { x: 390, y: 880 },
-        { x: 390, y: 1120 },
-        { x: 110, y: 1120 }
+        { x: 110, y: 850 },
+        { x: 390, y: 850 }
       ],
-      roam: { x: 250, y: 1000, w: 300, h: 280 },
       patrolSpeed: 76,
       chaseSpeed: 132,
       visionRange: 250,
@@ -134,13 +135,14 @@ export const LEVEL_02: LevelDef = {
       id: 'intern',
       label: 'STAGIAIRE',
       archetype: 'intern',
+      // Boucle resserrée entre les deux bureaux de l'étage : l'ancienne rasait
+      // le poste de droite, et le stagiaire s'en écartait sans raison visible.
       patrol: [
-        { x: 150, y: 420 },
-        { x: 350, y: 420 },
-        { x: 350, y: 640 },
-        { x: 150, y: 640 }
+        { x: 180, y: 420 },
+        { x: 320, y: 420 },
+        { x: 320, y: 640 },
+        { x: 180, y: 640 }
       ],
-      roam: { x: 250, y: 530, w: 260, h: 260 },
       patrolSpeed: 96,
       chaseSpeed: 124,
       visionRange: 205,
@@ -224,6 +226,6 @@ export const LEVEL_02: LevelDef = {
     }
   ],
 
-  clock: { startHour: 18, startMinute: 0, msPerMinute: 5000, failAtHour: 23 },
+  clock: { startHour: 18, startMinute: 0, failAtHour: 23 },
   stars: [24, 36, 52]
 };

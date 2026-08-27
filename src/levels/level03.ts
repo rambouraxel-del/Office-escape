@@ -17,11 +17,12 @@ export const LEVEL_03: LevelDef = {
   // FIXES. Ces lampes sont PUREMENT visuelles — la détection ne les consulte
   // jamais, sinon ce serait une mécanique, pas un rendu.
   ambient: {
-    // Le décor reste LISIBLE : on doit voir où l'on met les pieds. Ce sont les
-    // PNJ, les objets et les indices qui disparaissent hors du halo.
-    darkness: 0.58,
-    revealRadius: 210,
-    hiddenAlpha: 0.1,
+    // Le décor reste LISIBLE : on doit voir où l'on met les pieds, les murs,
+    // les voitures. Ce sont les PNJ, leurs cônes, les objets et les indices
+    // qui disparaissent — complètement, `hiddenAlpha` à zéro.
+    darkness: 0.66,
+    torch: { range: 330, halfAngleDeg: 32, spill: 78 },
+    hiddenAlpha: 0,
     lights: [
       { x: 250, y: 2010, radius: 210 },
       { x: 250, y: 1450, radius: 230 },
@@ -122,14 +123,15 @@ export const LEVEL_03: LevelDef = {
       id: 'guard',
       label: 'VIGILE',
       archetype: 'guard',
+      // Le vigile tient la travée CENTRALE, sur toute sa longueur : c'est la
+      // ligne droite qu'on aimerait prendre, et il faut donc s'en écarter.
+      // Son ancien tracé traversait le pilier du milieu — la grille le
+      // contournait, et l'on ne comprenait jamais où il allait.
       patrol: [
-        { x: 250, y: 1500 },
-        { x: 250, y: 400 },
-        { x: 420, y: 400 },
-        { x: 420, y: 1500 }
+        { x: 250, y: 1560 },
+        { x: 250, y: 1000 },
+        { x: 250, y: 740 }
       ],
-      // Le vigile couvre la moitié droite du parking et la rampe.
-      roam: { x: 320, y: 950, w: 300, h: 1180 },
       patrolSpeed: 92,
       chaseSpeed: 150,
       // Lampe torche : loin, très étroit. Contournable si on l'observe.
@@ -140,11 +142,12 @@ export const LEVEL_03: LevelDef = {
       id: 'late-colleague',
       label: 'COLLÈGUE TARDIF',
       archetype: 'colleague',
+      // Travée de gauche, entre le pilier et le local escalier. L'ancien tracé
+      // passait dans les deux : le collègue slalomait au lieu de faire sa ronde.
       patrol: [
-        { x: 120, y: 1850 },
-        { x: 120, y: 1200 }
+        { x: 170, y: 1800 },
+        { x: 170, y: 1250 }
       ],
-      roam: { x: 150, y: 1520, w: 180, h: 660 },
       patrolSpeed: 74,
       chaseSpeed: 112,
       visionRange: 200,
@@ -154,13 +157,14 @@ export const LEVEL_03: LevelDef = {
       id: 'cleaner',
       label: 'AGENT D’ENTRETIEN',
       archetype: 'intern',
+      // Boucle du fond, décalée pour passer À CÔTÉ du pilier central plutôt
+      // qu'au travers : c'est le pilier qui décide du tracé, pas la grille.
       patrol: [
-        { x: 250, y: 300 },
+        { x: 330, y: 300 },
         { x: 120, y: 300 },
-        { x: 120, y: 700 },
-        { x: 250, y: 700 }
+        { x: 120, y: 740 },
+        { x: 330, y: 740 }
       ],
-      roam: { x: 190, y: 500, w: 220, h: 440 },
       patrolSpeed: 68,
       chaseSpeed: 104,
       visionRange: 195,
@@ -244,6 +248,6 @@ export const LEVEL_03: LevelDef = {
     }
   ],
 
-  clock: { startHour: 21, startMinute: 0, msPerMinute: 5000, failAtHour: 26 },
+  clock: { startHour: 21, startMinute: 0, failAtHour: 26 },
   stars: [26, 40, 58]
 };

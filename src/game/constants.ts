@@ -49,19 +49,52 @@ export const DETECTION_INTERCEPT_SECONDS = 2.4;
 /** Vitesse de retombée de la jauge une fois hors du cône. */
 export const DETECTION_DECAY_PER_SECOND = 1.4;
 
+/**
+ * Vitesse de REMPLISSAGE de la jauge (V0.10.3).
+ *
+ * On multiplie la cadence plutôt que de raboter les deux seuils : les
+ * durées ci-dessus restent lisibles en secondes, et « une caméra mord 60 %
+ * plus vite qu'un humain » se lit d'une ligne.
+ *
+ * Une caméra ne se contourne pas au feeling : elle a un angle affiché, un
+ * balayage régulier et un arrêt en bout de course. On sait donc exactement
+ * quand passer — et si l'on se trompe, cela doit coûter.
+ */
+export const NPC_DETECTION_RATE = 1.1;
+export const CAMERA_DETECTION_RATE = 1.6;
+
 /** Le PNJ va fouiller la dernière position connue avant de repartir en ronde. */
 export const SEARCH_SECONDS = 4;
 export const SEARCH_ARRIVAL_RADIUS = 26;
 /**
- * Rondes (V0.10.1).
+ * Rondes (V0.10.3).
  *
- * Un PNJ vise un point de sa ronde, décalé au hasard dans sa zone autorisée :
- * le circuit reste apprenable, la trajectoire ne se répète jamais à
- * l'identique. `ROAM_JITTER` est le rayon de ce décalage.
+ * Retour à un circuit PRÉDÉFINI : un PNJ enchaîne les points déclarés dans la
+ * donnée du niveau, en ligne droite, dans l'ordre. La V0.10.1 tirait chaque
+ * destination au hasard dans une zone ; c'était vivant et illisible, et un jeu
+ * d'infiltration se joue sur ce qu'on peut APPRENDRE.
+ *
+ * Ce qui varie, et rien d'autre — tiré une seule fois par PNJ, au `Prng` du
+ * niveau, donc le Défi du jour reste reproductible :
+ *  - le sens de départ du circuit ;
+ *  - la durée de la pause à chaque point ;
+ *  - la vitesse, à quelques pour cent près.
  */
-export const ROAM_JITTER = 90;
-/** Pause d'un PNJ arrivé sur un point de ronde, en secondes. */
-export const ROAM_PAUSE_SECONDS = 0.7;
+export const PATROL_PAUSE_SECONDS = 0.9;
+export const PATROL_PAUSE_VARIATION = 0.45;
+export const PATROL_SPEED_VARIATION = 0.08;
+
+/**
+ * Filet anti-blocage. Un PNJ qui n'a pas parcouru `STUCK_DISTANCE` en
+ * `STUCK_SECONDS` alors qu'il voulait avancer recalcule son chemin.
+ *
+ * Le pathfinding ne suffit pas : deux PNJ qui se croisent dans une porte se
+ * poussent mutuellement hors de leur trajectoire, et aucun des deux n'est
+ * « contre un mur » au sens de la grille.
+ */
+export const STUCK_SECONDS = 1.2;
+export const STUCK_DISTANCE = 14;
+
 /** Recalcul de trajectoire pendant une poursuite, en secondes. */
 export const CHASE_REPATH_SECONDS = 0.45;
 
@@ -116,13 +149,27 @@ export const TUTORIAL_TOUCH_MARGIN = 14;
 export const TUTORIAL_MOVE_DISMISS = 110;
 
 /**
- * Plancher d'opacité du cône de vision dans un niveau de nuit.
+ * Cadence de l'horloge de jeu : millisecondes réelles pour une minute de
+ * bureau (V0.10.3, 1,75× plus rapide qu'en V0.10.2, où il fallait 5 000 ms).
  *
- * Le PNJ, lui, retombe à `ambient.hiddenAlpha` : on ne le distingue qu'en
- * s'approchant. Son faisceau reste perceptible, sinon on se ferait repérer
- * par un garde qu'aucun indice ne trahissait.
+ * Un `LevelDef` peut l'écraser, mais aucun ne le fait : la pression du temps
+ * est une constante du jeu, pas une propriété d'étage. Les seuils d'étoiles et
+ * l'heure fatidique restent comptés en minutes de JEU — ils n'ont pas bougé,
+ * c'est le temps réel disponible qui se resserre.
  */
-export const CONE_NIGHT_FLOOR = 0.45;
+export const MS_PER_GAME_MINUTE = 2857;
+
+/**
+ * Lampe torche du joueur (V0.10.3).
+ *
+ * Le halo circulaire de la V0.10.1 révélait tout autour de soi : on voyait
+ * arriver ce qu'on n'avait aucune raison de voir. Un faisceau oriente
+ * l'attention et fait du simple fait de REGARDER une décision.
+ */
+export const TORCH_LERP = 0.22;
+/** Opacité additive du faisceau et de la flaque au sol. */
+export const TORCH_BEAM_ALPHA = 0.62;
+export const TORCH_SPILL_ALPHA = 0.4;
 
 /**
  * Ouverture de l'accueil (V0.10.2).

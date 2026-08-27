@@ -281,7 +281,9 @@ export const FX_TEXTURES = {
   emote: 'fx-emote',
   pickup: 'fx-pickup',
   hint: 'fx-hint',
-  light: 'fx-light'
+  light: 'fx-light',
+  /** Faisceau de la lampe torche : pointe à gauche, ouverture vers la droite. */
+  beam: 'fx-beam'
 } as const;
 
 /** Habillages d'interface, pour que les scènes n'écrivent aucun nom de fichier. */
@@ -417,7 +419,7 @@ export const IMAGE_MANIFEST = {
     'prop-tire',
     'prop-parking-sign'
   ],
-  fx: ['fx-light'],
+  fx: ['fx-light', 'fx-beam'],
   ui: [
     'ui-panel',
     'ui-panel-dark',
