@@ -10,7 +10,6 @@ import {
   TEXT,
   TEXT_TONES,
   CHARACTER_TEXTURES,
-  DESK_PROPS,
   DIGITS,
   DOOR_TEXTURE,
   FX_TEXTURES,
@@ -242,7 +241,6 @@ describe('couverture du thème', () => {
   it('chaque accessoire, effet et habillage d’interface est livré', () => {
     [
       ...Object.values(PROP_TEXTURES),
-      ...Object.values(DESK_PROPS),
       ...Object.values(FX_TEXTURES),
       ...Object.values(UI_TEXTURES),
       DOOR_TEXTURE

@@ -36,12 +36,8 @@ export const LIVING_FRAME = 48;
  * cônes de vision, qui sont, eux, de l'information de gameplay.
  */
 export const LIVING_SHEETS: Record<string, number> = {
-  'prop-screen': 1.6,
-  'prop-printer': 0.8,
-  'prop-cooler': 0.5,
   'prop-camera': 1.2,
-  'prop-neon': 2.4,
-  'prop-machine': 0.7
+  'prop-neon': 2.4
 };
 
 export function livingAnimKey(texture: string): string {

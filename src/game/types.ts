@@ -25,20 +25,15 @@ export interface RectDef {
  */
 export type ObstacleKind =
   | 'wall'
-  | 'desk'
-  | 'pillar'
-  | 'cabinet'
   | 'partition'
+  | 'pillar'
+  | 'desk'
+  | 'cabinet'
   | 'door'
   | 'restroom'
-  // ── V0.11 : de quoi nommer une pièce au lieu de la deviner.
-  | 'bench'
   | 'meeting'
-  | 'reception'
-  | 'lockers'
-  | 'glass'
-  | 'server'
-  | 'counter';
+  /** Voiture garée (niveau 3). Le rectangle EST la voiture. */
+  | 'car';
 
 export interface ObstacleDef extends RectDef {
   kind: ObstacleKind;
@@ -79,69 +74,30 @@ export type TextTone = 'zone' | 'quiet' | 'warm' | 'cool';
 
 /** Accessoires posés librement dans le niveau. */
 export type PropKind =
-  | 'plant'
-  | 'cactus'
-  | 'toilet'
-  | 'sink'
-  | 'stall'
-  | 'chair'
-  | 'exitSign'
-  | 'trash'
-  | 'cooler'
-  | 'printer'
-  | 'boxes'
-  | 'books'
-  | 'phone'
-  | 'lamp'
-  | 'keyboard'
-  | 'sticky'
-  | 'screen'
-  | 'armchair'
-  | 'frame'
-  | 'award'
-  | 'vase'
-  | 'machine'
-  | 'cone'
-  | 'barrier'
-  | 'extinguisher'
-  | 'bike'
-  | 'cart'
-  | 'crate'
-  | 'tire'
-  | 'parkingSign'
-  | 'neon'
-  // ── V0.11 : d'après les planches d'assets fournies.
-  | 'sofa'
-  | 'coffeeTable'
-  | 'whiteboard'
-  | 'corkboard'
-  | 'coatRack'
-  | 'wallClock'
-  | 'mat'
-  | 'server'
-  | 'vending'
-  | 'microwave'
-  | 'fridge'
-  | 'mop'
-  | 'wetFloor'
-  | 'recycling'
-  | 'laptop'
-  | 'reader'
-  | 'turnstile'
-  | 'railing'
-  | 'urinal'
-  | 'sinkCounter'
-  | 'binder'
-  | 'hazardTape'
-  // ── V0.11.1 : accessoires fournis.
+  // ── FOURNIS (lot V0.11). Ce sont eux qui donnent le ton.
   | 'workstation'
+  | 'chair'
   | 'monitor'
   | 'filebox'
-  | 'stapler';
+  | 'stapler'
+  | 'mug'
+  | 'sticky'
+  // ── Props SIGNATURE : un seul par fonction de pièce. Encore générés —
+  // chacun a sa fiche dans `tools/assets/wanted.mjs`.
+  | 'plant'
+  | 'toilet'
+  | 'sink'
+  | 'whiteboard'
+  | 'vending'
+  | 'server'
+  | 'reader'
+  | 'exitSign'
+  | 'neon'
+  | 'cone';
 
 /** Décor purement cosmétique, sans collision ni occlusion. */
 export interface DecorDef {
-  kind: 'plant' | 'zone' | 'text' | 'deskProps' | 'prop';
+  kind: 'plant' | 'zone' | 'text' | 'prop';
   x: number;
   y: number;
   w?: number;
@@ -160,16 +116,10 @@ export interface DecorDef {
 export type NpcArchetype =
   | 'colleague'
   | 'boss'
-  | 'intern'
   | 'guard'
   | 'camera'
-  // ── V0.11 : quatre rôles de plus. Purement visuel — un archétype choisit
-  // une planche, jamais un comportement. La ronde, la vision et la détection
-  // restent entièrement dans la donnée du PNJ.
   | 'hr'
-  | 'tech'
-  | 'receptionist'
-  | 'janitor';
+  | 'tech';
 
 /**
  * Balayage d'une caméra.

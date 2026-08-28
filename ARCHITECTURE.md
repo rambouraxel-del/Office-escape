@@ -140,25 +140,35 @@ bureau fait deux joueurs de large, une chaise un joueur et demi de haut.
 fiche correspondante dans `tools/assets/wanted.mjs`, et `npm run assets:report`
 recoupe les deux. Un tag sans fiche fait échouer le rapport.
 
-## Le vocabulaire visuel (V0.11)
+## Le vocabulaire visuel (V0.11, resserré en V0.12)
 
 Trois tables, dans `artTheme.ts`, forment le pont entre une donnée de niveau et
 un asset. Elles sont le SEUL endroit où un nom de fichier apparaît :
 
-- `MATERIALS[theme][kind]` — la matière d'un obstacle. 14 natures d'obstacle,
-  de `wall` à `server`, déclinées sur les trois thèmes.
-- `ZONE_TILES[material]` — le sol d'une zone. 12 matières, du tapis d'accueil
+- `MATERIALS[theme][kind]` — la matière d'un obstacle. **9** natures d'obstacle,
+  de `wall` à `car`, déclinées sur les trois thèmes.
+- `ZONE_TILES[material]` — le sol d'une zone. 13 matières, du tapis d'accueil
   au sol caoutchouc d'un local technique.
-- `PROP_TEXTURES[kind]` — l'accessoire posé. 53 accessoires.
+- `PROP_TEXTURES[kind]` — l'accessoire posé. **17** accessoires.
+
+La V0.11 en comptait 14, 12 et 53. La V0.12 a coupé, sur une seule règle : *un
+accessoire par FONCTION de pièce*. Ce qui distingue deux niveaux, c'est le
+thème, le sol, les murs et deux ou trois props signature — pas vingt-cinq
+objets uniques. Moins d'assets à faire dessiner, et trois niveaux qui se
+ressemblent enfin entre eux.
 
 Ajouter une pièce au jeu, c'est ajouter une ligne à chacune, pas une condition
 dans `LevelView`. Trois tests d'hygiène vérifient que chaque entrée pointe vers
 un PNG livré, qu'aucune scène ne cite un nom d'asset, et qu'aucun PNG ne traîne
 sans être déclaré.
 
-**La règle de la passe graphique de la V0.11** : aucun rectangle de collision
-n'a bougé. Un obstacle change de `kind`, jamais de géométrie — l'habillage se
-refait, le level design reste intact, et le diff le montre.
+**La règle de la passe graphique** : un rectangle de collision ne bouge que
+pour permettre une réutilisation. La V0.11 n'en avait déplacé aucun. La V0.12
+en déplace six — les bureaux verticaux des niveaux 1 et 2, passés en paysage
+pour réutiliser le poste de travail fourni plutôt que d'exiger une planche
+portrait. Chaque déplacement est justifié dans le fichier du niveau, et la
+ronde qu'il gênait a été resserrée : un test refuse tout segment de ronde qui
+ne soit pas franchissable en ligne droite.
 
 ## L'accueil (V0.10.2)
 

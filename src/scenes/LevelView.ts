@@ -23,7 +23,6 @@ import { playCharacter, playLiving, playLoop } from './animate';
 import {
   ART_SCALE,
   CHARACTER_TEXTURES,
-  DESK_PROPS,
   DOOR_TEXTURE,
   FLOOR_TILES,
   FX_TEXTURES,
@@ -382,16 +381,6 @@ export class LevelView {
       return;
     }
 
-    // deskProps : le poste de travail complet — écran, clavier, tasse,
-    // dossiers, post-it. C'est lui qui fait qu'un bureau paraît occupé.
-    const side = decor.side ?? 1;
-    const x = snap(decor.x);
-    const y = snap(decor.y);
-    this.addProp(x - side * 14, y - 14, DESK_PROPS.screen, DEPTH.deskProps);
-    this.addProp(x - side * 12, y + 18, DESK_PROPS.keyboard, DEPTH.deskProps);
-    this.addProp(x + side * 22, y - 16, DESK_PROPS.mug, DEPTH.deskProps);
-    this.addProp(x + side * 20, y + 18, DESK_PROPS.folder, DEPTH.deskProps);
-    this.addProp(x + side * 24, y + 2, DESK_PROPS.sticky, DEPTH.deskProps);
   }
 
   /**

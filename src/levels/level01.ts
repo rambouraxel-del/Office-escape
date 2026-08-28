@@ -15,9 +15,11 @@ export const LEVEL_01: LevelDef = {
   spawn: { x: 250, y: 2050 },
   theme: 'office',
 
-  // V0.11 — RÈGLE DE LA PASSE GRAPHIQUE : aucun rectangle de collision n'a
-  // bougé. Seule la NATURE d'un obstacle change (`kind`), ce qui rhabille une
-  // pièce sans déplacer un mur d'une unité, plus du décor sans collision.
+  // V0.12 — six rectangles ont bougé, et seulement six : les bureaux étaient
+  // en PORTRAIT (90 × 105), ce qui aurait exigé une planche de poste de travail
+  // dédiée. Ils sont passés en PAYSAGE (116 × 78), le format du poste FOURNI.
+  // C'est un asset de moins à faire dessiner, et les six bureaux du jeu se
+  // ressemblent enfin. Tout le reste du level design est intact.
   obstacles: [
     { x: 21, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 479, y: 1100, w: 42, h: 2200, kind: 'wall' },
@@ -26,110 +28,80 @@ export const LEVEL_01: LevelDef = {
 
     { x: 106, y: 1900, w: 170, h: 35, kind: 'partition' },
     { x: 394, y: 1900, w: 170, h: 35, kind: 'partition' },
-    { x: 85, y: 2030, w: 90, h: 105, kind: 'reception' },
-    { x: 415, y: 2030, w: 90, h: 105, kind: 'reception' },
+    { x: 105, y: 2035, w: 116, h: 78, kind: 'desk' },
+    { x: 395, y: 2035, w: 116, h: 78, kind: 'desk' },
 
     // Sanitaires : faïence au sol, cabines et lavabo posés dessus. Aucune
     // étiquette — la pièce doit se reconnaître, pas se lire.
     { x: 77, y: 1580, w: 105, h: 230, kind: 'restroom' },
 
-    { x: 420, y: 1500, w: 90, h: 110, kind: 'bench' },
-    { x: 80, y: 1245, w: 110, h: 75, kind: 'bench' },
+    { x: 400, y: 1500, w: 116, h: 78, kind: 'desk' },
+    { x: 100, y: 1245, w: 116, h: 78, kind: 'desk' },
 
-    { x: 250, y: 860, w: 150, h: 190, kind: 'pillar', label: 'ARCHIVES' },
+    { x: 250, y: 860, w: 150, h: 190, kind: 'cabinet', label: 'ARCHIVES' },
 
-    { x: 77, y: 560, w: 110, h: 80, kind: 'meeting' },
-    { x: 423, y: 560, w: 110, h: 80, kind: 'meeting' },
+    { x: 100, y: 560, w: 116, h: 78, kind: 'desk' },
+    { x: 400, y: 560, w: 116, h: 78, kind: 'desk' },
     { x: 95, y: 165, w: 150, h: 30, kind: 'wall' },
     { x: 405, y: 165, w: 150, h: 30, kind: 'wall' }
   ],
 
+  // V0.12 — le décor tient en dix types de props. Une zone se lit à son SOL
+  // et à un gros meuble répété, pas à une collection d'objets uniques.
   decor: [
     { kind: 'zone', x: 250, y: 2075, w: 316, h: 124, material: 'start' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'SORTIE  ↑' },
-    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'parquet' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
-    { kind: 'prop', x: 77, y: 1524, prop: 'stall' },
-    { kind: 'prop', x: 77, y: 1614, prop: 'stall' },
-    { kind: 'prop', x: 56, y: 1490, prop: 'toilet' },
-    { kind: 'prop', x: 56, y: 1580, prop: 'toilet' },
-    { kind: 'prop', x: 62, y: 1664, prop: 'sink' },
-    // Bureaux PORTRAIT : le poste de travail fourni est en paysage (120 × 80)
-    // et déborderait d'un rectangle de 90 × 105. On garde les accessoires
-    // épars en attendant une variante verticale.
-    // ASSET_TODO: poste_de_travail_portrait
-    { kind: 'deskProps', x: 85, y: 2030, side: -1 },
-    { kind: 'deskProps', x: 415, y: 2030, side: 1 },
-    { kind: 'deskProps', x: 420, y: 1500, side: 1 },
-    { kind: 'prop', x: 80, y: 1245, prop: 'workstation' },
-    { kind: 'prop', x: 77, y: 560, prop: 'workstation' },
-    { kind: 'prop', x: 423, y: 560, prop: 'workstation' },
-    { kind: 'prop', x: 150, y: 2030, prop: 'chair' },
-    { kind: 'prop', x: 350, y: 2030, prop: 'chair' },
-    { kind: 'prop', x: 355, y: 1500, prop: 'chair' },
-    { kind: 'prop', x: 145, y: 1245, prop: 'chair' },
-    { kind: 'prop', x: 142, y: 560, prop: 'chair' },
-    { kind: 'prop', x: 358, y: 560, prop: 'chair' },
-    { kind: 'plant', x: 52, y: 1815 },
-    { kind: 'plant', x: 445, y: 1370 },
-    { kind: 'plant', x: 55, y: 1040 },
-    { kind: 'plant', x: 444, y: 350 },
-    { kind: 'plant', x: 448, y: 1815 },
-    { kind: 'plant', x: 55, y: 690 },
-    // Petits objets de bureau : purement cosmétiques, aucune collision. Ils
-    // ponctuent les longues portions de couloir sans encombrer le passage.
-    { kind: 'prop', x: 160, y: 1950, prop: 'trash' },
-    { kind: 'prop', x: 336, y: 1950, prop: 'boxes' },
-    { kind: 'prop', x: 62, y: 1740, prop: 'books' },
-    { kind: 'prop', x: 444, y: 1690, prop: 'cooler' },
-    { kind: 'prop', x: 444, y: 1560, prop: 'cactus' },
-    { kind: 'prop', x: 152, y: 1180, prop: 'lamp' },
-    { kind: 'prop', x: 66, y: 900, prop: 'printer' },
-    { kind: 'prop', x: 444, y: 1000, prop: 'cactus' },
-    { kind: 'prop', x: 250, y: 430, prop: 'books' },
-    { kind: 'prop', x: 444, y: 470, prop: 'cactus' },
-    { kind: 'prop', x: 84, y: 262, prop: 'boxes' },
-    { kind: 'prop', x: 420, y: 262, prop: 'trash' },
 
-    // ── V0.11 : chaque zone du plateau reçoit ce qui la nomme.
-
-    // Accueil : tapis d'entrée, portemanteau, horloge et panneau d'affichage.
+    // ── Accueil : le dallage clair et deux postes suffisent à dire « entrée ».
     { kind: 'zone', x: 250, y: 1955, w: 300, h: 90, material: 'hall' },
-    { kind: 'prop', x: 250, y: 1985, prop: 'mat' },
-    { kind: 'prop', x: 155, y: 1962, prop: 'coatRack' },
-    { kind: 'prop', x: 140, y: 1900, prop: 'wallClock' },
-    { kind: 'prop', x: 345, y: 1958, prop: 'corkboard' },
-    { kind: 'prop', x: 118, y: 2030, prop: 'monitor' },
-    { kind: 'prop', x: 52, y: 2062, prop: 'stapler' },
+    { kind: 'prop', x: 105, y: 2035, prop: 'workstation' },
+    { kind: 'prop', x: 395, y: 2035, prop: 'workstation' },
+    { kind: 'prop', x: 180, y: 2035, prop: 'chair' },
+    { kind: 'prop', x: 320, y: 2035, prop: 'chair' },
+    { kind: 'plant', x: 52, y: 1930 },
+    { kind: 'plant', x: 448, y: 1930 },
 
-    // Sanitaires : le plan de lavabos et l'urinoir complètent les cabines.
-    { kind: 'prop', x: 77, y: 1662, prop: 'sinkCounter' },
-    { kind: 'prop', x: 104, y: 1476, prop: 'urinal' },
-    { kind: 'prop', x: 148, y: 1690, prop: 'wetFloor' },
-    { kind: 'prop', x: 148, y: 1745, prop: 'mop' },
+    // ── Sanitaires : la faïence porte la pièce, deux props la nomment.
+    { kind: 'prop', x: 60, y: 1510, prop: 'toilet' },
+    { kind: 'prop', x: 60, y: 1600, prop: 'toilet' },
+    { kind: 'prop', x: 100, y: 1670, prop: 'sink' },
 
-    // Coin pause, côté droit : distributeur, micro-ondes, frigo, tri.
-    { kind: 'zone', x: 434, y: 1680, w: 108, h: 210, material: 'kitchen' },
-    { kind: 'prop', x: 442, y: 1780, prop: 'vending' },
-    { kind: 'prop', x: 442, y: 1620, prop: 'microwave' },
-    { kind: 'prop', x: 442, y: 1490, prop: 'fridge' },
-    { kind: 'prop', x: 396, y: 1806, prop: 'recycling' },
+    // ── Open space : le MÊME poste, répété. C'est la répétition qui fait lire
+    // l'open space, pas la variété.
+    { kind: 'prop', x: 100, y: 1245, prop: 'workstation' },
+    { kind: 'prop', x: 400, y: 1500, prop: 'workstation' },
+    { kind: 'prop', x: 175, y: 1245, prop: 'chair' },
+    { kind: 'prop', x: 325, y: 1500, prop: 'chair' },
+    { kind: 'prop', x: 100, y: 1180, prop: 'monitor' },
+    { kind: 'prop', x: 400, y: 1435, prop: 'monitor' },
+    { kind: 'plant', x: 55, y: 1040 },
+    { kind: 'plant', x: 445, y: 1370 },
 
-    // Coin détente de l'alcôve : c'est là qu'on se cache, autant y être bien.
-    { kind: 'prop', x: 92, y: 442, prop: 'sofa' },
-    { kind: 'prop', x: 92, y: 498, prop: 'coffeeTable' },
+    // ── Coin pause : un distributeur, et c'est dit.
+    { kind: 'zone', x: 410, y: 1720, w: 90, h: 180, material: 'kitchen' },
+    { kind: 'prop', x: 412, y: 1720, prop: 'vending' },
+    { kind: 'prop', x: 412, y: 1640, prop: 'mug' },
 
-    // Archives : les classeurs debout autour du bloc central.
-    { kind: 'prop', x: 250, y: 742, prop: 'binder' },
-    { kind: 'prop', x: 250, y: 978, prop: 'binder' },
+    // ── Archives : trois boîtes autour du bloc, rien d'autre.
+    { kind: 'prop', x: 250, y: 742, prop: 'filebox' },
+    { kind: 'prop', x: 250, y: 978, prop: 'filebox' },
     { kind: 'prop', x: 166, y: 860, prop: 'filebox' },
 
-    // Salle de réunion, en haut : le tableau blanc suffit à la nommer.
+    // ── Salle de réunion : le tableau blanc, deux postes, deux chaises.
     { kind: 'zone', x: 250, y: 620, w: 300, h: 170, material: 'meeting' },
-    { kind: 'prop', x: 250, y: 552, prop: 'whiteboard' },
-    { kind: 'prop', x: 250, y: 660, prop: 'coffeeTable' },
-    { kind: 'prop', x: 178, y: 660, prop: 'armchair' },
-    { kind: 'prop', x: 322, y: 660, prop: 'armchair' }
+    { kind: 'prop', x: 250, y: 540, prop: 'whiteboard' },
+    { kind: 'prop', x: 100, y: 560, prop: 'workstation' },
+    { kind: 'prop', x: 400, y: 560, prop: 'workstation' },
+    { kind: 'prop', x: 175, y: 630, prop: 'chair' },
+    { kind: 'prop', x: 325, y: 630, prop: 'chair' },
+    { kind: 'prop', x: 250, y: 700, prop: 'sticky' },
+
+    // ── Alcôve du donut : parquet, une plante, un agrafeuse oublié.
+    { kind: 'zone', x: 92, y: 470, w: 116, h: 100, material: 'parquet' },
+    { kind: 'plant', x: 55, y: 690 },
+    { kind: 'prop', x: 92, y: 430, prop: 'stapler' },
+    { kind: 'plant', x: 444, y: 350 }
   ],
 
   npcs: [

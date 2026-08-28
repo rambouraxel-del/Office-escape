@@ -215,47 +215,6 @@ function rubberFloor() {
   return canvas;
 }
 
-/** Verre de cloison : reflets diagonaux sur un fond clair. */
-function glassPanel() {
-  const canvas = new PixelCanvas(S, S).fill('glassPane', 0.55);
-  for (let y = 0; y < S; y += 1) {
-    for (let x = 0; x < S; x += 1) {
-      // Deux traînées de reflet en diagonale : la signature d'une vitre.
-      const d = (x + y) % 16;
-      if (d < 2) canvas.set(x, y, 'paper', 0.45);
-      else if (d > 12 && d < 14) canvas.set(x, y, 'paper', 0.22);
-    }
-  }
-  canvas.hLine(0, 0, S, 'glassFrame', 0.5);
-  return canvas;
-}
-
-/** Casiers vestiaire : portes hautes, charnières et fentes d'aération. */
-function lockerBank() {
-  const canvas = new PixelCanvas(S, S).fill('lockerBlue');
-  canvas.hLine(0, 0, S, 'metalLight', 0.6);
-  canvas.hLine(0, S - 1, S, 'lockerBlueDark');
-  for (let x = 0; x < S; x += 8) {
-    canvas.vLine(x, 0, S, 'lockerBlueDark');
-    canvas.vLine(x + 1, 0, S, 'metalLight', 0.25);
-    // Grille d'aération et serrure : ce qui distingue un casier d'une armoire.
-    for (let y = 3; y < 7; y += 2) canvas.hLine(x + 2, y, 4, 'lockerBlueDark', 0.8);
-    canvas.set(x + 6, 10, 'metalLight');
-  }
-  return canvas;
-}
-
-/** Baie serveur : façades noires et diodes vertes. Local informatique. */
-function serverRack() {
-  const canvas = new PixelCanvas(S, S).fill('server');
-  for (let y = 1; y < S; y += 3) {
-    canvas.hLine(0, y, S, 'metalDark', 0.7);
-    canvas.hLine(0, y + 1, S, 'ink', 0.4);
-    for (let x = 1; x < S; x += 6) canvas.set(x, y, 'serverLed', 0.9);
-  }
-  return canvas;
-}
-
 export const TILES = {
   'tile-floor': () => carpet('floorMid', 'floorLight', 'floorSeam', 11),
   'tile-floor-alt': () => carpet('floorDark', 'floorMid', 'floorSeam', 23),
@@ -279,8 +238,5 @@ export const TILES = {
   'tile-slab': () => slabs('tileLight', 'tileLightSeam', 'paper', 8, 107),
   'tile-kitchen': () => slabs('kitchenTile', 'kitchenSeam', 'paper', 4, 109),
   'tile-paving': () => paving(),
-  'tile-rubber': () => rubberFloor(),
-  'tile-glass': () => glassPanel(),
-  'tile-locker': () => lockerBank(),
-  'tile-server': () => serverRack()
+  'tile-rubber': () => rubberFloor()
 };

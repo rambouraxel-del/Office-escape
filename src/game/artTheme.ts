@@ -42,47 +42,33 @@ export const MATERIALS: Record<LevelTheme, Record<ObstacleKind, MaterialStyle>> 
   office: {
     wall: { tile: 'tile-wall', edge: 'ink', crest: 'wallTop', base: 'wallDark' },
     partition: { tile: 'tile-wall', edge: 'ink', crest: 'metalLight', base: 'navyDark' },
+    pillar: { tile: 'tile-stone', edge: 'ink', crest: 'stoneLight', base: 'stoneDark', inset: 'stoneLight' },
     desk: { tile: 'tile-wood', edge: 'ink', crest: 'woodLight', base: 'woodDark' },
     cabinet: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark', inset: 'glassDim' },
-    pillar: { tile: 'tile-stone', edge: 'ink', crest: 'stoneLight', base: 'stoneDark', inset: 'stoneLight' },
     door: { tile: 'tile-wood', edge: 'ink', crest: 'gold', base: 'woodDark', inset: 'goldDark' },
-    // Sanitaires : faïence claire. Aucune incrustation — ce sont les cuvettes
-    // et le lavabo posés dessus qui font la lecture, plus une étiquette « WC ».
     restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'marbleSeam' },
-    // ── V0.11
-    bench: { tile: 'tile-wood', edge: 'ink', crest: 'woodLight', base: 'woodDark', inset: 'floorLight' },
     meeting: { tile: 'tile-wood', edge: 'ink', crest: 'woodLight', base: 'woodDark', inset: 'woodLight' },
-    reception: { tile: 'tile-wood', edge: 'ink', crest: 'marbleLight', base: 'woodDark', inset: 'marbleMid' },
-    lockers: { tile: 'tile-locker', edge: 'ink', crest: 'metalLight', base: 'lockerBlueDark' },
-    // Cloison vitrée : on voit à travers, donc elle ne bloque PAS la vue —
-    // c'est `transparent` dans la donnée du niveau qui le décide, pas ce style.
-    glass: { tile: 'tile-glass', edge: 'glassFrame', crest: 'paper', base: 'glassFrame' },
-    server: { tile: 'tile-server', edge: 'ink', crest: 'metalDark', base: 'ink', inset: 'serverLed' },
-    counter: { tile: 'tile-kitchen', edge: 'ink', crest: 'paper', base: 'metalDark', inset: 'metalLight' }
+    // ASSET_TODO: voiture_top_down
+    car: { tile: 'tile-carpaint', edge: 'ink', crest: 'navyLight', base: 'asphaltDark', inset: 'glassDim' }
   },
-  // Étage direction : plus froid, plus net, un liseré de laiton partout.
+  // Étage direction : la différence vient des MATIÈRES, pas d'un autre
+  // mobilier. Mêmes bureaux, mêmes chaises, marbre et laiton en plus.
   exec: {
     wall: { tile: 'tile-wall', edge: 'ink', crest: 'marbleLight', base: 'wallDark' },
     partition: { tile: 'tile-metal', edge: 'ink', crest: 'marbleLight', base: 'metalDark' },
+    pillar: { tile: 'tile-marble', edge: 'ink', crest: 'marbleLight', base: 'marbleSeam', inset: 'brass' },
     desk: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark' },
     cabinet: { tile: 'tile-metal', edge: 'ink', crest: 'marbleLight', base: 'metalDark', inset: 'marbleMid' },
-    pillar: { tile: 'tile-marble', edge: 'ink', crest: 'marbleLight', base: 'marbleSeam', inset: 'brass' },
     door: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark', inset: 'goldDark' },
     restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'brass' },
-    bench: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark', inset: 'marbleLight' },
     meeting: { tile: 'tile-wood', edge: 'ink', crest: 'brass', base: 'woodDark', inset: 'brass' },
-    reception: { tile: 'tile-marble', edge: 'ink', crest: 'brass', base: 'marbleSeam', inset: 'marbleLight' },
-    lockers: { tile: 'tile-metal', edge: 'ink', crest: 'marbleLight', base: 'metalDark' },
-    glass: { tile: 'tile-glass', edge: 'brass', crest: 'paper', base: 'glassFrame' },
-    server: { tile: 'tile-server', edge: 'ink', crest: 'metalDark', base: 'ink', inset: 'serverLed' },
-    counter: { tile: 'tile-marble', edge: 'ink', crest: 'marbleLight', base: 'brass', inset: 'marbleMid' }
+    // ASSET_TODO: voiture_top_down
+    car: { tile: 'tile-carpaint', edge: 'ink', crest: 'navyLight', base: 'asphaltDark', inset: 'glassDim' }
   },
-  // Parking : béton brut, et les « armoires » du niveau 3 sont des voitures.
+  // Parking : béton brut, et les voitures sont des obstacles à part entière.
   parking: {
     wall: { tile: 'tile-concrete', edge: 'ink', crest: 'concreteLight', base: 'concreteDark' },
     partition: { tile: 'tile-concrete', edge: 'ink', crest: 'concreteLight', base: 'concreteDark' },
-    desk: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark' },
-    cabinet: { tile: 'tile-carpaint', edge: 'ink', crest: 'navyLight', base: 'asphaltDark', inset: 'glassDim' },
     pillar: {
       tile: 'tile-concrete',
       edge: 'ink',
@@ -90,15 +76,13 @@ export const MATERIALS: Record<LevelTheme, Record<ObstacleKind, MaterialStyle>> 
       base: 'concreteDark',
       inset: 'paintLine'
     },
+    desk: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark' },
+    cabinet: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark' },
     door: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark', inset: 'goldDark' },
     restroom: { tile: 'tile-bathroom', edge: 'ink', crest: 'marbleLight', base: 'concreteDark' },
-    bench: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark' },
     meeting: { tile: 'tile-metal', edge: 'ink', crest: 'metalLight', base: 'metalDark' },
-    reception: { tile: 'tile-concrete', edge: 'ink', crest: 'concreteLight', base: 'concreteDark' },
-    lockers: { tile: 'tile-locker', edge: 'ink', crest: 'metalLight', base: 'lockerBlueDark' },
-    glass: { tile: 'tile-glass', edge: 'metalDark', crest: 'paper', base: 'glassFrame' },
-    server: { tile: 'tile-server', edge: 'ink', crest: 'metalDark', base: 'ink', inset: 'serverLed' },
-    counter: { tile: 'tile-concrete', edge: 'ink', crest: 'concreteLight', base: 'concreteDark' }
+    // ASSET_TODO: voiture_top_down
+    car: { tile: 'tile-carpaint', edge: 'ink', crest: 'navyLight', base: 'asphaltDark', inset: 'glassDim' }
   }
 };
 
@@ -238,18 +222,10 @@ export const CHARACTER_TEXTURES: Record<NpcArchetype, string> = {
   colleague: 'char-colleague',
   boss: 'char-boss',
   guard: 'char-guard',
+  // ASSET_TODO: camera_surveillance
   camera: 'prop-camera',
   hr: 'char-hr',
-  tech: 'char-tech',
-  // Quatre rôles partagent la planche d'un autre en attendant la leur. Ils
-  // restent des archétypes distincts dans la donnée : le jour où la planche
-  // arrive, une seule ligne change ici.
-  // ASSET_TODO: char_stagiaire
-  intern: 'char-tech',
-  // ASSET_TODO: char_receptionniste
-  receptionist: 'char-hr',
-  // ASSET_TODO: char_agent_entretien
-  janitor: 'char-guard'
+  tech: 'char-tech'
 };
 
 export const PLAYER_TEXTURE: CharacterSheet = 'char-player';
@@ -259,6 +235,7 @@ export const TALKER_TEXTURE: CharacterSheet = 'char-hr';
 // ─────────────────────── objets, accessoires, effets ────────────────────
 
 /** Objets ramassables : chacun est une planche de quatre frames (reflet). */
+// ASSET_TODO: objets_gameplay
 export const ITEM_TEXTURES: Record<ItemId, string> = {
   donut: 'item-donut',
   coffee: 'item-coffee',
@@ -266,78 +243,38 @@ export const ITEM_TEXTURES: Record<ItemId, string> = {
   report: 'item-report'
 };
 
-/** Accessoires posés sur les bureaux, dans l'ordre de dessin. */
-export const DESK_PROPS = {
-  screen: 'prop-screen',
-  keyboard: 'prop-keyboard',
-  mug: 'prop-mug',
-  folder: 'prop-folder',
-  sticky: 'prop-sticky'
-} as const;
 
 export const PROP_TEXTURES: Record<PropKind, string> = {
-  // ── V0.11.1 : accessoires FOURNIS.
+  // Fournis (lot V0.11).
   workstation: 'prop-workstation',
+  chair: 'prop-chair',
   monitor: 'prop-monitor',
   filebox: 'prop-filebox',
   stapler: 'prop-stapler',
-
-  sofa: 'prop-sofa',
-  coffeeTable: 'prop-coffee-table',
-  whiteboard: 'prop-whiteboard',
-  corkboard: 'prop-corkboard',
-  coatRack: 'prop-coat-rack',
-  wallClock: 'prop-wall-clock',
-  mat: 'prop-mat',
-  server: 'prop-server',
-  vending: 'prop-vending',
-  microwave: 'prop-microwave',
-  fridge: 'prop-fridge',
-  mop: 'prop-mop',
-  wetFloor: 'prop-wet-floor',
-  recycling: 'prop-recycling',
-  laptop: 'prop-laptop',
-  reader: 'prop-reader',
-  turnstile: 'prop-turnstile',
-  railing: 'prop-railing',
-  urinal: 'prop-urinal',
-  sinkCounter: 'prop-sink-counter',
-  binder: 'prop-binder',
-  hazardTape: 'prop-hazard-tape',
-
-  plant: 'prop-plant',
-  cactus: 'prop-cactus',
-  toilet: 'prop-toilet',
-  sink: 'prop-sink',
-  stall: 'prop-stall',
-  chair: 'prop-chair',
-  exitSign: 'prop-exit-sign',
-  trash: 'prop-trash',
-  cooler: 'prop-cooler',
-  printer: 'prop-printer',
-  boxes: 'prop-boxes',
-  books: 'prop-books',
-  phone: 'prop-phone',
-  lamp: 'prop-lamp',
-  keyboard: 'prop-keyboard',
+  mug: 'prop-mug',
   sticky: 'prop-sticky',
-  screen: 'prop-screen',
-  // étage direction
-  armchair: 'prop-armchair',
-  frame: 'prop-frame',
-  award: 'prop-award',
-  vase: 'prop-vase',
-  machine: 'prop-machine',
-  // parking
-  cone: 'prop-cone',
-  barrier: 'prop-barrier',
-  extinguisher: 'prop-extinguisher',
-  bike: 'prop-bike',
-  cart: 'prop-cart',
-  crate: 'prop-crate',
-  tire: 'prop-tire',
-  parkingSign: 'prop-parking-sign',
-  neon: 'prop-neon'
+  // Signature, encore générés : un seul par fonction de pièce, chacun avec sa
+  // fiche dans `tools/assets/wanted.mjs`.
+  // ASSET_TODO: plante_bureau
+  plant: 'prop-plant',
+  // ASSET_TODO: wc_top_down
+  toilet: 'prop-toilet',
+  // ASSET_TODO: lavabo_top_down
+  sink: 'prop-sink',
+  // ASSET_TODO: tableau_blanc
+  whiteboard: 'prop-whiteboard',
+  // ASSET_TODO: distributeur
+  vending: 'prop-vending',
+  // ASSET_TODO: baie_serveur
+  server: 'prop-server',
+  // ASSET_TODO: lecteur_badge
+  reader: 'prop-reader',
+  // ASSET_TODO: signaletique
+  exitSign: 'prop-exit-sign',
+  // ASSET_TODO: signaletique
+  neon: 'prop-neon',
+  // ASSET_TODO: signaletique
+  cone: 'prop-cone'
 };
 
 /**
@@ -346,8 +283,6 @@ export const PROP_TEXTURES: Record<PropKind, string> = {
  */
 export const PROP_ELEVATION: Partial<Record<PropKind, 'wall'>> = {
   exitSign: 'wall',
-  frame: 'wall',
-  parkingSign: 'wall',
   neon: 'wall'
 };
 
@@ -472,66 +407,27 @@ export const IMAGE_MANIFEST = {
     'tile-kitchen',
     'tile-paving',
     'tile-rubber',
-    'tile-glass',
-    'tile-locker',
-    'tile-server',
     'tile-parquet'
   ],
   props: [
-    'prop-keyboard',
-    'prop-mug',
-    'prop-folder',
-    'prop-sticky',
-    'prop-phone',
-    'prop-lamp',
-    'prop-plant',
-    'prop-cactus',
-    'prop-toilet',
-    'prop-sink',
-    'prop-stall',
-    'prop-chair',
-    'prop-trash',
-    'prop-boxes',
-    'prop-books',
-    'prop-exit-sign',
-    'prop-armchair',
-    'prop-frame',
-    'prop-award',
-    'prop-vase',
-    'prop-cone',
-    'prop-barrier',
-    'prop-extinguisher',
-    'prop-bike',
-    'prop-cart',
-    'prop-crate',
-    'prop-tire',
-    'prop-parking-sign',
-    'prop-sofa',
-    'prop-coffee-table',
-    'prop-whiteboard',
-    'prop-corkboard',
-    'prop-coat-rack',
-    'prop-wall-clock',
-    'prop-mat',
-    'prop-server',
-    'prop-vending',
-    'prop-microwave',
-    'prop-fridge',
-    'prop-mop',
-    'prop-wet-floor',
-    'prop-recycling',
-    'prop-laptop',
-    'prop-reader',
-    'prop-turnstile',
-    'prop-railing',
-    'prop-urinal',
-    'prop-sink-counter',
-    'prop-binder',
-    'prop-hazard-tape',
+    // Fournis.
     'prop-workstation',
+    'prop-chair',
     'prop-monitor',
     'prop-filebox',
-    'prop-stapler'
+    'prop-stapler',
+    'prop-mug',
+    'prop-sticky',
+    // Signature, encore générés.
+    'prop-plant',
+    'prop-toilet',
+    'prop-sink',
+    'prop-whiteboard',
+    'prop-vending',
+    'prop-server',
+    'prop-reader',
+    'prop-cone',
+    'prop-exit-sign'
   ],
   fx: ['fx-light', 'fx-beam'],
   ui: [

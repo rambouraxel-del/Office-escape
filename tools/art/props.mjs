@@ -97,36 +97,6 @@ function sprite(width, rows) {
 
 // ───────────────────────── postes de travail ────────────────────────────
 
-/** Écran + clavier : le poste de travail, vu de dessus. */
-const SCREEN = () =>
-  sprite(16, [
-    '..KKKKKKKKKKKK',
-    '..KssssssssssK',
-    '..KsSSSSSSSSsK',
-    '..KsSssssssSsK',
-    '..KsSsSSSSsSsK',
-    '..KsSssssssSsK',
-    '..KsSSSSSSSSsK',
-    '..KssssssssssK',
-    '..KKKKKKKKKKKK',
-    '.KyK.KnnnnK.',
-    'KyyKKKKKKKKKK',
-    'KyyKMMMMMMMMK',
-    '.KKKMnMnMnMnK',
-    '...KKKKKKKKKK'
-  ]);
-
-/** Clavier seul : pour habiller un second poste sans répéter l'écran. */
-const KEYBOARD = () =>
-  sprite(14, [
-    'KKKKKKKKKKKKKK',
-    'KMMMMMMMMMMMMK',
-    'KMnMnMnMnMnMMK',
-    'KMnMnMnMnMnMMK',
-    'KMMMnnnnnMMMMK',
-    'KKKKKKKKKKKKKK'
-  ]);
-
 /** Tasse : petite tache chaude qui casse la monotonie des bureaux. */
 const MUG = () =>
   sprite(12, [
@@ -140,18 +110,6 @@ const MUG = () =>
     '..KKKKKK'
   ]);
 
-/** Pile de dossiers, avec son trombone. */
-const FOLDER = () =>
-  sprite(12, [
-    '.KKKKKKKKKK',
-    'KyyyyyyyyyyK',
-    'KyYYYYYYYYyK',
-    'KKKKKKKKKKKK',
-    'KwwwwwwwwwwK',
-    'KwWWnnWWWWwK',
-    'KKKKnnKKKKKK'
-  ]);
-
 /** Post-it : le seul objet du jeu qui a le droit d'être bâclé. */
 const STICKY = () =>
   sprite(14, [
@@ -162,36 +120,6 @@ const STICKY = () =>
     'KKKKKKKKttttK',
     '.....KKKKKKKK'
   ]);
-
-/** Téléphone de bureau. */
-const PHONE = () =>
-  sprite(14, [
-    '.KKKKKKKKKKK',
-    'KKnnnnnnnnnKK',
-    'KnKKKKKKKKKnK',
-    'KnKZZZZZZZKnK',
-    'KKKKKKKKKKKKK',
-    'KZZKKKKKKKZZK',
-    'KZZZZZZZZZZZK',
-    'KKKKKKKKKKKKK'
-  ]);
-
-/** Lampe d'architecte, vue de dessus : le cône de lumière est un disque. */
-const LAMP = () =>
-  sprite(14, [
-    '....KKKK',
-    '...KyyyyK',
-    '..KyywwyyK',
-    '..KyywwyyK',
-    '...KyyyyK',
-    '....KKKK',
-    '.....KnK',
-    '....KnnnK',
-    '...KZZZZZK',
-    '...KKKKKKK'
-  ]);
-
-// ─────────────────────────── meubles et plantes ─────────────────────────
 
 /** Plante verte : la touche chaleureuse du décor. */
 const PLANT = () =>
@@ -213,22 +141,6 @@ const PLANT = () =>
     '.....KKKKK'
   ]);
 
-/** Cactus : la plante de celui qui oublie d'arroser. */
-const CACTUS = () =>
-  sprite(12, [
-    '....KK',
-    '...KllK',
-    '.K.KlLlK.K',
-    'KlKKlLlKKlK',
-    'KlLKlLlKLlK',
-    'KlLllLLlllLK',
-    '.KlLLLLLLlK',
-    '..KKlLLlKK',
-    '...KpppppK',
-    '...KpPPPpK',
-    '....KKKKK'
-  ]);
-
 /** Chaise de bureau vue de dessus, avec ses accoudoirs. */
 const CHAIR = () =>
   sprite(14, [
@@ -243,81 +155,6 @@ const CHAIR = () =>
     'KmK.KmmK.KmK',
     'KKK.KmmK.KKK',
     '....KKKK'
-  ]);
-
-/** Poubelle de bureau : le détail qui fait « lieu vécu ». */
-const TRASH = () =>
-  sprite(12, [
-    '..KKKKKK',
-    '.KwWwWwWK',
-    'KmMMMMMMmK',
-    'KmMnnnnMmK',
-    'KmMMMMMMmK',
-    'KmMnnnnMmK',
-    'KmMMMMMMmK',
-    '.KmmmmmmK',
-    '..KKKKKK'
-  ]);
-
-/** Fontaine à eau : sa bonbonne bleue se repère de loin. */
-const COOLER = () =>
-  sprite(14, [
-    '...KKKKKK',
-    '..KgggggggK',
-    '.KgbbbbbbbgK',
-    '.KgbBBBBBbgK',
-    '.KgbBBBBBbgK',
-    '.KgbbbbbbbgK',
-    '..KgggggggK',
-    '..KMMMMMMMK',
-    '.KMMMMMMMMMK',
-    '.KMMnnnnnMMK',
-    '.KMMMMMMMMMK',
-    '.KKKKKKKKKKK'
-  ]);
-
-/** Imprimante : le seul appareil du bureau qui ne marche jamais. */
-const PRINTER = () =>
-  sprite(18, [
-    '..KKKKKKKKKKKKK',
-    '.KMMMMMMMMMMMMMK',
-    'KMMwwwwwwwwwwMMMK',
-    'KMMwWWWWWWWWwMMMK',
-    'KMMwwwwwwwwwwMMMK',
-    'KMMMMMMMMMMMMMMMK',
-    'KMMnnnnnnnnnnMcMK',
-    'KMMMMMMMMMMMMMMMK',
-    'KMMMMMMMMMMMMMMMK',
-    '.KMMMMMMMMMMMMMK',
-    '..KKKKKKKKKKKKK'
-  ]);
-
-/** Cartons de déménagement : quelqu'un est parti avant toi. */
-const BOXES = () =>
-  sprite(16, [
-    '.KKKKKKKKK',
-    '.KoooooooK',
-    '.KoOOoOOooK.KKKK',
-    '.KoooooooK.KoooK',
-    '.KoOOOOOoKKKoOoK',
-    '.KoooooooKKKoooK',
-    '.KKKKKKKKKKKKKKK',
-    'KooooooooooooooK',
-    'KoOOOOoOOOOoOOoK',
-    'KooooooooooooooK',
-    'KKKKKKKKKKKKKKKK'
-  ]);
-
-/** Petite bibliothèque de classeurs, posée au sol. */
-const BOOKS = () =>
-  sprite(14, [
-    'KKKKKKKKKKKKKK',
-    'KcCbBvVyYtTcCK',
-    'KcCbBvVyYtTcCK',
-    'KcCbBvVyYtTcCK',
-    'KKKKKKKKKKKKKK',
-    'KOOOOOOOOOOOOK',
-    'KKKKKKKKKKKKKK'
   ]);
 
 /** Caméra de surveillance, vue de dessus (niveau 2). */
@@ -385,18 +222,6 @@ const SINK = () =>
     '..KKKKKKKK'
   ]);
 
-/** Séparation de cabine, vue de dessus : une cloison et son montant. */
-const STALL = () =>
-  sprite(20, [
-    'KKKKKKKKKKKKKKKKKKKK',
-    'KMMMMMMMMMMMMMMMMMMK',
-    'KMnnnnnnnnnnnnnnnnMK',
-    'KMMMMMMMMMMMMMMMMMMK',
-    'KKKKKKKKKKKKKKKKKKKK'
-  ]);
-
-// ────────────────────── étage direction (niveau 2) ──────────────────────
-
 /** Fauteuil de direction : plus large et plus sombre qu'une chaise d'open space. */
 const ARMCHAIR = () =>
   sprite(16, [
@@ -428,55 +253,6 @@ const FRAME = () =>
     'KKKKKKKKKKKKKK'
   ]);
 
-/** Trophée : la récompense d'un séminaire dont personne ne se souvient. */
-const AWARD = () =>
-  sprite(12, [
-    '.KeeeeeeK',
-    'KeEEEEEEeK',
-    'KeEeeeeEeK',
-    'KKeEEEEeKK',
-    '..KeeeeK',
-    '...KeeK',
-    '..KeeeeK',
-    '.KKKKKKKK',
-    '.KOOOOOOK',
-    '.KKKKKKKK'
-  ]);
-
-/** Vase design, posé sur rien de précis. */
-const VASE = () =>
-  sprite(12, [
-    '..K.KlK.K',
-    '.KlKKLKKlK',
-    'KlLKlLlKLlK',
-    '.KlLLLLLlK',
-    '..KKLLLKK',
-    '...KjjjK',
-    '..KjJJJjK',
-    '..KjJJJjK',
-    '..KjjjjjK',
-    '...KKKKK'
-  ]);
-
-/** Machine à café de couloir : le vrai centre névralgique de l'étage. */
-const COFFEE_MACHINE = () =>
-  sprite(14, [
-    '.KKKKKKKKKK',
-    'KnnnnnnnnnnK',
-    'KnMMMMMMMMnK',
-    'KnMssssssMnK',
-    'KnMsSSSSsMnK',
-    'KnMssssssMnK',
-    'KnMMMMMMMMnK',
-    'KnnKwwwwKnnK',
-    'KnnKwWWwKnnK',
-    'KnnnnnnnnnnK',
-    'KnnEnnnnnnnK',
-    '.KKKKKKKKKK'
-  ]);
-
-// ─────────────────────────── parking (niveau 3) ─────────────────────────
-
 /** Plot de chantier : le seul objet orange autorisé, et il est utile. */
 const CONE = () =>
   sprite(12, [
@@ -490,108 +266,6 @@ const CONE = () =>
     'KcccccccK',
     'KKKKKKKKK'
   ]);
-
-/** Barrière de sécurité, vue de dessus. */
-const BARRIER = () =>
-  sprite(20, [
-    'KKKKKKKKKKKKKKKKKKKK',
-    'KqqqqqqqqqqqqqqqqqqK',
-    'KqfffQQfffQQfffQQffK',
-    'KqqqqqqqqqqqqqqqqqqK',
-    'KKKKKKKKKKKKKKKKKKKK',
-    '.KQK..........KQK',
-    '.KQK..........KQK',
-    'KKQKK........KKQKK'
-  ]);
-
-/** Extincteur mural : rouge, mais franchement plus sombre qu'une alerte. */
-const EXTINGUISHER = () =>
-  sprite(10, [
-    '..KKK',
-    '..KnK',
-    '.KKKKK',
-    'KCCCCCK',
-    'KCcccCK',
-    'KCcccCK',
-    'KCcccCK',
-    'KCCCCCK',
-    'KKKKKKK'
-  ]);
-
-/** Vélo attaché à un poteau depuis un temps certain. */
-const BIKE = () =>
-  sprite(18, [
-    '...KKK.....KKK',
-    '..KUUUK...KUUUK',
-    '.KUKKKUK.KUKKKUK',
-    'KUKQQQKUKUKQQQKUK',
-    'KUKQnQKUKUKQnQKUK',
-    'KUKKKKUKKUKKKKUK',
-    '.KUUUKKtKKUUUK',
-    '..KKK.KtK.KKK'
-  ]);
-
-/** Chariot de ménage abandonné en plein passage. */
-const CART = () =>
-  sprite(16, [
-    '.KKKKKKKKKKKK',
-    'KMMMMMMMMMMMMK',
-    'KMbbbbMMccccMK',
-    'KMbBBbMMcCCcMK',
-    'KMbbbbMMccccMK',
-    'KMMMMMMMMMMMMK',
-    'KKKKKKKKKKKKKK',
-    '.KnK......KnK',
-    '.KUK......KUK'
-  ]);
-
-/** Caisse en bois : le décor le plus universel du jeu vidéo. */
-const CRATE = () =>
-  sprite(14, [
-    'KKKKKKKKKKKKKK',
-    'KoOooooooooOoK',
-    'KOOKKKKKKKKOOK',
-    'KoKuuuuuuuuKoK',
-    'KoKuOOOOOOuKoK',
-    'KoKuuuuuuuuKoK',
-    'KOOKKKKKKKKOOK',
-    'KoOooooooooOoK',
-    'KKKKKKKKKKKKKK'
-  ]);
-
-/** Pile de pneus, oubliée près d'un pilier. */
-const TIRE = () =>
-  sprite(14, [
-    '..KKKKKKKK',
-    '.KUUUUUUUUK',
-    'KUUKKKKKKUUK',
-    'KUKQQQQQQKUK',
-    'KUKQxxxxQKUK',
-    'KUKQQQQQQKUK',
-    'KUUKKKKKKUUK',
-    '.KUUUUUUUUK',
-    '..KKKKKKKK'
-  ]);
-
-/** Panneau « P » et sa flèche : la signalétique du parking. */
-const PARKING_SIGN = () =>
-  sprite(14, [
-    'KKKKKKKKKKKK',
-    'KbbbbbbbbbbK',
-    'KbfffffffbbK',
-    'KbfKKKKfbbbK',
-    'KbfKffKfbbbK',
-    'KbfKKKKfbbbK',
-    'KbfKbbbbbbbK',
-    'KbfKbbbbbbbK',
-    'KbbbbbbbbbbK',
-    'KKKKKKKKKKKK',
-    '...KQQK',
-    '...KQQK',
-    '..KKQQKK'
-  ]);
-
-// ───────────────────────────── objets ramassables ────────────────────────
 
 const DONUT = () =>
   sprite(16, [
@@ -746,42 +420,6 @@ const NEON = () =>
 
 // ───────────────────── V0.11 : d'après les planches fournies ─────────────
 
-/**
- * Canapé du coin détente, vu de dessus.
- *
- * Le dossier est une bande ÉPAISSE sur un seul côté, les accoudoirs deux
- * blocs aux extrémités, et les coussins deux carrés séparés. Sans ces trois
- * masses, un canapé vu de dessus n'est qu'un rectangle sombre.
- */
-const SOFA = () =>
-  sprite(26, [
-    'KKKKKKKKKKKKKKKKKKKKKKKKKK',
-    'KFFFFFFFFFFFFFFFFFFFFFFFFK',
-    'KF~~~~~~~~~~~~~~~~~~~~~~~K',
-    'KFFFFFFFFFFFFFFFFFFFFFFFFK',
-    'KKKKKKKKKKKKKKKKKKKKKKKKKK',
-    'KFFK~~~~~~~~KK~~~~~~~~KFFK',
-    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
-    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
-    'KF~K~~~~~~~~KK~~~~~~~~K~FK',
-    'KFFKFFFFFFFFKKFFFFFFFFKFFK',
-    'KKKKKKKKKKKKKKKKKKKKKKKKKK'
-  ]);
-
-/** Table basse en verre du lounge : on voit le tapis au travers. */
-const COFFEE_TABLE = () =>
-  sprite(16, [
-    'KKKKKKKKKKKKKKKK',
-    'K11111111111111K',
-    'K1222222222221wK',
-    'K1211111111121wK',
-    'K1211111111121wK',
-    'K1222222222221wK',
-    'K11111111111wwK',
-    'KKKKKKKKKKKKKKKK',
-    '.Kn..........nK'
-  ]);
-
 /** Tableau blanc sur pied : la salle de réunion se reconnaît à ça. */
 const WHITEBOARD = () =>
   sprite(20, [
@@ -794,70 +432,6 @@ const WHITEBOARD = () =>
     'KWWWWWWWWWWWWWWWWWWK',
     'KKKKKKKKKKKKKKKKKKKK',
     '..KnK..........KnK'
-  ]);
-
-/** Panneau de liège : notes de service que personne ne lit. */
-const CORKBOARD = () =>
-  sprite(16, [
-    'KKKKKKKKKKKKKKKK',
-    'KOooooooooooooOK',
-    'KOwwwOoOyyyOooOK',
-    'KOwwwOoOyyyOooOK',
-    'KOoooOoOoooOccOK',
-    'KOccOooowwwOooOK',
-    'KOccOooowwwOooOK',
-    'KOooooooooooooOK',
-    'KKKKKKKKKKKKKKKK'
-  ]);
-
-/**
- * Portemanteau, vu de dessus : un pied rond, quatre patères, et deux
- * manteaux accrochés. Vu d'en haut, ce sont les MANTEAUX qu'on reconnaît —
- * le mât, lui, n'est qu'un point.
- */
-const COAT_RACK = () =>
-  sprite(14, [
-    '....KKKK....',
-    '..KKccccKK..',
-    '.KccccccccK.',
-    'KKcccKKcccKK',
-    'KbbKKmmKKbbK',
-    'KbbbKmmKbbbK',
-    'KbbbKmmKbbbK',
-    'KKbbbKKbbbKK',
-    '.KKbbbbbbKK.',
-    '...KKKKKK...'
-  ]);
-
-/** Horloge murale : le rappel permanent de l'heure qu'il est. */
-const WALL_CLOCK = () =>
-  sprite(12, [
-    '...KKKK...',
-    '..KMMMMK..',
-    '.KMwwwwMK.',
-    'KMwwKwwwMK',
-    'KMwwKKwwMK',
-    'KMwwwwwwMK',
-    '.KMwwwwMK.',
-    '..KMMMMK..',
-    '...KKKK...'
-  ]);
-
-/** Tapis d'entrée : ce qui dit « ici, on entre ». */
-const MAT = () =>
-  sprite(30, [
-    'KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK',
-    'K@@@@@@@@@@@@@@@@@@@@@@@@@@@@K',
-    'K@KKKKKKKKKKKKKKKKKKKKKKKKKK@K',
-    'K@K@@@@@@@@@@@@@@@@@@@@@@@@K@K',
-    'K@K@KKKKKKKKKKKKKKKKKKKKKK@K@K',
-    'K@K@K@@@@@@@@@@@@@@@@@@@@K@K@K',
-    'K@K@K@@@@@@@@@@@@@@@@@@@@K@K@K',
-    'K@K@KKKKKKKKKKKKKKKKKKKKKK@K@K',
-    'K@K@@@@@@@@@@@@@@@@@@@@@@@@K@K',
-    'K@KKKKKKKKKKKKKKKKKKKKKKKKKK@K',
-    'K@@@@@@@@@@@@@@@@@@@@@@@@@@@@K',
-    'KKKKKKKKKKKKKKKKKKKKKKKKKKKKKK'
   ]);
 
 /** Baie de serveurs : diodes vertes, câbles, souffle de ventilation. */
@@ -889,259 +463,43 @@ const VENDING = () =>
     'KKKKKKKKKKKKKK'
   ]);
 
-/** Micro-ondes de la kitchenette, porte vitrée et minuterie. */
-const MICROWAVE = () =>
-  sprite(14, [
-    'KKKKKKKKKKKKKK',
-    'KMMMMMMMMMMMMK',
-    'KMKssssssKMMMK',
-    'KMKsSSSSsKM%MK',
-    'KMKssssssKMMMK',
-    'KMKKKKKKKKMMMK',
-    'KMMMMMMMMMMMMK',
-    'KKKKKKKKKKKKKK'
-  ]);
-
-/** Réfrigérateur : deux portes, poignées verticales. */
-const FRIDGE = () =>
-  sprite(14, [
-    'KKKKKKKKKKKKKK',
-    'K############K',
-    'K#MMMMMMMMMM#K',
-    'K#MMMMMMMMMn#K',
-    'K############K',
-    'K#MMMMMMMMMM#K',
-    'K#MMMMMMMMMn#K',
-    'K#MMMMMMMMMM#K',
-    'K############K',
-    'KKKKKKKKKKKKKK'
-  ]);
-
-/**
- * Seau de ménage et son manche, vus de dessus : un seau jaune à essoreuse,
- * d'où sort une hampe en diagonale. La diagonale est ce qui empêche de le
- * confondre avec une poubelle.
- */
-const MOP = () =>
-  sprite(14, [
-    '..........KK..',
-    '.........KmmK.',
-    '........KmmK..',
-    'KKKKKKKKmmK...',
-    'K999999KmK....',
-    'K9111119K.....',
-    'K9111119K.....',
-    'K9111119K.....',
-    'K0999990K.....',
-    'KKKKKKKKK.....'
-  ]);
-
-/** Panneau « sol glissant » : le jaune le plus universel du bureau. */
-const WET_FLOOR = () =>
-  sprite(12, [
-    '....KK....',
-    '...K99K...',
-    '..K9KK9K..',
-    '..K9KK9K..',
-    '.K99KK99K.',
-    '.K90KK09K.',
-    'K9999KK999K'.slice(0, 11),
-    'K000000000K'.slice(0, 11),
-    '.KKKKKKKK.'
-  ]);
-
-/** Bacs de tri : le vert, le bleu et le jaune, dans cet ordre. */
-const RECYCLING = () =>
-  sprite(18, [
-    'KKKKKKKKKKKKKKKKKK',
-    'K77KKK++KKK99KKKKK'.slice(0, 18),
-    'K77K.K++K.K99K....',
-    'K77K.K++K.K99K....',
-    'K88K.K+2K.K00K....',
-    'KKKK.KKKK.KKKK....'
-  ]);
-
-/** Ordinateur portable ouvert : l'écran allumé fait tout le travail. */
-const LAPTOP = () =>
-  sprite(14, [
-    '.KKKKKKKKKKKK.',
-    '.KnssssssssnK.',
-    '.KnsSSSSSSsnK.',
-    '.KnssssssssnK.',
-    '.KnnnnnnnnnnK.',
-    'KMMMMMMMMMMMMK',
-    'KMnnnnnnnnnnMK',
-    'KMMMMMMMMMMMMK',
-    '.KKKKKKKKKKKK.'
-  ]);
-
 /** Lecteur de badge mural : diode verte quand la porte cède. */
 const READER = () =>
   sprite(8, ['.KKKK.', 'KnnnnK', 'Kn%%nK', 'KnnnnK', 'KnwwnK', 'KnnnnK', '.KKKK.']);
 
-/** Portique de sécurité : deux bornes et un tourniquet entre elles. */
-const TURNSTILE = () =>
-  sprite(20, [
-    'KKKK......KKKK',
-    'KnnK......KnnK',
-    'Kn%K......Kn%K',
-    'KnnKKKKKKKKnnK',
-    'KnnKmmmmmmKnnK',
-    'KnnKKKKKKKKnnK',
-    'KnnK......KnnK',
-    'KKKK......KKKK'
-  ]);
-
-/** Garde-corps : la limite d'une mezzanine ou d'une rampe. */
-const RAILING = () =>
-  sprite(20, [
-    'KKKKKKKKKKKKKKKKKKKK',
-    'KMMMMMMMMMMMMMMMMMMK',
-    'KKKKKKKKKKKKKKKKKKKK',
-    '.KnK..KnK..KnK..KnK.',
-    '.KnK..KnK..KnK..KnK.',
-    '.KKK..KKK..KKK..KKK.'
-  ]);
-
-/** Urinoir : l'autre moitié des sanitaires. */
-const URINAL = () =>
-  sprite(10, [
-    'KKKKKKKK',
-    'KjjjjjjK',
-    'KjwwwwjK',
-    'KjwJJwjK',
-    'KjwwwwjK',
-    'KjjJJjjK',
-    'KKjjjjKK',
-    '.KKKKKK'
-  ]);
-
-/** Plan de lavabos : trois vasques et un long miroir. */
-const SINK_COUNTER = () =>
-  sprite(24, [
-    'KKKKKKKKKKKKKKKKKKKKKKKK',
-    'K1111111111111111111111K',
-    'KJJJJJJJJJJJJJJJJJJJJJJK',
-    'KJKKjjKKJKKjjKKJKKjjKKJK',
-    'KJKwwwwKJKwwwwKJKwwwwKJK',
-    'KJKwmmwKJKwmmwKJKwmmwKJK',
-    'KJKKKKKKJKKKKKKJKKKKKKJK',
-    'KJJJJJJJJJJJJJJJJJJJJJJK',
-    'KKKKKKKKKKKKKKKKKKKKKKKK'
-  ]);
-
-/** Classeur à levier : le dossier debout d'une étagère d'archives. */
-const BINDER = () =>
-  sprite(12, [
-    'KKKKKKKKKK',
-    'KcKbKyKtKK',
-    'KcKbKyKtKK',
-    'KcKbKyKtKK',
-    'KCKBKYKTKK',
-    'KcKbKyKtKK',
-    'KcKbKyKtKK',
-    'KKKKKKKKKK'
-  ]);
-
-/** Bande de chantier : un obstacle qu'on ne franchit pas. */
-const HAZARD_TAPE = () =>
-  sprite(20, [
-    'KKKKKKKKKKKKKKKKKKKK',
-    'K99009900990099009K.',
-    'K00990099009900990K.',
-    'KKKKKKKKKKKKKKKKKKKK'
-  ]);
-
 // Note V0.11.1 : la tasse, le bloc de notes et la chaise ne sont plus générés
 // ici — ils sont FOURNIS et transportés par `tools/assets/import.mjs`.
+//
+// V0.12 — inventaire resserré. Un seul accessoire par FONCTION de pièce : le
+// distributeur dit « coin pause », le WC dit « toilettes », la baie dit
+// « local technique ». Les micro-props décoratifs (cadres, vases, trophées,
+// vélos, pneus, cartons…) ont été retirés : ils multipliaient les assets sans
+// rien ajouter à la lecture d'un niveau.
 export const PROPS = {
-  // ── V0.11
-  'prop-sofa': SOFA,
-  'prop-coffee-table': COFFEE_TABLE,
-  'prop-whiteboard': WHITEBOARD,
-  'prop-corkboard': CORKBOARD,
-  'prop-coat-rack': COAT_RACK,
-  'prop-wall-clock': WALL_CLOCK,
-  'prop-mat': MAT,
-  'prop-server': SERVER,
-  'prop-vending': VENDING,
-  'prop-microwave': MICROWAVE,
-  'prop-fridge': FRIDGE,
-  'prop-mop': MOP,
-  'prop-wet-floor': WET_FLOOR,
-  'prop-recycling': RECYCLING,
-  'prop-laptop': LAPTOP,
-  'prop-reader': READER,
-  'prop-turnstile': TURNSTILE,
-  'prop-railing': RAILING,
-  'prop-urinal': URINAL,
-  'prop-sink-counter': SINK_COUNTER,
-  'prop-binder': BINDER,
-  'prop-hazard-tape': HAZARD_TAPE,
-
-  'prop-keyboard': KEYBOARD,
-  
-  'prop-folder': FOLDER,
-  
-  'prop-phone': PHONE,
-  'prop-lamp': LAMP,
   'prop-plant': PLANT,
   'prop-toilet': TOILET,
   'prop-sink': SINK,
-  'prop-stall': STALL,
-  'prop-armchair': ARMCHAIR,
-  'prop-frame': FRAME,
-  'prop-award': AWARD,
-  'prop-vase': VASE,
+  'prop-whiteboard': WHITEBOARD,
+  'prop-vending': VENDING,
+  'prop-server': SERVER,
+  'prop-reader': READER,
   'prop-cone': CONE,
-  'prop-barrier': BARRIER,
-  'prop-extinguisher': EXTINGUISHER,
-  'prop-bike': BIKE,
-  'prop-cart': CART,
-  'prop-crate': CRATE,
-  'prop-tire': TIRE,
-  'prop-parking-sign': PARKING_SIGN,
-  'prop-cactus': CACTUS,
-  
-  'prop-trash': TRASH,
-  'prop-boxes': BOXES,
-  'prop-books': BOOKS,
   'prop-exit-sign': EXIT_SIGN
 };
 
-/**
- * Image fixe des décors animés : le menu et les vignettes composent des PNG
- * statiques, ils ne peuvent pas blitter une planche.
- */
 /**
  * Sprites encore dessinés ici mais qui ne sont PLUS livrés comme assets de
  * jeu : ils servent uniquement aux vignettes du menu et au diorama d'accueil,
  * où le style généré reste cohérent avec le reste de l'écran.
  */
-export const MENU_PARTS = { mug: MUG, sticky: STICKY, chair: CHAIR };
-
-export const STILLS = {
-  'prop-screen': SCREEN,
-  'prop-printer': PRINTER,
-  'prop-cooler': COOLER,
-  'prop-camera': CAMERA,
-  'prop-neon': NEON,
-  'prop-machine': COFFEE_MACHINE
-};
+export const MENU_PARTS = { mug: MUG, sticky: STICKY, chair: CHAIR, armchair: ARMCHAIR, frame: FRAME };
 
 export const PROP_SHEETS = {
   'prop-door': () => strip([0, 1, 2, 3].map(doorFrame)),
-  // Écran : la lueur interne monte d'un cran, rien de plus.
-  'prop-screen': () => livingSheet(SCREEN, (c) => c.rect(9, 8, 6, 4, 'screenGlow', 0.85)),
-  // Imprimante : la diode passe du rouge au vert, comme toute imprimante ment.
-  'prop-printer': () => livingSheet(PRINTER, (c) => c.rect(17, 13, 2, 1, 'leaf')),
-  // Fontaine : une bulle remonte dans la bonbonne.
-  'prop-cooler': () => livingSheet(COOLER, (c) => c.rect(11, 9, 2, 2, 'glass')),
   // Caméra : sa diode d'enregistrement bat lentement.
   'prop-camera': () => livingSheet(CAMERA, (c) => c.rect(7, 13, 2, 1, 'alert', 0.3)),
   // Néon : une frange s'éteint. C'est ce qui rend un parking inquiétant.
   'prop-neon': () => livingSheet(NEON, (c) => c.rect(2, 11, 12, 2, 'neonDim')),
-  'prop-machine': () => livingSheet(COFFEE_MACHINE, (c) => c.rect(9, 9, 6, 3, 'screenGlow', 0.6)),
   'item-donut': () => shineSheet(DONUT),
   'item-coffee': () => shineSheet(COFFEE),
   'item-badge': () => shineSheet(BADGE),

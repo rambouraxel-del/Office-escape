@@ -14,8 +14,8 @@ export const LEVEL_02: LevelDef = {
   theme: 'exec',
   spawn: { x: 250, y: 1900 },
 
-  // V0.11 — aucun rectangle de collision n'a bougé : seule la NATURE des
-  // obstacles change, plus du décor sans collision.
+  // V0.12 — comme au niveau 1, les six bureaux passent du portrait au paysage
+  // pour réutiliser le poste de travail FOURNI. Aucun autre rectangle ne bouge.
   //
   // La cloison de la porte à badge RESTE un mur plein. La passer en paroi
   // vitrée aurait été plus joli, mais une vitre qui arrête les regards est un
@@ -27,14 +27,14 @@ export const LEVEL_02: LevelDef = {
     { x: 250, y: 20, w: 500, h: 40, kind: 'wall' },
     { x: 250, y: 1980, w: 500, h: 40, kind: 'wall' },
 
-    { x: 85, y: 1880, w: 90, h: 100, kind: 'reception' },
-    { x: 415, y: 1880, w: 90, h: 100, kind: 'reception' },
+    { x: 105, y: 1885, w: 116, h: 78, kind: 'desk' },
+    { x: 395, y: 1885, w: 116, h: 78, kind: 'desk' },
     { x: 106, y: 1740, w: 170, h: 32, kind: 'partition' },
     { x: 394, y: 1740, w: 170, h: 32, kind: 'partition' },
 
     { x: 77, y: 1480, w: 105, h: 200, kind: 'cabinet', label: 'COPIES' },
-    { x: 420, y: 1380, w: 90, h: 100, kind: 'bench' },
-    { x: 80, y: 1180, w: 110, h: 80, kind: 'bench' },
+    { x: 400, y: 1380, w: 116, h: 78, kind: 'desk' },
+    { x: 100, y: 1180, w: 116, h: 78, kind: 'desk' },
 
     { x: 250, y: 1000, w: 160, h: 180, kind: 'meeting', label: 'RÉUNION' },
 
@@ -42,97 +42,68 @@ export const LEVEL_02: LevelDef = {
     { x: 390, y: 760, w: 180, h: 34, kind: 'wall' },
     { x: 250, y: 760, w: 100, h: 34, kind: 'door', lock: 'badge', label: 'BADGE', id: 'exec-door' },
 
-    { x: 77, y: 520, w: 110, h: 80, kind: 'meeting' },
-    { x: 423, y: 520, w: 110, h: 80, kind: 'meeting' },
+    { x: 100, y: 520, w: 116, h: 78, kind: 'desk' },
+    { x: 400, y: 520, w: 116, h: 78, kind: 'desk' },
     { x: 95, y: 165, w: 150, h: 30, kind: 'wall' },
     { x: 405, y: 165, w: 150, h: 30, kind: 'wall' }
   ],
 
+  // V0.12 — mêmes meubles qu'au niveau 1. Ce qui change d'étage, ce sont les
+  // MATIÈRES (marbre, laiton), le tapis de couloir et la sécurité.
   decor: [
     { kind: 'zone', x: 250, y: 1915, w: 316, h: 110, material: 'start', text: 'ASCENSEUR' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'ESCALIER  ↑' },
-    { kind: 'zone', x: 425, y: 1180, w: 100, h: 120, material: 'lounge' },
-    // Tapis de couloir : c'est lui qui dit « on est passé côté direction ».
-    // Il commence exactement à la porte à badge et monte jusqu'à l'escalier.
-    { kind: 'zone', x: 250, y: 440, w: 150, h: 560, material: 'exec' },
-    { kind: 'zone', x: 250, y: 1290, w: 130, h: 380, material: 'exec' },
     { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
 
-    // ── V0.11 : l'étage se lit pièce par pièce.
+    // Tapis de couloir : c'est lui qui dit « on est passé côté direction ».
+    { kind: 'zone', x: 250, y: 440, w: 150, h: 560, material: 'exec' },
+    { kind: 'zone', x: 250, y: 1290, w: 130, h: 380, material: 'exec' },
 
-    // Hall d'ascenseurs : dallage clair, tapis, portemanteau, horloge.
+    // ── Hall d'ascenseurs.
     { kind: 'zone', x: 250, y: 1800, w: 300, h: 80, material: 'hall' },
-    { kind: 'prop', x: 250, y: 1820, prop: 'mat' },
-    { kind: 'prop', x: 158, y: 1740, prop: 'wallClock' },
-    { kind: 'prop', x: 340, y: 1740, prop: 'corkboard' },
-    { kind: 'prop', x: 118, y: 1880, prop: 'monitor' },
-    { kind: 'prop', x: 52, y: 1912, prop: 'stapler' },
+    { kind: 'prop', x: 105, y: 1885, prop: 'workstation' },
+    { kind: 'prop', x: 395, y: 1885, prop: 'workstation' },
+    { kind: 'prop', x: 180, y: 1885, prop: 'chair' },
+    { kind: 'prop', x: 320, y: 1885, prop: 'chair' },
+    { kind: 'plant', x: 52, y: 1800 },
+    { kind: 'plant', x: 448, y: 1800 },
 
-    // Point de sécurité, juste avant la porte à badge : portique et lecteur.
-    { kind: 'prop', x: 250, y: 830, prop: 'turnstile' },
+    // ── Bureaux de l'étage : le même poste qu'en bas, en marbre et laiton.
+    { kind: 'prop', x: 100, y: 1180, prop: 'workstation' },
+    { kind: 'prop', x: 400, y: 1380, prop: 'workstation' },
+    { kind: 'prop', x: 175, y: 1180, prop: 'chair' },
+    { kind: 'prop', x: 325, y: 1380, prop: 'chair' },
+    { kind: 'prop', x: 100, y: 520, prop: 'workstation' },
+    { kind: 'prop', x: 400, y: 520, prop: 'workstation' },
+    { kind: 'prop', x: 175, y: 590, prop: 'chair' },
+    { kind: 'prop', x: 325, y: 590, prop: 'chair' },
+
+    // ── Salle de copies : des boîtes d'archives, rien de plus.
+    { kind: 'prop', x: 148, y: 1420, prop: 'filebox' },
+    { kind: 'prop', x: 148, y: 1540, prop: 'filebox' },
+
+    // ── Porte à badge : le lecteur EST l'information de gameplay.
     { kind: 'prop', x: 196, y: 762, prop: 'reader' },
-    { kind: 'prop', x: 250, y: 890, prop: 'hazardTape' },
+    { kind: 'prop', x: 304, y: 762, prop: 'reader' },
 
-    // Salle de réunion centrale : tableau blanc et fauteuils autour de la table.
+    // ── Salle de réunion centrale.
     { kind: 'zone', x: 250, y: 1000, w: 260, h: 260, material: 'meeting' },
     { kind: 'prop', x: 250, y: 880, prop: 'whiteboard' },
-    { kind: 'prop', x: 168, y: 1000, prop: 'armchair' },
-    { kind: 'prop', x: 332, y: 1000, prop: 'armchair' },
+    { kind: 'prop', x: 168, y: 1000, prop: 'chair' },
+    { kind: 'prop', x: 332, y: 1000, prop: 'chair' },
 
-    // Local informatique, derrière la salle de copies : baies et sol technique.
-    { kind: 'zone', x: 430, y: 1620, w: 96, h: 200, material: 'tech' },
-    { kind: 'prop', x: 438, y: 1560, prop: 'server' },
-    { kind: 'prop', x: 438, y: 1660, prop: 'server' },
-    { kind: 'prop', x: 438, y: 1730, prop: 'reader' },
+    // ── Local informatique : sol technique et deux baies.
+    { kind: 'zone', x: 408, y: 1620, w: 90, h: 200, material: 'tech' },
+    { kind: 'prop', x: 410, y: 1570, prop: 'server' },
+    { kind: 'prop', x: 410, y: 1670, prop: 'server' },
 
-    // Coin détente de l'alcôve, côté direction.
-    { kind: 'prop', x: 428, y: 1152, prop: 'sofa' },
-    { kind: 'prop', x: 428, y: 1212, prop: 'coffeeTable' },
-
-    // Salle de copies : les classeurs qui vont avec.
-    { kind: 'prop', x: 148, y: 1420, prop: 'filebox' },
-    { kind: 'prop', x: 148, y: 1540, prop: 'recycling' },
-
-
-    { kind: 'deskProps', x: 85, y: 1880, side: -1 },
-    { kind: 'deskProps', x: 415, y: 1880, side: 1 },
-    { kind: 'deskProps', x: 420, y: 1380, side: 1 },
-    { kind: 'prop', x: 80, y: 1180, prop: 'workstation' },
-    { kind: 'prop', x: 77, y: 520, prop: 'workstation' },
-    { kind: 'prop', x: 423, y: 520, prop: 'workstation' },
-
-    // Fauteuils plutôt que chaises : la carrure du mobilier suffit à faire
-    // comprendre qu'on a changé d'étage.
-    { kind: 'prop', x: 152, y: 1880, prop: 'armchair' },
-    { kind: 'prop', x: 348, y: 1880, prop: 'armchair' },
-    { kind: 'prop', x: 352, y: 1380, prop: 'armchair' },
-    { kind: 'prop', x: 150, y: 1180, prop: 'armchair' },
-    { kind: 'prop', x: 145, y: 520, prop: 'armchair' },
-    { kind: 'prop', x: 355, y: 520, prop: 'armchair' },
-
-    // Cadres accrochés au mur : le portrait du fondateur, en trois exemplaires.
-    { kind: 'prop', x: 95, y: 166, prop: 'frame' },
-    { kind: 'prop', x: 405, y: 166, prop: 'frame' },
-    { kind: 'prop', x: 140, y: 760, prop: 'frame' },
-    { kind: 'prop', x: 360, y: 760, prop: 'frame' },
-
-    { kind: 'prop', x: 58, y: 1640, prop: 'award' },
-    { kind: 'prop', x: 444, y: 1640, prop: 'award' },
-    { kind: 'prop', x: 58, y: 330, prop: 'vase' },
-    { kind: 'prop', x: 446, y: 330, prop: 'vase' },
-    { kind: 'prop', x: 444, y: 1520, prop: 'machine' },
-    { kind: 'prop', x: 62, y: 980, prop: 'printer' },
-    { kind: 'prop', x: 444, y: 980, prop: 'cooler' },
-    { kind: 'prop', x: 60, y: 1830, prop: 'books' },
-    { kind: 'prop', x: 444, y: 1830, prop: 'books' },
-    { kind: 'prop', x: 160, y: 1640, prop: 'trash' },
-    { kind: 'prop', x: 340, y: 1640, prop: 'trash' },
-    { kind: 'prop', x: 60, y: 620, prop: 'phone' },
-
-    { kind: 'plant', x: 52, y: 1450 },
-    { kind: 'plant', x: 448, y: 900 },
-    { kind: 'plant', x: 55, y: 420 },
-    { kind: 'plant', x: 448, y: 200 }
+    // ── Coin détente de l'alcôve.
+    { kind: 'zone', x: 408, y: 1180, w: 90, h: 120, material: 'lounge' },
+    { kind: 'prop', x: 410, y: 1180, prop: 'monitor' },
+    { kind: 'plant', x: 448, y: 940 },
+    { kind: 'plant', x: 52, y: 940 },
+    { kind: 'plant', x: 52, y: 300 },
+    { kind: 'plant', x: 448, y: 300 }
   ],
 
   npcs: [
@@ -176,14 +147,15 @@ export const LEVEL_02: LevelDef = {
     {
       id: 'intern',
       label: 'STAGIAIRE',
-      archetype: 'intern',
-      // Boucle resserrée entre les deux bureaux de l'étage : l'ancienne rasait
-      // le poste de droite, et le stagiaire s'en écartait sans raison visible.
+      archetype: 'tech',
+      // V0.12 — les postes de travail sont passés en paysage et touchent
+      // désormais les deux murs : la boucle se resserre sur le tapis central,
+      // qui la rend d'ailleurs plus lisible qu'avant.
       patrol: [
-        { x: 180, y: 420 },
-        { x: 320, y: 420 },
-        { x: 320, y: 640 },
-        { x: 180, y: 640 }
+        { x: 210, y: 420 },
+        { x: 290, y: 420 },
+        { x: 290, y: 640 },
+        { x: 210, y: 640 }
       ],
       patrolSpeed: 96,
       chaseSpeed: 124,

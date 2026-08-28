@@ -1,5 +1,65 @@
 # Journal des versions
 
+## V0.12 — Cohérence visuelle et diète d'assets
+
+Deux problèmes tenaient ensemble : les niveaux mélangeaient des assets fournis
+récents avec des props générés d'une autre époque, et la liste de ce qu'il
+restait à faire dessiner ne cessait de grossir. La réponse est la même pour les
+deux : **moins de variété, plus de réutilisation.**
+
+> Ce qui distingue deux niveaux, c'est le thème, le sol, les murs et deux ou
+> trois props signature — pas vingt-cinq objets uniques.
+
+**Le vocabulaire fond de moitié, puis des deux tiers**
+- `ObstacleKind` : 14 → **9**. Disparaissent `reception`, `bench`, `lockers`,
+  `server`, `shelf`, `glass`… Apparaît `car` : au parking, le rectangle EST la
+  voiture, et non plus une armoire posée sur du bitume.
+- `PropKind` : 53 → **17**. Sept fournis, sept props signature (un par FONCTION
+  de pièce), trois de signalétique. `deskProps` — les accessoires épars posés
+  sur les bureaux — n'existe plus : le poste de travail fourni les porte déjà.
+- Une quarantaine de sprites générés supprimés du dépôt (cadres, vases,
+  trophées, téléphone, lampe, micro-ondes, frigo, fontaine, vélo, pneus,
+  caisses, cartons, cactus, chariot, tourniquet, serpillière…) : `props.mjs`
+  passe de 1 151 à 510 lignes, et `public/assets/props/` de 65 à 23 PNG.
+- Trois motifs de sol orphelins retirés (`tile-glass`, `tile-locker`,
+  `tile-server` : 26 → 23), et quatre planches de décor animé qui ne servaient
+  plus (écran, imprimante, fontaine, machine à café).
+
+**Niveau 1 — l'open space se lit à la répétition**
+- Les six bureaux du jeu étaient en portrait (90 × 105) : ils auraient exigé
+  une planche de poste de travail dédiée. Ils passent en **paysage
+  (116 × 78)**, le format du poste FOURNI. C'est le seul déplacement de
+  rectangle de la version, et il supprime un asset de la liste.
+- L'accueil, le coin pause et les sanitaires se disent maintenant par leur SOL
+  plus un prop signature : dallage + deux postes, carrelage cuisine +
+  distributeur, faïence + cuvettes et lavabo.
+
+**Niveau 2 — le même mobilier, d'autres matières**
+- Mêmes postes, mêmes chaises qu'au niveau 1. Ce qui change d'étage, ce sont le
+  marbre, le laiton, le tapis de couloir, les caméras et le lecteur de badge.
+- La ronde du stagiaire a été resserrée sur le tapis central : les bureaux
+  élargis touchaient sa boucle, et un segment de ronde cessait d'être
+  franchissable en ligne droite. Le test de navigabilité l'a vu tout de suite.
+
+**Niveau 3 — des voitures, du béton, des néons**
+- Les blocs des places sont des `car`. Tout le bric-à-brac (vélo, pneus,
+  caisses, cartons, cactus, chariot, barrières) a disparu : dans la pénombre,
+  il n'ajoutait que du bruit.
+- Restent l'allée centrale, les piliers, les places peintes, quatre néons,
+  trois plots et le local technique.
+
+**Trois zones de sol qui débordaient dans un mur** ont été recadrées (coin
+pause du niveau 1, local technique et coin détente du niveau 2, local technique
+du niveau 3).
+
+**La liste d'assets restants passe de 6 fiches à 13, mais elle a changé de
+nature** : on ne demande plus des variantes de mobilier, on demande les
+matières et les objets qui portent le jeu. Priorité haute : les trois murs
+raccordables vus de dessus, le collègue bavard, la voiture, la caméra. Quatre
+fiches ont été supprimées sans rien dessiner — réceptionniste, stagiaire, agent
+d'entretien et poste de travail portrait — en réécrivant les niveaux autour de
+ce qui existe déjà.
+
 ## V0.11.1 — Intégration des assets fournis
 
 Première version où les visuels du jeu viennent d'assets **livrés**, et non du

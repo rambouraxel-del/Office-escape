@@ -8,9 +8,9 @@
  * Tout le reste est transporté tel quel, à la décimation près.
  */
 export const SUPPLIED = [
-  // ── Personnages. Six planches couvrent tous les rôles visibles du jeu ;
-  // quatre archétypes se partagent une planche en attendant la leur (voir
-  // les ASSET_TODO de `src/game/artTheme.ts`).
+  // ── Personnages. Six planches couvrent les six archétypes du jeu. Depuis la
+  // V0.12 il n'en reste qu'un à partager : le collègue bavard emprunte la
+  // planche RH en attendant la sienne (`ASSET_TODO: char_collegue_bavard`).
   { key: 'char-player', group: 'characters', kind: 'character', source: 'characters/char-player-v011.png' },
   {
     key: 'char-colleague',

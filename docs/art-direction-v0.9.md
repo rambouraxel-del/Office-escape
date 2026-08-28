@@ -253,39 +253,56 @@ La règle générale : **une étiquette de décor doit disparaître dès qu'un m
 peut dire la même chose.** Ne restent au sol que les inscriptions qui portent
 une information de jeu — la sortie, l'ascenseur, un numéro de place.
 
-## 7 sexies. Le vocabulaire de pièces (V0.11)
+## 7 sexies. Le vocabulaire de pièces (V0.11, resserré en V0.12)
 
 Un niveau ne se décrit plus avec quatre matières et un mot. Il dispose d'un
 **vocabulaire** : un `kind` d'obstacle nomme un meuble, une `material` de zone
-nomme un sol, un `prop` pose un objet. Trois familles ajoutées d'après les
-planches d'assets fournies :
+nomme un sol, un `prop` pose un objet.
+
+La V0.11 avait poussé ce vocabulaire à 25 `kind` d'obstacle et 55 accessoires.
+C'était trop : trois niveaux qui se ressemblaient moins par leur thème que par
+leur inventaire, et une liste d'assets impossible à faire dessiner. La V0.12 le
+ramène à **9 `kind` et 17 accessoires**, avec une règle simple :
+
+> **Un seul accessoire par FONCTION de pièce.**
+> Ce qui distingue deux niveaux, c'est le thème, le sol, les murs et deux ou
+> trois props signature — pas vingt-cinq objets uniques.
 
 | Ce qu'on veut dire | Comment on le dit |
 | --- | --- |
-| un accueil | `kind: 'reception'` + `prop: 'mat'`, `coatRack`, `corkboard`, `wallClock` |
-| un open space | `kind: 'bench'` + `deskProps` + `laptop` |
+| un accueil, un open space, un bureau | `kind: 'desk'` + `workstation` + `chair` |
 | une salle de réunion | `kind: 'meeting'` + `material: 'meeting'` + `whiteboard` |
-| un coin détente | `material: 'lounge'` + `sofa` + `coffeeTable` |
-| une kitchenette | `material: 'kitchen'` + `vending`, `microwave`, `fridge`, `recycling` |
-| un local technique | `material: 'tech'` + `kind: 'server'` + `server`, `reader` |
-| un vestiaire | `kind: 'lockers'` |
-| des sanitaires | `kind: 'restroom'` + `stall`, `toilet`, `urinal`, `sinkCounter` |
-| un point de sécurité | `turnstile`, `reader`, `hazardTape` |
-| un local ménage | `mop`, `wetFloor` |
+| un coin pause | `material: 'kitchen'` + `vending` |
+| des archives | `kind: 'cabinet'` + `filebox` |
+| des sanitaires | `kind: 'restroom'` + `toilet`, `sink` |
+| un local technique | `material: 'tech'` + `server` |
+| un point de sécurité | `reader` (porte à badge) |
+| une place de parking | `kind: 'car'` + `material: 'bay'` |
+| une sortie | `material: 'exit'` + `exitSign` |
 
-**La règle de la passe graphique** : *aucun rectangle de collision ne bouge.*
-Rhabiller une pièce, c'est changer un `kind` et ajouter du décor sans
-collision. C'est ce qui permet de refaire l'aspect de trois niveaux sans
-toucher au level design, et de le vérifier d'un coup d'œil dans le diff.
+Les accessoires restants se comptent sur deux mains : sept fournis
+(`workstation`, `chair`, `monitor`, `filebox`, `stapler`, `mug`, `sticky`), sept
+signature encore générés (`plant`, `toilet`, `sink`, `whiteboard`, `vending`,
+`server`, `reader`), trois de signalétique (`exitSign`, `neon`, `cone`). Chacun
+des dix générés porte son `ASSET_TODO` et sa fiche dans `tools/assets/wanted.mjs`.
 
-### Une exception documentée
+**La règle de la passe graphique** : *un rectangle de collision ne bouge que
+pour permettre une réutilisation.* La V0.11 n'en avait déplacé aucun. La V0.12
+en déplace six — les bureaux verticaux des niveaux 1 et 2, passés en paysage
+pour réutiliser le poste de travail fourni au lieu d'exiger une planche
+portrait. Chaque déplacement est justifié dans le fichier du niveau, et la
+ronde du stagiaire du niveau 2 a été resserrée en conséquence : un test refuse
+tout segment de ronde qui ne soit pas franchissable en ligne droite.
 
-`kind: 'glass'` (cloison vitrée) existe, avec sa matière et son motif, mais
-**aucun niveau livré ne l'utilise**. Le seul endroit où elle aurait été belle —
-la cloison de la porte à badge du niveau 2 — est un mur qui arrête les regards.
-Une vitre qui bloque la vue est un mensonge ; la rendre traversante aurait
-laissé les PNJ voir de l'autre côté. C'est une décision de game design, pas une
-passe graphique : la matière attend un niveau qui la voudra vraiment.
+### Ce que la V0.12 a supprimé
+
+`reception`, `bench`, `lockers`, `server` (comme obstacle), `glass`, `shelf`,
+`sofa`, `plantBox`, et une quarantaine d'accessoires décoratifs : cadres,
+vases, trophées, téléphone, lampe, micro-ondes, frigo, fontaine, vélo, pneus,
+caisses, cartons, cactus, chariot, tourniquet, serpillière… Aucun n'a été
+remplacé par un asset : les pièces qui les portaient ont été réécrites autour
+du vocabulaire ci-dessus. C'est la seule façon honnête de réduire une liste
+d'assets — pas en dessinant plus vite, en ayant besoin de moins.
 
 ## 7 quinquies. L'accueil, une exception assumée (V0.10.2)
 
@@ -484,7 +501,9 @@ déclarées automatiquement.
 
 **Ajouter un accessoire de décor** : un sprite dans `PROPS`, une valeur dans
 `PropKind`, une entrée dans `PROP_TEXTURES` et `IMAGE_MANIFEST`. Il devient
-posable dans n'importe quel `LevelDef` sans toucher à une scène.
+posable dans n'importe quel `LevelDef` sans toucher à une scène. Depuis la
+V0.12, la vraie question à se poser avant d'en ajouter un est : *quelle
+FONCTION de pièce n'est pas déjà nommée par les dix-sept existants ?*
 
 Un graphiste qui préfère son propre outil peut **remplacer n'importe quel PNG**
 de `public/assets/` sans toucher au code, tant qu'il respecte les dimensions du

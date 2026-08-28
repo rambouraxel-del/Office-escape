@@ -58,8 +58,8 @@ function exec() {
   const metal = TILES['tile-metal']();
   block(canvas, metal, 2, 8, 14, 10, 'metalLight', 'metalDark');
   block(canvas, metal, 44, 8, 14, 10, 'metalLight', 'metalDark');
-  canvas.blit(PROPS['prop-armchair'](), 0, 22);
-  canvas.blit(PROPS['prop-frame'](), 44, 24);
+  canvas.blit(MENU_PARTS.armchair(), 0, 22);
+  canvas.blit(MENU_PARTS.frame(), 44, 24);
   figure(canvas, 'char-boss', 14, 6);
   canvas.stroke(0, 0, W, H, 'ink');
   return canvas;

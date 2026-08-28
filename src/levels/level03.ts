@@ -36,38 +36,47 @@ export const LEVEL_03: LevelDef = {
   },
   spawn: { x: 250, y: 2060 },
 
-  // V0.11 — aucun rectangle de collision n'a bougé : seule la NATURE des
-  // obstacles change, plus du décor sans collision.
+  // V0.12 — aucun rectangle de collision n'a bougé. Ce qui change, c'est ce
+  // que ces rectangles DISENT : les six blocs des places sont désormais des
+  // `car`, et non plus des armoires posées sur un parking.
   obstacles: [
     { x: 21, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 479, y: 1100, w: 42, h: 2200, kind: 'wall' },
     { x: 250, y: 20, w: 500, h: 40, kind: 'wall' },
     { x: 250, y: 2180, w: 500, h: 40, kind: 'wall' },
 
-    { x: 95, y: 1900, w: 120, h: 70, kind: 'cabinet' },
-    { x: 405, y: 1900, w: 120, h: 70, kind: 'cabinet' },
+    { x: 95, y: 1900, w: 120, h: 70, kind: 'car' },
+    { x: 405, y: 1900, w: 120, h: 70, kind: 'car' },
     { x: 250, y: 1700, w: 90, h: 150, kind: 'pillar' },
 
-    { x: 77, y: 1330, w: 105, h: 190, kind: 'lockers', label: 'ESCALIER' },
-    { x: 420, y: 1450, w: 120, h: 70, kind: 'cabinet' },
+    { x: 77, y: 1330, w: 105, h: 190, kind: 'cabinet', label: 'ESCALIER' },
+    { x: 420, y: 1450, w: 120, h: 70, kind: 'car' },
 
     { x: 120, y: 1080, w: 90, h: 150, kind: 'pillar' },
     { x: 380, y: 1080, w: 90, h: 150, kind: 'pillar' },
 
-    { x: 90, y: 820, w: 120, h: 70, kind: 'cabinet' },
-    { x: 410, y: 820, w: 120, h: 70, kind: 'cabinet' },
+    { x: 90, y: 820, w: 120, h: 70, kind: 'car' },
+    { x: 410, y: 820, w: 120, h: 70, kind: 'car' },
     { x: 250, y: 620, w: 90, h: 150, kind: 'pillar' },
 
     { x: 95, y: 165, w: 150, h: 30, kind: 'wall' },
     { x: 405, y: 165, w: 150, h: 30, kind: 'wall' }
   ],
 
+  // V0.12 — le parking tient en trois choses : le béton, les voitures répétées
+  // et les néons. Tout le bric-à-brac (vélo, pneus, caisses, cactus, chariot,
+  // barrières) a disparu : dans la pénombre il n'ajoutait que du bruit.
   decor: [
     { kind: 'zone', x: 250, y: 2075, w: 300, h: 110, material: 'neutral', text: 'ASCENSEUR' },
     { kind: 'zone', x: 250, y: 92, w: 286, h: 108, material: 'exit', text: 'TA VOITURE  ↑' },
+    { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
 
-    // Places matérialisées : le rectangle peint EST la signalétique. Occupées
-    // là où le niveau pose déjà une voiture, vides ailleurs.
+    // Sas d'ascenseur, en pavage : la seule surface non bitumée du niveau.
+    { kind: 'zone', x: 250, y: 1960, w: 260, h: 80, material: 'outdoor' },
+    { kind: 'prop', x: 168, y: 2016, prop: 'reader' },
+    { kind: 'prop', x: 76, y: 2010, prop: 'vending' },
+
+    // Places matérialisées : le rectangle peint EST la signalétique.
     { kind: 'zone', x: 95, y: 1900, w: 136, h: 92, material: 'bay' },
     { kind: 'zone', x: 405, y: 1900, w: 136, h: 92, material: 'bay' },
     { kind: 'zone', x: 420, y: 1450, w: 136, h: 92, material: 'bay' },
@@ -77,7 +86,7 @@ export const LEVEL_03: LevelDef = {
     { kind: 'zone', x: 95, y: 1600, w: 136, h: 92, material: 'bay' },
     { kind: 'zone', x: 405, y: 600, w: 136, h: 92, material: 'bay' },
 
-    { kind: 'prop', x: 250, y: 44, prop: 'exitSign' },
+    // Repères de niveau : dans le noir, le texte au sol vaut mieux qu'un objet.
     { kind: 'text', x: 250, y: 1490, text: 'NIVEAU −1', size: 13, tone: 'cool' },
     { kind: 'text', x: 250, y: 960, text: 'NIVEAU −2', size: 13, tone: 'cool' },
     { kind: 'text', x: 250, y: 400, text: 'RAMPE DE SORTIE', size: 12, tone: 'cool' },
@@ -87,62 +96,22 @@ export const LEVEL_03: LevelDef = {
     { kind: 'text', x: 405, y: 1312, text: 'B-02', size: 10, tone: 'quiet' },
     { kind: 'text', x: 405, y: 662, text: 'C-07', size: 10, tone: 'quiet' },
 
-    // Néons du plafond : ils marquent les mêmes points que les lampes de
-    // `ambient.lights`, pour qu'on VOIE d'où vient la lumière.
+    // Néons du plafond : ils marquent les mêmes points que `ambient.lights`,
+    // pour qu'on VOIE d'où vient la lumière.
     { kind: 'prop', x: 250, y: 2010, prop: 'neon' },
     { kind: 'prop', x: 250, y: 1450, prop: 'neon' },
     { kind: 'prop', x: 250, y: 950, prop: 'neon' },
     { kind: 'prop', x: 250, y: 450, prop: 'neon' },
 
-    { kind: 'prop', x: 95, y: 166, prop: 'parkingSign' },
-    { kind: 'prop', x: 405, y: 166, prop: 'parkingSign' },
-    { kind: 'prop', x: 250, y: 1610, prop: 'extinguisher' },
-    { kind: 'prop', x: 120, y: 990, prop: 'extinguisher' },
-    { kind: 'prop', x: 380, y: 990, prop: 'extinguisher' },
-
+    // Signalétique de sécurité : trois plots, et rien d'autre.
     { kind: 'prop', x: 196, y: 1520, prop: 'cone' },
     { kind: 'prop', x: 304, y: 1210, prop: 'cone' },
     { kind: 'prop', x: 196, y: 320, prop: 'cone' },
-    { kind: 'prop', x: 56, y: 2054, prop: 'barrier' },
-    { kind: 'prop', x: 444, y: 2054, prop: 'barrier' },
-    { kind: 'prop', x: 444, y: 1780, prop: 'bike' },
-    { kind: 'prop', x: 56, y: 1010, prop: 'cart' },
-    { kind: 'prop', x: 56, y: 1740, prop: 'crate' },
-    { kind: 'prop', x: 444, y: 1150, prop: 'crate' },
-    { kind: 'prop', x: 56, y: 600, prop: 'tire' },
-    { kind: 'prop', x: 444, y: 880, prop: 'tire' },
-    { kind: 'prop', x: 56, y: 300, prop: 'trash' },
-    { kind: 'prop', x: 444, y: 420, prop: 'boxes' },
 
-    // Deux plantes oubliées près de l'ascenseur : le seul geste chaleureux du
-    // niveau, et il est raté.
-    { kind: 'prop', x: 55, y: 1880, prop: 'cactus' },
-    { kind: 'prop', x: 444, y: 1620, prop: 'cactus' },
-
-    // ── V0.11 : le parking se dote de ce qui fait un vrai sous-sol.
-
-    // Sas de l'ascenseur : dallage, tapis, et le lecteur de badge du hall.
-    { kind: 'zone', x: 250, y: 1960, w: 260, h: 80, material: 'hall' },
-    { kind: 'prop', x: 250, y: 1975, prop: 'mat' },
-    { kind: 'prop', x: 168, y: 2016, prop: 'reader' },
-
-    // Local technique, sous la rampe : sol caoutchouc, baies, garde-corps.
-    { kind: 'zone', x: 442, y: 340, w: 76, h: 200, material: 'tech' },
-    { kind: 'prop', x: 444, y: 290, prop: 'server' },
-    { kind: 'prop', x: 444, y: 380, prop: 'server' },
-    { kind: 'prop', x: 250, y: 250, prop: 'railing' },
-
-    // Local ménage, près de l'escalier : le seau et le panneau qui vont avec.
-    { kind: 'prop', x: 150, y: 1250, prop: 'mop' },
-    { kind: 'prop', x: 150, y: 1310, prop: 'wetFloor' },
-    { kind: 'prop', x: 150, y: 1400, prop: 'recycling' },
-
-    // Zone livraison : rubalise et cartons devant une place condamnée.
-    { kind: 'prop', x: 405, y: 1900, prop: 'hazardTape' },
-    { kind: 'prop', x: 405, y: 1836, prop: 'filebox' },
-
-    // Coin distributeur de l'ascenseur : le seul endroit éclairé où traîner.
-    { kind: 'prop', x: 56, y: 2010, prop: 'vending' }
+    // Local technique sous la rampe.
+    { kind: 'zone', x: 412, y: 340, w: 76, h: 200, material: 'tech' },
+    { kind: 'prop', x: 414, y: 300, prop: 'server' },
+    { kind: 'prop', x: 414, y: 390, prop: 'server' }
   ],
 
   npcs: [
@@ -183,7 +152,7 @@ export const LEVEL_03: LevelDef = {
     {
       id: 'cleaner',
       label: 'AGENT D’ENTRETIEN',
-      archetype: 'intern',
+      archetype: 'hr',
       // Boucle du fond, décalée pour passer À CÔTÉ du pilier central plutôt
       // qu'au travers : c'est le pilier qui décide du tracé, pas la grille.
       patrol: [
